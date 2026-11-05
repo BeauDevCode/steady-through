@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 class CheckInsScreen extends StatelessWidget {
   const CheckInsScreen({super.key, required this.controller});
@@ -18,82 +19,216 @@ class CheckInsScreen extends StatelessWidget {
               .where((entry) => entry.eventId == event?.id)
               .toList()
             ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return ListView(
-        padding: const EdgeInsets.all(16),
+      final colors = Theme.of(context).colorScheme;
+      return SteadyPage(
+        maxWidth: 960,
         children: [
-          Text('Check-ins', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 8),
-          Text(
-            simple ? 'Write how you feel. This is just for you.' : 'A check-in is a note for yourself. There is no right answer or score.',
+          const Eyebrow('A moment for you'),
+          const SizedBox(height: 12),
+          SectionHeading(
+            title: 'Check-ins',
+            subtitle: simple ? 'Write how you feel. This is just for you.' : 'A check-in is a note for yourself. There is no right answer or score.',
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           if (event == null)
-            Text(
-              simple
-                  ? 'Start an event on Home to write a check-in.'
-                  : 'Create an event from Home to save a check-in.',
+            SurfaceCard(
+              color: colors.primaryContainer,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconBadge(
+                    icon: Icons.edit_note_outlined,
+                    color: colors.surface,
+                    size: 56,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Make space for how you feel',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    simple
+                        ? 'Start an event on Home to write a check-in.'
+                        : 'Create an event from Home to save a check-in.',
+                  ),
+                ],
+              ),
             ),
           if (event != null) ...[
-            Text(
-              'For ${event.title}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.icon(
-                onPressed: () => _addCheckIn(context, event.id),
-                icon: const Icon(Icons.add),
-                label: const Text('Add check-in'),
+            SurfaceCard(
+              color: colors.primaryContainer,
+              padding: const EdgeInsets.all(20),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final heading = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Current event'),
+                      const SizedBox(height: 8),
+                      Text(
+                        'For ${event.title}',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ],
+                  );
+                  final button = FilledButton.icon(
+                    onPressed: () => _addCheckIn(context, event.id),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add check-in'),
+                  );
+                  if (constraints.maxWidth < 560) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [heading, const SizedBox(height: 16), button],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: heading),
+                      const SizedBox(width: 24),
+                      button,
+                    ],
+                  );
+                },
               ),
+            ),
+            const SizedBox(height: 28),
+            Text(
+              simple ? 'Your notes' : 'Your check-in history',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
             if (entries.isEmpty)
-              const Text(
-                'No check-ins for this event yet. Add one whenever you want.',
+              const SurfaceCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconBadge(icon: Icons.notes_outlined, size: 44),
+                    SizedBox(height: 16),
+                    Text(
+                      'No check-ins for this event yet. Add one whenever you want.',
+                    ),
+                  ],
+                ),
               ),
-            for (final entry in entries) _entryCard(context, entry),
+            for (var index = 0; index < entries.length; index++)
+              _entryCard(
+                context,
+                entries[index],
+                first: index == 0,
+                last: index == entries.length - 1,
+              ),
           ],
         ],
       );
     },
   );
 
-  Widget _entryCard(BuildContext context, CheckIn entry) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _entryCard(
+    BuildContext context,
+    CheckIn entry, {
+    required bool first,
+    required bool last,
+  }) {
+    final colors = Theme.of(context).colorScheme;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  entry.feeling,
-                  style: Theme.of(context).textTheme.titleMedium,
+          SizedBox(
+            width: 20,
+            child: Column(
+              children: [
+                Container(
+                  width: 2,
+                  height: 28,
+                  color: first ? Colors.transparent : colors.outlineVariant,
+                ),
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: colors.primaryContainer,
+                      width: 3,
+                    ),
+                  ),
+                ),
+                if (!last)
+                  Expanded(
+                    child: Center(
+                      child: Container(width: 2, color: colors.outlineVariant),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: SurfaceCard(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            entry.feeling,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Delete check-in ${entry.feeling}',
+                          onPressed: () => _deleteCheckIn(context, entry),
+                          icon: const Icon(Icons.delete_outline),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      MaterialLocalizations.of(context)
+                          .formatMediumDate(entry.createdAt.toLocal()),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: colors.onSurfaceVariant),
+                    ),
+                    if (entry.intensity != null) ...[
+                      const SizedBox(height: 12),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: colors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Text('Intensity: ${entry.intensity} of 5'),
+                        ),
+                      ),
+                    ],
+                    if (entry.note?.isNotEmpty ?? false) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        entry.note!,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              IconButton(
-                tooltip: 'Delete check-in ${entry.feeling}',
-                onPressed: () => _deleteCheckIn(context, entry),
-                icon: const Icon(Icons.delete_outline),
-              ),
-            ],
+            ),
           ),
-          Text(
-            MaterialLocalizations.of(context)
-                .formatMediumDate(entry.createdAt.toLocal()),
-          ),
-          if (entry.intensity != null)
-            Text('Intensity: ${entry.intensity} of 5'),
-          if (entry.note?.isNotEmpty ?? false) ...[
-            const SizedBox(height: 8),
-            Text(entry.note!),
-          ],
         ],
       ),
-    ),
-  );
+    );
+  }
 
   Future<void> _addCheckIn(BuildContext context, String eventId) async {
     final formKey = GlobalKey<FormState>();

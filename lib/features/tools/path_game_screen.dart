@@ -7,6 +7,7 @@ import 'package:steady_through/features/tools/grounding_screen.dart';
 import 'package:steady_through/game/game_feedback.dart';
 import 'package:steady_through/game/path_game.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 class PathGameScreen extends StatefulWidget {
   const PathGameScreen({
@@ -156,97 +157,154 @@ class _PathGameScreenState extends State<PathGameScreen> {
     final simple = widget.controller.data.readingStyle == ReadingStyle.simple;
     final cue = !_game.isComplete ? GameFeedback.cue(_game) : null;
     final pattern = GameFeedback.pattern(widget.controller.data.gameRounds);
-    return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return SteadyPage(
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back to Tools'),
+            ),
+            HelpNowButton(simpleWords: simple, openHelp: widget.onOpenHelp),
+          ],
+        ),
+        const SizedBox(height: 24),
+        SectionHeading(
+          title: 'Path game',
+          subtitle: simple
+              ? 'Find a way from Start to Finish. Tap a square next to your place. Take your time.'
+              : 'Move from Start to Finish one square at a time. There is no timer, score, or failure state. You can stop whenever you want.',
+        ),
+        const SizedBox(height: 28),
+        ResponsiveColumns(
+          minWidth: 360,
+          children: [
+            SurfaceCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextButton.icon(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back),
-                    label: const Text('Back to Tools'),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 4, 4, 20),
+                    child: Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          'Route ${_game.boardId + 1}',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const Eyebrow('Take your time'),
+                      ],
+                    ),
                   ),
-                  HelpNowButton(
-                    simpleWords: simple,
-                    openHelp: widget.onOpenHelp,
+                  _board(context),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed:
+                            _game.path.length > 1 &&
+                                !_saving &&
+                                _savedFeeling == null
+                            ? () => setState(() {
+                                _game.undo();
+                                _saveError = null;
+                              })
+                            : null,
+                        icon: const Icon(Icons.undo),
+                        label: const Text('Undo'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed:
+                            _game.path.length > 1 &&
+                                !_saving &&
+                                _savedFeeling == null
+                            ? () => setState(() {
+                                _game.restart();
+                                _saveError = null;
+                              })
+                            : null,
+                        icon: const Icon(Icons.replay),
+                        label: const Text('Restart'),
+                      ),
+                      TextButton(
+                        onPressed: _saving ? null : _newBoard,
+                        child: const Text('New board'),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Path game',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                simple
-                    ? 'Find a way from Start to Finish. Tap a square next to your place. Take your time.'
-                    : 'Move from Start to Finish one square at a time. There is no timer, score, or failure state. You can stop whenever you want.',
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Route ${_game.boardId + 1}',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 10),
-              _board(context),
-              const SizedBox(height: 10),
-              const Text(
-                'Filled circle: your place. Flag: Start. Checkered flag: Finish. Block symbol: closed square.',
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed:
-                        _game.path.length > 1 &&
-                            !_saving &&
-                            _savedFeeling == null
-                        ? () => setState(() {
-                            _game.undo();
-                            _saveError = null;
-                          })
-                        : null,
-                    icon: const Icon(Icons.undo),
-                    label: const Text('Undo'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed:
-                        _game.path.length > 1 &&
-                            !_saving &&
-                            _savedFeeling == null
-                        ? () => setState(() {
-                            _game.restart();
-                            _saveError = null;
-                          })
-                        : null,
-                    icon: const Icon(Icons.replay),
-                    label: const Text('Restart'),
-                  ),
-                  TextButton(
-                    onPressed: _saving ? null : _newBoard,
-                    child: const Text('New board'),
-                  ),
-                ],
-              ),
-              if (cue != null) ...[
-                const SizedBox(height: 16),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_game.isComplete)
+                  _roundResult(context)
+                else
+                  SurfaceCard(
+                    color: colors.primaryContainer,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(cue),
-                        const SizedBox(height: 8),
+                        IconBadge(
+                          icon: Icons.route_outlined,
+                          color: colors.surface,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          simple ? 'Take one step' : 'One square at a time',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          simple
+                              ? 'Tap an open square next to your place. You can go back.'
+                              : 'Choose an open square next to your current place. You can explore, go back, or try another route.',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                        const SizedBox(height: 24),
+                        const Divider(height: 1),
+                        const SizedBox(height: 20),
+                        Wrap(
+                          spacing: 20,
+                          runSpacing: 16,
+                          children: [
+                            _legendItem(
+                              context,
+                              Icons.radio_button_checked,
+                              'Your place',
+                            ),
+                            _legendItem(context, Icons.flag_outlined, 'Start'),
+                            _legendItem(
+                              context,
+                              Icons.sports_score_outlined,
+                              'Finish',
+                            ),
+                            _legendItem(context, Icons.block, 'Closed square'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                if (cue != null) ...[
+                  const SizedBox(height: 20),
+                  SurfaceCard(
+                    color: colors.secondaryContainer,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(cue, style: theme.textTheme.bodyLarge),
+                        const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
@@ -265,184 +323,286 @@ class _PathGameScreenState extends State<PathGameScreen> {
                       ],
                     ),
                   ),
-                ),
-              ],
-              if (_game.isComplete) ...[
-                const SizedBox(height: 20),
-                _roundResult(context),
-              ],
-              if (pattern != null) ...[
-                const SizedBox(height: 20),
-                Text(
-                  'Your saved rounds',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(pattern),
-              ],
-              if (widget.controller.data.gameRounds.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: _saving ? null : _clearHistory,
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Clear game history'),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _board(BuildContext context) {
-    final board = _game.board;
-    return LayoutBuilder(
-      builder: (context, constraints) => Center(
-        child: SizedBox(
-          width: min(constraints.maxWidth, 360.0),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: board.width * board.height,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: board.width,
-              mainAxisSpacing: 4,
-              crossAxisSpacing: 4,
-            ),
-            itemBuilder: (context, cell) {
-              final blocked = board.blockedCells.contains(cell);
-              final current = cell == _game.currentCell;
-              final start = cell == board.start;
-              final finish = cell == board.goal;
-              final visited = _game.path.contains(cell);
-              final label =
-                  '${blocked
-                      ? 'Closed square'
-                      : current
-                      ? 'Current square'
-                      : finish
-                      ? 'Finish'
-                      : start
-                      ? 'Start'
-                      : 'Open square'}, row ${cell ~/ board.width + 1}, column ${cell % board.width + 1}';
-              final icon = blocked
-                  ? Icons.block
-                  : current
-                  ? Icons.radio_button_checked
-                  : finish
-                  ? Icons.sports_score_outlined
-                  : start
-                  ? Icons.flag_outlined
-                  : visited
-                  ? Icons.circle
-                  : Icons.circle_outlined;
-              return Semantics(
-                label: label,
-                child: Tooltip(
-                  message: label,
-                  child: OutlinedButton(
-                    key: ValueKey('cell-$cell'),
-                    onPressed: _canMoveTo(cell) ? () => _move(cell) : null,
-                    style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
-                    child: Icon(icon),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _roundResult(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'You reached Finish',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'This round had ${_game.moves} moves, ${_game.backtracks} backtracks, and ${_game.restarts} restarts.',
-          ),
-          const SizedBox(height: 12),
-          if (_savedFeeling == null) ...[
-            Text(
-              'How did this round feel?',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Your answer is optional. Moves alone do not tell us how you felt.',
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final feeling in RoundFeeling.values)
-                  OutlinedButton(
-                    onPressed: _saving ? null : () => _chooseFeeling(feeling),
-                    child: Text(_feelingLabel(feeling)),
-                  ),
-              ],
-            ),
-            if (_saveError != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _saveError!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
-          ] else ...[
-            Text(
-              'You marked this round ${_feelingLabel(_savedFeeling!).toLowerCase()}.',
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _savedFeeling == RoundFeeling.tense
-                  ? widget.controller.activeEvent != null &&
-                            widget.onOpenPath != null
-                        ? 'Since you said it felt tense, you could try grounding or choose one small next step in your event path.'
-                        : 'Since you said it felt tense, you could try grounding or take a short break.'
-                  : widget.controller.activeEvent != null &&
-                        widget.onOpenPath != null
-                  ? 'If you want, try another round or return to your event path.'
-                  : 'If you want, try another round.',
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (_savedFeeling == RoundFeeling.tense)
-                  OutlinedButton(
-                    onPressed: _openGrounding,
-                    child: const Text('Try grounding'),
-                  ),
-                FilledButton(
-                  onPressed: _newBoard,
-                  child: const Text('Another round'),
-                ),
-                if (widget.controller.activeEvent != null &&
-                    widget.onOpenPath != null)
-                  OutlinedButton(
-                    onPressed: widget.onOpenPath,
-                    child: const Text('Go to event path'),
-                  ),
+                ],
               ],
             ),
           ],
+        ),
+        if (pattern != null) ...[
+          const SizedBox(height: 28),
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Your saved rounds', style: theme.textTheme.titleLarge),
+                const SizedBox(height: 12),
+                Text(pattern, style: theme.textTheme.bodyLarge),
+              ],
+            ),
+          ),
         ],
+        if (widget.controller.data.gameRounds.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: _saving ? null : _clearHistory,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Clear game history'),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _legendItem(BuildContext context, IconData icon, String label) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+      const SizedBox(width: 8),
+      Flexible(
+        child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
       ),
+    ],
+  );
+
+  Widget _board(BuildContext context) {
+    final board = _game.board;
+    final colors = Theme.of(context).colorScheme;
+    return LayoutBuilder(
+      builder: (context, constraints) => Center(
+        child: SizedBox(
+          width: min(constraints.maxWidth, 420.0),
+          child: AspectRatio(
+            aspectRatio: board.width / board.height,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ExcludeSemantics(
+                  child: CustomPaint(
+                    painter: _RouteBoardPainter(
+                      board: board,
+                      path: _game.path,
+                      colors: colors,
+                    ),
+                  ),
+                ),
+                FocusTraversalGroup(
+                  child: GridView.builder(
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: board.width * board.height,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: board.width,
+                      mainAxisSpacing: 8,
+                      crossAxisSpacing: 8,
+                    ),
+                    itemBuilder: (context, cell) {
+                      final blocked = board.blockedCells.contains(cell);
+                      final current = cell == _game.currentCell;
+                      final start = cell == board.start;
+                      final finish = cell == board.goal;
+                      final visited = _game.path.contains(cell);
+                      final available = _canMoveTo(cell);
+                      final label =
+                          '${blocked
+                              ? 'Closed square'
+                              : current
+                              ? 'Current square'
+                              : finish
+                              ? 'Finish'
+                              : start
+                              ? 'Start'
+                              : 'Open square'}, row ${cell ~/ board.width + 1}, column ${cell % board.width + 1}';
+                      final icon = blocked
+                          ? Icons.block
+                          : current
+                          ? Icons.radio_button_checked
+                          : finish
+                          ? Icons.sports_score_outlined
+                          : start
+                          ? Icons.flag_outlined
+                          : visited
+                          ? Icons.circle
+                          : Icons.circle_outlined;
+                      final foreground = current
+                          ? colors.onPrimary
+                          : finish
+                          ? colors.onSecondaryContainer
+                          : blocked
+                          ? colors.onSurfaceVariant
+                          : colors.primary;
+                      final cellColor = current
+                          ? colors.primary
+                          : blocked
+                          ? colors.surfaceContainerHighest
+                          : finish
+                          ? colors.secondaryContainer
+                          : visited || start
+                          ? colors.primaryContainer
+                          : colors.surface;
+                      return Semantics(
+                        label: label,
+                        selected: current,
+                        child: Tooltip(
+                          message: label,
+                          child: OutlinedButton(
+                            key: ValueKey('cell-$cell'),
+                            onPressed: available ? () => _move(cell) : null,
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              foregroundColor: foreground,
+                              disabledForegroundColor: foreground,
+                              backgroundColor: Colors.transparent,
+                              disabledBackgroundColor: Colors.transparent,
+                              side: BorderSide(
+                                color: current
+                                    ? colors.primary
+                                    : available
+                                    ? colors.primary.withValues(alpha: .65)
+                                    : colors.outlineVariant,
+                                width: available ? 1.5 : 1,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Center(
+                                  child: Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: cellColor,
+                                    ),
+                                    child: Icon(
+                                      icon,
+                                      size:
+                                          blocked || current || start || finish
+                                          ? 24
+                                          : visited
+                                          ? 10
+                                          : 12,
+                                      color: foreground,
+                                    ),
+                                  ),
+                                ),
+                                if (current && (start || finish))
+                                  Positioned(
+                                    top: 5,
+                                    left: 5,
+                                    child: Icon(
+                                      start
+                                          ? Icons.flag_outlined
+                                          : Icons.sports_score_outlined,
+                                      size: 12,
+                                      color: foreground,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _roundResult(BuildContext context) => SurfaceCard(
+    color: Theme.of(context).colorScheme.primaryContainer,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'You reached Finish',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'This round had ${_game.moves} moves, ${_game.backtracks} backtracks, and ${_game.restarts} restarts.',
+        ),
+        const SizedBox(height: 12),
+        if (_savedFeeling == null) ...[
+          Text(
+            'How did this round feel?',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Your answer is optional. Moves alone do not tell us how you felt.',
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final feeling in RoundFeeling.values)
+                OutlinedButton(
+                  onPressed: _saving ? null : () => _chooseFeeling(feeling),
+                  child: Text(_feelingLabel(feeling)),
+                ),
+            ],
+          ),
+          if (_saveError != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _saveError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ] else ...[
+          Text(
+            'You marked this round ${_feelingLabel(_savedFeeling!).toLowerCase()}.',
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _savedFeeling == RoundFeeling.tense
+                ? widget.controller.activeEvent != null &&
+                          widget.onOpenPath != null
+                      ? 'Since you said it felt tense, you could try grounding or choose one small next step in your event path.'
+                      : 'Since you said it felt tense, you could try grounding or take a short break.'
+                : widget.controller.activeEvent != null &&
+                      widget.onOpenPath != null
+                ? 'If you want, try another round or return to your event path.'
+                : 'If you want, try another round.',
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (_savedFeeling == RoundFeeling.tense)
+                OutlinedButton(
+                  onPressed: _openGrounding,
+                  child: const Text('Try grounding'),
+                ),
+              FilledButton(
+                onPressed: _newBoard,
+                child: const Text('Another round'),
+              ),
+              if (widget.controller.activeEvent != null &&
+                  widget.onOpenPath != null)
+                OutlinedButton(
+                  onPressed: widget.onOpenPath,
+                  child: const Text('Go to event path'),
+                ),
+            ],
+          ),
+        ],
+      ],
     ),
   );
 
@@ -451,4 +611,80 @@ class _PathGameScreenState extends State<PathGameScreen> {
     RoundFeeling.tense => 'Tense',
     RoundFeeling.neither => 'Neither',
   };
+}
+
+/// Paint the connected route beneath the real, focusable cell buttons.
+class _RouteBoardPainter extends CustomPainter {
+  _RouteBoardPainter({
+    required this.board,
+    required this.path,
+    required this.colors,
+  });
+
+  final PathBoard board;
+  final List<int> path;
+  final ColorScheme colors;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const gap = 8.0;
+    final cellWidth = (size.width - gap * (board.width - 1)) / board.width;
+    final cellHeight = (size.height - gap * (board.height - 1)) / board.height;
+    Offset center(int cell) => Offset(
+      (cell % board.width) * (cellWidth + gap) + cellWidth / 2,
+      (cell ~/ board.width) * (cellHeight + gap) + cellHeight / 2,
+    );
+    final visited = path.toSet();
+    for (var cell = 0; cell < board.width * board.height; cell++) {
+      final color = cell == path.last
+          ? colors.primary
+          : board.blockedCells.contains(cell)
+          ? colors.surfaceContainerHighest
+          : cell == board.goal
+          ? colors.secondaryContainer
+          : visited.contains(cell) || cell == board.start
+          ? colors.primaryContainer
+          : colors.surface;
+      final rect = Rect.fromLTWH(
+        (cell % board.width) * (cellWidth + gap),
+        (cell ~/ board.width) * (cellHeight + gap),
+        cellWidth,
+        cellHeight,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(14)),
+        Paint()..color = color,
+      );
+    }
+    if (path.length > 1) {
+      final route = Path()
+        ..moveTo(center(path.first).dx, center(path.first).dy);
+      for (final cell in path.skip(1)) {
+        final point = center(cell);
+        route.lineTo(point.dx, point.dy);
+      }
+      canvas.drawPath(
+        route,
+        Paint()
+          ..color = colors.primary.withValues(alpha: .65)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 6
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RouteBoardPainter oldDelegate) {
+    if (oldDelegate.board != board ||
+        oldDelegate.colors != colors ||
+        oldDelegate.path.length != path.length) {
+      return true;
+    }
+    for (var index = 0; index < path.length; index++) {
+      if (path[index] != oldDelegate.path[index]) return true;
+    }
+    return false;
+  }
 }

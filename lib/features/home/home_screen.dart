@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -65,169 +66,345 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final event = controller.activeEvent;
-    return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: ListView(
+    return SteadyPage(
+      children: event == null
+          ? _emptyContents(context)
+          : _eventContents(context, event),
+    );
+  }
+
+  List<Widget> _emptyContents(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+    return [
+      SurfaceCard(
+        color: colors.primaryContainer,
+        child: _heroLayout(
+          context,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Eyebrow('A place to begin'),
+              const SizedBox(height: 10),
+              Text('Start an event', style: text.headlineLarge),
+              const SizedBox(height: 12),
+              Text(
+                _simpleWords
+                    ? 'Start with one small step. Your notes stay on this device. A trusted person can read with you.'
+                    : 'Make a little room for what is happening. Your notes stay on this device, and you do not need an account.',
+                style: text.bodyMedium,
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton.icon(
+                    onPressed: onCreateEvent,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Create event'),
+                  ),
+                  if (controller.data.events.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () => _switchEvent(context),
+                      icon: const Icon(Icons.swap_horiz_rounded),
+                      label: const Text('Switch event'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 24),
+      _supportHeading(context),
+      const SizedBox(height: 14),
+      _quickActions(context),
+      const SizedBox(height: 32),
+      SectionHeading(
+        title: _simpleWords
+            ? 'What is an event?'
+            : 'For the things life brings',
+        subtitle: _simpleWords
+            ? 'An event is something you want help with. It can be big or small.'
+            : 'An event is simply something you want to work through. Big changes and everyday moments both belong here.',
+      ),
+      const SizedBox(height: 18),
+      ResponsiveColumns(
+        minWidth: 240,
+        children: [
+          _example(
+            context,
+            Icons.school_outlined,
+            'Learning & growing',
+            _simpleWords
+                ? 'A school day, a test, or meeting new people.'
+                : 'A new school, an exam, or finding your people.',
+          ),
+          _example(
+            context,
+            Icons.home_work_outlined,
+            'Everyday changes',
+            _simpleWords
+                ? 'A new job, moving, or caring for someone.'
+                : 'A job change, moving home, or caring for someone.',
+          ),
+          _example(
+            context,
+            Icons.wb_sunny_outlined,
+            'New chapters',
+            _simpleWords
+                ? 'Retiring, a loss, or a change in your health.'
+                : 'Retirement, a loss, or a change in health or routine.',
+          ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _eventContents(BuildContext context, SupportEvent event) {
+    final text = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+    final next = event.actions.where((action) => !action.done).firstOrNull;
+    final doneCount = event.actions.where((action) => action.done).length;
+    final actionCount = event.actions.length;
+    return [
+      SurfaceCard(
+        color: colors.primaryContainer,
+        child: _heroLayout(
+          context,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Eyebrow('Your current event'),
+              const SizedBox(height: 10),
+              Text(event.title, style: text.headlineLarge),
+              if (event.description.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(event.description, style: text.bodyMedium),
+              ],
+              const SizedBox(height: 20),
+              if (event.completedAt != null) ...[
+                const Chip(
+                  avatar: Icon(Icons.check_rounded, size: 18),
+                  label: Text('Completed'),
+                ),
+                const SizedBox(height: 8),
+              ],
+              Text(
+                _simpleWords
+                    ? '$doneCount of $actionCount steps done'
+                    : '$doneCount of $actionCount actions done',
+                style: text.labelLarge,
+              ),
+              const SizedBox(height: 10),
+              LinearProgressIndicator(
+                value: actionCount == 0 ? 0 : doneCount / actionCount,
+                minHeight: 7,
+                borderRadius: BorderRadius.circular(20),
+                backgroundColor: colors.onPrimaryContainer.withValues(
+                  alpha: .1,
+                ),
+                semanticsLabel: 'Action progress',
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  if (controller.data.events.length > 1)
+                    TextButton.icon(
+                      onPressed: () => _switchEvent(context),
+                      icon: const Icon(Icons.swap_horiz_rounded),
+                      label: const Text('Switch event'),
+                    ),
+                  TextButton.icon(
+                    onPressed: onCreateEvent,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('New event'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      const SizedBox(height: 20),
+      SurfaceCard(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contents = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _simpleWords ? 'One small step' : 'One next step',
+                  style: text.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  event.completedAt != null
+                      ? (_simpleWords
+                            ? 'Done for now. You can open it again in Path.'
+                            : 'This event is complete. You can reopen it from Path.')
+                      : next?.title ??
+                            (_simpleWords
+                                ? 'You did every step. You can finish when ready.'
+                                : 'All actions are done. You can reflect or finish when ready.'),
+                  style: text.bodyLarge,
+                ),
+              ],
+            );
+            final button = FilledButton.icon(
+              onPressed: onOpenPath,
+              icon: const Icon(Icons.arrow_forward_rounded),
+              label: const Text('View path'),
+            );
+            if (constraints.maxWidth < 600 || _largeText(context)) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [contents, const SizedBox(height: 16), button],
+              );
+            }
+            return Row(
+              children: [
+                const IconBadge(icon: Icons.route_rounded),
+                const SizedBox(width: 20),
+                Expanded(child: contents),
+                const SizedBox(width: 24),
+                button,
+              ],
+            );
+          },
+        ),
+      ),
+      const SizedBox(height: 28),
+      _supportHeading(context),
+      const SizedBox(height: 14),
+      _quickActions(context),
+    ];
+  }
+
+  bool _largeText(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(14) > 20;
+
+  Widget _heroLayout(BuildContext context, Widget contents) => LayoutBuilder(
+    builder: (context, constraints) {
+      if (constraints.maxWidth < 550 || _largeText(context)) return contents;
+      return Row(
+        children: [
+          Expanded(flex: 3, child: contents),
+          const SizedBox(width: 20),
+          const Expanded(flex: 2, child: PathArtwork(height: 210)),
+        ],
+      );
+    },
+  );
+
+  Widget _supportHeading(BuildContext context) => Text(
+    'Support for right now',
+    style: Theme.of(context).textTheme.titleLarge,
+  );
+
+  Widget _quickActions(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return ResponsiveColumns(
+      minWidth: 260,
+      children: [
+        _supportAction(
+          context,
+          icon: Icons.spa_outlined,
+          title: 'Grounding',
+          description: _simpleWords
+              ? 'Pause and notice what is around you.'
+              : 'Come back to the here and now with a short, guided pause.',
+          color: colors.surfaceContainerLow,
+          badgeColor: colors.primaryContainer,
+          onTap: onOpenGrounding,
+        ),
+        _supportAction(
+          context,
+          icon: Icons.edit_note_rounded,
+          title: 'Check in',
+          description: _simpleWords
+              ? 'Write how you feel. A few words are enough.'
+              : 'Name how things feel. A few words can be enough for today.',
+          color: colors.secondaryContainer,
+          badgeColor: colors.surface.withValues(alpha: .65),
+          onTap: onOpenCheckIns,
+        ),
+      ],
+    );
+  }
+
+  Widget _supportAction(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    final text = Theme.of(context).textTheme;
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      color: color,
+      clipBehavior: Clip.antiAlias,
+      child: Semantics(
+        button: true,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
             padding: const EdgeInsets.all(20),
-            children: event == null
-                ? _emptyContents(context)
-                : _eventContents(context, event),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    IconBadge(icon: icon, color: badgeColor, size: 40),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(title, style: text.titleMedium)),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 20,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(description, style: text.bodyMedium),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _emptyContents(BuildContext context) => [
-    Align(
-      alignment: Alignment.centerLeft,
-      child: Image.asset(
-        'assets/brand/steady-through-icon.png',
-        width: 88,
-        height: 88,
-        semanticLabel: 'Steady Through mark',
-      ),
-    ),
-    const SizedBox(height: 16),
-    Text('Steady Through', style: Theme.of(context).textTheme.headlineLarge),
-    const SizedBox(height: 12),
-    Text('Start an event', style: Theme.of(context).textTheme.headlineMedium),
-    const SizedBox(height: 12),
-    Text(
-      _simpleWords
-          ? 'Start with one small step. Your notes stay on this device. A trusted person can read with you.'
-          : 'When something feels hard, you can start with one small step. Your notes stay on this device, and you do not need an account.',
-    ),
-    const SizedBox(height: 24),
-    Align(
-      alignment: Alignment.centerLeft,
-      child: FilledButton.icon(
-        onPressed: onCreateEvent,
-        icon: const Icon(Icons.add),
-        label: const Text('Create event'),
-      ),
-    ),
-    if (controller.data.events.isNotEmpty) ...[
-      const SizedBox(height: 12),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: OutlinedButton.icon(
-          onPressed: () => _switchEvent(context),
-          icon: const Icon(Icons.swap_horiz),
-          label: const Text('Switch event'),
-        ),
-      ),
-    ],
-    const SizedBox(height: 32),
-    _toolCard(context),
-  ];
-
-  List<Widget> _eventContents(BuildContext context, SupportEvent event) {
-    final next = event.actions.where((action) => !action.done).firstOrNull;
-    return [
-      Text('Steady Through', style: Theme.of(context).textTheme.headlineLarge),
-      const SizedBox(height: 20),
-      Text('Your current event', style: Theme.of(context).textTheme.labelLarge),
-      const SizedBox(height: 8),
-      Text(event.title, style: Theme.of(context).textTheme.headlineMedium),
-      if (event.description.isNotEmpty) ...[
-        const SizedBox(height: 8),
-        Text(event.description),
-      ],
-      if (event.completedAt != null) ...[
-        const SizedBox(height: 10),
-        const Chip(label: Text('Completed')),
-      ],
-      const SizedBox(height: 16),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          if (controller.data.events.length > 1)
-            OutlinedButton.icon(
-              onPressed: () => _switchEvent(context),
-              icon: const Icon(Icons.swap_horiz),
-              label: const Text('Switch event'),
-            ),
-          TextButton.icon(
-            onPressed: onCreateEvent,
-            icon: const Icon(Icons.add),
-            label: const Text('New event'),
-          ),
-        ],
-      ),
-      const SizedBox(height: 20),
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _simpleWords ? 'One small step' : 'One next step',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                event.completedAt != null
-                    ? (_simpleWords
-                          ? 'Done for now. You can open it again in Path.'
-                          : 'This event is complete. You can reopen it from Path.')
-                    : next?.title ??
-                          (_simpleWords
-                              ? 'You did every step. You can finish when ready.'
-                              : 'All actions are done. You can reflect or finish when ready.'),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: onOpenPath,
-                icon: const Icon(Icons.route),
-                label: const Text('View path'),
-              ),
-            ],
-          ),
-        ),
-      ),
-      const SizedBox(height: 20),
-      _toolCard(context),
-    ];
-  }
-
-  Widget _toolCard(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
+  Widget _example(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
+    final colors = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, color: colors.primary, size: 25),
+          const SizedBox(height: 14),
+          Text(title, style: text.titleMedium),
+          const SizedBox(height: 6),
           Text(
-            'Support for right now',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _simpleWords ? 'You can pause or write how you feel.' : 'A short pause or a check-in can help you choose what to do next.',
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: onOpenGrounding,
-                icon: const Icon(Icons.spa_outlined),
-                label: const Text('Grounding'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onOpenCheckIns,
-                icon: const Icon(Icons.edit_note),
-                label: const Text('Check in'),
-              ),
-            ],
+            description,
+            style: text.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }

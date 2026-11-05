@@ -75,6 +75,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> showSettingsControl(WidgetTester tester, String label) async {
+    final scrollable = find.byType(Scrollable).first;
+    tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(label),
+      300,
+      scrollable: scrollable,
+    );
+    await tester.pumpAndSettle();
+    await Scrollable.ensureVisible(
+      tester.element(find.text(label)),
+      alignment: .5,
+    );
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('person can be saved and removed', (tester) async {
     await showScreen(tester, PeopleScreen(controller: controller));
 
@@ -368,7 +385,7 @@ void main() {
         ),
       );
 
-      await tester.ensureVisible(find.text('Import data'));
+      await showSettingsControl(tester, 'Import data');
       await tester.tap(find.text('Import data'));
       await tester.pumpAndSettle();
       expect(controller.activeEvent?.title, 'Keep this');
@@ -383,7 +400,7 @@ void main() {
       expect(controller.data.events, isEmpty);
       expect(controller.data.people.single.name, 'Alex');
 
-      await tester.ensureVisible(find.text('Export data'));
+      await showSettingsControl(tester, 'Export data');
       await tester.tap(find.text('Export data'));
       await tester.pumpAndSettle();
       final exported = AppData.fromJson(
@@ -412,7 +429,7 @@ void main() {
     });
     await showScreen(tester, SettingsScreen(controller: controller));
 
-    await tester.ensureVisible(find.text('Clear game history'));
+    await showSettingsControl(tester, 'Clear game history');
     await tester.tap(find.text('Clear game history'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Keep history'));
@@ -424,7 +441,7 @@ void main() {
     await settleAsyncWork(tester);
     expect(controller.data.gameRounds, isEmpty);
 
-    await tester.ensureVisible(find.text('Delete all data'));
+    await showSettingsControl(tester, 'Delete all data');
     await tester.tap(find.text('Delete all data'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Keep data'));
@@ -457,7 +474,7 @@ void main() {
     });
     await showScreen(tester, SettingsScreen(controller: controller));
 
-    await tester.ensureVisible(find.text('Clear game history'));
+    await showSettingsControl(tester, 'Clear game history');
     await tester.tap(find.text('Clear game history'));
     await tester.pumpAndSettle();
     repository.failNextSave = true;
@@ -466,7 +483,7 @@ void main() {
     expect(controller.data.gameRounds, hasLength(1));
     expect(find.textContaining('Could not clear game history'), findsOneWidget);
 
-    await tester.ensureVisible(find.text('Delete all data'));
+    await showSettingsControl(tester, 'Delete all data');
     await tester.tap(find.text('Delete all data'));
     await tester.pumpAndSettle();
     repository.failNextSave = true;

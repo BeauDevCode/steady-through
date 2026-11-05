@@ -17,6 +17,16 @@ The app is for personal organization and general self-help. It does not diagnose
 
 Event check-ins are deleted with their event. Game history belongs to the person and remains until cleared separately or removed by Delete all. [Privacy and data details](PRIVACY.md) explain local storage, exports, backups, and deletion.
 
+## App preview
+
+The redesigned interface uses bundled typography and original route artwork. These captures use synthetic sample entries.
+
+![Desktop Home with current event, next step, and support actions](docs/screenshots/home-desktop.png)
+
+<img src="docs/screenshots/home-mobile.png" alt="Mobile Home" width="240" /> <img src="docs/screenshots/game-mobile.png" alt="Mobile path game" width="240" /> <img src="docs/screenshots/checkins-mobile.png" alt="Mobile check-ins" width="240" />
+
+Regenerate visual review captures with `flutter test --update-goldens tool/capture_ui_test.dart`. The normal test suite checks navigation, persistence, errors, and layouts with long entries at 320 and 1200 pixels with 200% text.
+
 ## Set up locally
 
 Install [Flutter 3.47.9](https://docs.flutter.dev/install/archive), verify the required platform toolchain with `flutter doctor -v`, then run:
@@ -55,3 +65,5 @@ Game-based stress research is still limited for this use. A [controlled adult st
 ## Contributing and license
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development and review expectations. Source code is available under the [MIT License](LICENSE).
+
+The bundled [Manrope typeface](https://github.com/google/fonts/tree/main/ofl/manrope) uses the SIL Open Font License; its license is included in `assets/fonts/OFL-Manrope.txt`. Fonts and original route artwork are available offline.

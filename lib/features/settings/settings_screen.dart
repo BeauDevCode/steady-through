@@ -3,6 +3,7 @@ import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/data_portability.dart';
 import 'package:steady_through/features/people/people_screen.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key, required this.controller});
@@ -37,30 +38,199 @@ class _MoreScreenState extends State<MoreScreen> {
         ],
       );
     }
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    final colors = Theme.of(context).colorScheme;
+    return SteadyPage(
       children: [
-        Text('More', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 8),
-        const Text(
-          'Keep trusted people nearby and choose how the app works for you.',
+        const Eyebrow('Make it yours'),
+        const SizedBox(height: 12),
+        const SectionHeading(
+          title: 'More',
+          subtitle: 'Keep trusted people nearby and choose how the app works for you.',
         ),
-        const SizedBox(height: 16),
-        ListTile(
-          leading: const Icon(Icons.people_outline),
-          title: const Text('People'),
-          subtitle: const Text('Saved names and phone numbers'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => setState(() => destination = 'people'),
+        const SizedBox(height: 28),
+        ResponsiveColumns(
+          minWidth: 300,
+          children: [
+            _MoreCard(
+              title: 'People',
+              subtitle: 'Saved names and phone numbers',
+              description: 'A place for the people you trust.',
+              icon: Icons.people_outline,
+              color: colors.primaryContainer,
+              onTap: () => setState(() => destination = 'people'),
+            ),
+            _MoreCard(
+              title: 'Settings',
+              subtitle: 'Appearance, privacy, and data',
+              description: 'Choose what feels easiest to read and use.',
+              icon: Icons.tune_outlined,
+              color: colors.secondaryContainer,
+              onTap: () => setState(() => destination = 'settings'),
+            ),
+          ],
         ),
-        ListTile(
-          leading: const Icon(Icons.settings_outlined),
-          title: const Text('Settings'),
-          subtitle: const Text('Appearance, privacy, and data'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => setState(() => destination = 'settings'),
+        const SizedBox(height: 28),
+        SurfaceCard(
+          color: colors.surfaceContainerLow,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const IconBadge(icon: Icons.lock_outline, size: 40),
+              const SizedBox(height: 16),
+              Text(
+                'Your space, at your pace',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Your entries stay on this device. You can save a copy or remove your data in Settings.',
+              ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+class _MoreCard extends StatelessWidget {
+  const _MoreCard({
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            IconBadge(icon: icon, color: color, size: 56),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.arrow_forward,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(subtitle, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
+            Text(
+              description,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _SettingAction extends StatelessWidget {
+  const _SettingAction({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+    this.filled = false,
+    this.destructive = false,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool filled;
+  final bool destructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final foreground = onTap == null
+        ? colors.onSurfaceVariant
+        : destructive
+        ? colors.error
+        : colors.onSurface;
+    return Material(
+      color: filled ? colors.surfaceContainerLow : Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: LayoutBuilder(
+            builder: (context, constraints) => Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (constraints.maxWidth >= 360) ...[
+                  ExcludeSemantics(
+                    child: IconBadge(
+                      icon: icon,
+                      color: destructive
+                          ? colors.errorContainer
+                          : colors.primaryContainer,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: foreground),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(color: colors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right,
+                  size: 20,
+                  color: onTap == null ? colors.outlineVariant : foreground,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -77,88 +247,154 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: controller,
-    builder: (context, _) => ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text('Settings', style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 8),
-        Text(
-          'Choose what feels easiest to read and use.',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 16),
-        ListTile(
-          title: const Text('Theme'),
-          subtitle: Text(_themeName(controller.data.theme)),
-          leading: const Icon(Icons.palette_outlined),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _chooseTheme(context),
-        ),
-        ListTile(
-          title: const Text('Reading style'),
-          subtitle: Text(_readingName(controller.data.readingStyle)),
-          leading: const Icon(Icons.text_fields),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _chooseReadingStyle(context),
-        ),
-        if (controller.data.readingStyle == ReadingStyle.simple)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              'Simple words are on. A trusted helper can read along with you.',
+    builder: (context, _) {
+      final colors = Theme.of(context).colorScheme;
+      final simple = controller.data.readingStyle == ReadingStyle.simple;
+      return SteadyPage(
+        children: [
+          const Eyebrow('Your preferences'),
+          const SizedBox(height: 12),
+          const SectionHeading(
+            title: 'Settings',
+            subtitle: 'Choose what feels easiest to read and use.',
+          ),
+          const SizedBox(height: 28),
+          ResponsiveColumns(
+            minWidth: 340,
+            children: [
+              SurfaceCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Appearance',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    _SettingAction(
+                      title: 'Theme',
+                      subtitle: _themeName(controller.data.theme),
+                      icon: Icons.palette_outlined,
+                      onTap: () => _chooseTheme(context),
+                    ),
+                    const Divider(height: 20),
+                    _SettingAction(
+                      title: 'Reading style',
+                      subtitle: _readingName(controller.data.readingStyle),
+                      icon: Icons.text_fields,
+                      onTap: () => _chooseReadingStyle(context),
+                    ),
+                    if (simple) ...[
+                      const SizedBox(height: 16),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text(
+                            'Simple words are on. A trusted helper can read along with you.',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SurfaceCard(
+                color: colors.primaryContainer,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconBadge(
+                      icon: Icons.shield_outlined,
+                      color: colors.surface,
+                      size: 44,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Privacy and safety',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Your entries are stored on this device, without an account or analytics. Exported files are outside app storage. Uninstalling the app can remove local data.',
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Steady Through offers general support and planning. It cannot diagnose, treat, or monitor a condition or danger. If you are in immediate physical danger, contact local emergency services.',
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SurfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your data',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'You choose where an exported JSON file is saved. Anyone with that file may be able to read it.',
+                ),
+                const SizedBox(height: 20),
+                ResponsiveColumns(
+                  minWidth: 300,
+                  children: [
+                    _SettingAction(
+                      title: 'Export data',
+                      subtitle: 'Save a copy of events, check-ins, people, game history, and settings',
+                      icon: Icons.file_download_outlined,
+                      onTap: () => _export(context),
+                      filled: true,
+                    ),
+                    _SettingAction(
+                      title: 'Import data',
+                      subtitle: 'Choose a JSON file; review before replacing current data',
+                      icon: Icons.file_upload_outlined,
+                      onTap: () => _import(context),
+                      filled: true,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Divider(height: 1),
+                const SizedBox(height: 20),
+                ResponsiveColumns(
+                  minWidth: 300,
+                  children: [
+                    _SettingAction(
+                      title: 'Clear game history',
+                      subtitle:
+                          '${controller.data.gameRounds.length} saved rounds',
+                      icon: Icons.restart_alt,
+                      onTap: controller.data.gameRounds.isEmpty
+                          ? null
+                          : () => _clearGameHistory(context),
+                      filled: true,
+                    ),
+                    _SettingAction(
+                      title: 'Delete all data',
+                      subtitle: 'Remove all local records and reset settings',
+                      icon: Icons.delete_forever_outlined,
+                      onTap: () => _deleteAll(context),
+                      filled: true,
+                      destructive: true,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        const Divider(height: 32),
-        Text('Your data', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        const Text(
-          'You choose where an exported JSON file is saved. Anyone with that file may be able to read it.',
-        ),
-        ListTile(
-          title: const Text('Export data'),
-          subtitle: const Text(
-            'Save a copy of events, check-ins, people, game history, and settings',
-          ),
-          leading: const Icon(Icons.file_download_outlined),
-          onTap: () => _export(context),
-        ),
-        ListTile(
-          title: const Text('Import data'),
-          subtitle: const Text(
-            'Choose a JSON file; review before replacing current data',
-          ),
-          leading: const Icon(Icons.file_upload_outlined),
-          onTap: () => _import(context),
-        ),
-        ListTile(
-          title: const Text('Clear game history'),
-          subtitle: Text('${controller.data.gameRounds.length} saved rounds'),
-          leading: const Icon(Icons.restart_alt),
-          onTap: controller.data.gameRounds.isEmpty
-              ? null
-              : () => _clearGameHistory(context),
-        ),
-        ListTile(
-          title: const Text('Delete all data'),
-          subtitle: const Text('Remove all local records and reset settings'),
-          leading: const Icon(Icons.delete_forever_outlined),
-          onTap: () => _deleteAll(context),
-        ),
-        const Divider(height: 32),
-        Text(
-          'Privacy and safety',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Your entries are stored on this device, without an account or analytics. Exported files are outside app storage. Uninstalling the app can remove local data.',
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Steady Through offers general support and planning. It cannot diagnose, treat, or monitor a condition or danger. If you are in immediate physical danger, contact local emergency services.',
-        ),
-      ],
-    ),
+        ],
+      );
+    },
   );
 
   String _themeName(ThemeChoice choice) => switch (choice) {

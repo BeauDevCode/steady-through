@@ -43,6 +43,7 @@ void main() {
   Future<void> tapCell(WidgetTester tester, int cell) async {
     final target = find.byKey(ValueKey('cell-$cell'));
     await tester.ensureVisible(target);
+    await tester.pumpAndSettle();
     await tester.tap(target);
     await tester.pump();
   }

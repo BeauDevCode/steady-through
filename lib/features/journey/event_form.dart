@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 /// Creates or edits an event. Saving is owned by the caller so the same form
 /// works with the app's durable controller and in widget tests.
@@ -66,68 +67,85 @@ class _EventFormState extends State<EventForm> {
     final isEditing = widget.event != null;
     return Scaffold(
       appBar: AppBar(title: Text(isEditing ? 'Edit event' : 'Create event')),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 640),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.simpleWords
-                          ? 'Name what is happening. You can leave details blank.'
-                          : 'Give this moment a name you will recognize later. You can keep the details private.',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _titleController,
-                      autofocus: true,
-                      textCapitalization: TextCapitalization.sentences,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Event title',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty
-                          ? 'Give this event a title.'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      textCapitalization: TextCapitalization.sentences,
-                      minLines: 2,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        labelText: 'Optional description',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    if (_saveError != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _saveError!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _saving ? null : _save,
-                      child: Text(_saving ? 'Saving…' : 'Save event'),
-                    ),
-                  ],
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+          child: Align(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _saving ? null : _save,
+                  child: Text(_saving ? 'Saving…' : 'Save event'),
                 ),
               ),
-            ],
+            ),
           ),
+        ),
+      ),
+      body: Form(
+        key: _formKey,
+        child: SteadyPage(
+          maxWidth: 760,
+          children: [
+            const Eyebrow('Your next chapter'),
+            const SizedBox(height: 12),
+            Text(
+              isEditing
+                  ? 'Make room for what changed.'
+                  : 'Start where you are.',
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            const SizedBox(height: 24),
+            SurfaceCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.simpleWords
+                        ? 'Name what is happening. You can leave details blank.'
+                        : 'Give this moment a name you will recognize later. You can keep the details private.',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: _titleController,
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.sentences,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Event title',
+                      hintText: 'A new school, a move, caring for someone…',
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? 'Give this event a title.'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descriptionController,
+                    textCapitalization: TextCapitalization.sentences,
+                    minLines: 2,
+                    maxLines: 5,
+                    decoration: const InputDecoration(
+                      labelText: 'Optional description',
+                    ),
+                  ),
+                  if (_saveError != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _saveError!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

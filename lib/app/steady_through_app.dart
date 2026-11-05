@@ -9,6 +9,7 @@ import 'package:steady_through/features/settings/settings_screen.dart';
 import 'package:steady_through/features/tools/grounding_screen.dart';
 import 'package:steady_through/features/tools/tools_screen.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_theme.dart';
 
 /// Callback seam for feature destinations that are implemented separately.
 typedef SteadyDestinationBuilder = Widget Function(
@@ -209,37 +210,115 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
   }
 
   Widget _scaffold(BuildContext context) {
-    final wide = MediaQuery.sizeOf(context).width >= 700;
+    final width = MediaQuery.sizeOf(context).width;
+    final wide = width >= 800;
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 20;
-    final titles = ['Home', 'Path', 'Tools', 'Check-ins', 'More'];
+    final expanded = width >= 1180 && !largeText;
     final body = _body(context);
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          titles[_destination],
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => _openHelp(context),
-            child: const Text('Help now'),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: wide
+          ? null
+          : AppBar(
+              title: Row(
+                children: [
+                  Icon(Icons.route_rounded, color: colors.primary, size: 23),
+                  const SizedBox(width: 10),
+                  const Flexible(
+                    child: Text(
+                      'Steady Through',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton.icon(
+                  onPressed: () => _openHelp(context),
+                  icon: const Icon(Icons.support_agent_rounded, size: 20),
+                  label: const Text('Help now'),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ),
       body: wide
           ? Row(
               children: [
                 NavigationRail(
                   selectedIndex: _destination,
-                  labelType: NavigationRailLabelType.all,
-                  minWidth: 96,
+                  extended: expanded,
+                  labelType: expanded
+                      ? NavigationRailLabelType.none
+                      : NavigationRailLabelType.all,
+                  minWidth: 88,
+                  minExtendedWidth: 220,
+                  groupAlignment: -1,
+                  leading: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      expanded ? 20 : 8,
+                      24,
+                      expanded ? 20 : 8,
+                      30,
+                    ),
+                    child: expanded
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: colors.primaryContainer,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Icon(
+                                  Icons.route_rounded,
+                                  color: colors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Steady\nThrough',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(height: 1.2),
+                              ),
+                            ],
+                          )
+                        : Icon(
+                            Icons.route_rounded,
+                            color: colors.primary,
+                            size: 30,
+                          ),
+                  ),
                   destinations: _railDestinations,
                   onDestinationSelected: _selectDestination,
                 ),
-                const VerticalDivider(width: 1),
-                Expanded(child: body),
+                VerticalDivider(width: 1, color: colors.outlineVariant),
+                Expanded(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 76,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 24),
+                            child: TextButton.icon(
+                              onPressed: () => _openHelp(context),
+                              icon: const Icon(
+                                Icons.support_agent_rounded,
+                                size: 20,
+                              ),
+                              label: const Text('Help now'),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(child: body),
+                    ],
+                  ),
+                ),
               ],
             )
           : body,
@@ -264,17 +343,8 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
       return MaterialApp(
         title: 'Steady Through',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF286C71)),
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF68B9BD),
-            brightness: Brightness.dark,
-          ),
-        ),
+        theme: steadyTheme(Brightness.light),
+        darkTheme: steadyTheme(Brightness.dark),
         themeMode: switch (choice) {
           ThemeChoice.system => ThemeMode.system,
           ThemeChoice.light => ThemeMode.light,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/features/help/help_screen.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 class GroundingScreen extends StatefulWidget {
   const GroundingScreen({
@@ -36,76 +37,100 @@ class _GroundingScreenState extends State<GroundingScreen> {
     'What is one small thing you can do next?',
   ];
 
+  static const _icons = [
+    Icons.visibility_outlined,
+    Icons.spa_outlined,
+    Icons.hearing_outlined,
+    Icons.arrow_forward,
+  ];
+
   void _advance() => setState(() => _step++);
 
   @override
   Widget build(BuildContext context) {
     final simple = widget.controller.data.readingStyle == ReadingStyle.simple;
     final finished = _step >= _prompts.length;
-    return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: ListView(
-            padding: const EdgeInsets.all(20),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return SteadyPage(
+      maxWidth: 900,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            TextButton.icon(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(widget.backLabel),
+            ),
+            HelpNowButton(simpleWords: simple, openHelp: widget.onOpenHelp),
+          ],
+        ),
+        const SizedBox(height: 24),
+        const SectionHeading(
+          title: 'Grounding',
+          subtitle: 'You can take your time, skip any step, or stop. There is no right answer.',
+        ),
+        if (simple) ...[
+          const SizedBox(height: 8),
+          const Text('A trusted adult or helper can read along with you.'),
+        ],
+        const SizedBox(height: 24),
+        SurfaceCard(
+          color: colors.secondaryContainer,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              Row(
                 children: [
-                  TextButton.icon(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back),
-                    label: Text(widget.backLabel),
+                  IconBadge(
+                    icon: finished ? Icons.check : _icons[_step],
+                    color: colors.surface,
                   ),
-                  HelpNowButton(
-                    simpleWords: simple,
-                    openHelp: widget.onOpenHelp,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      finished
+                          ? 'Finished'
+                          : 'Step ${_step + 1} of ${_prompts.length}',
+                      style: theme.textTheme.titleMedium,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Grounding',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'You can take your time, skip any step, or stop. There is no right answer.',
-              ),
-              if (simple) ...[
-                const SizedBox(height: 8),
-                const Text(
-                  'A trusted adult or helper can read along with you.',
-                ),
-              ],
-              const SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        finished
-                            ? 'Finished'
-                            : 'Step ${_step + 1} of ${_prompts.length}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        finished
-                            ? 'You can return to this exercise whenever you want.'
-                            : (simple
-                                  ? _simplePrompts[_step]
-                                  : _prompts[_step]),
-                        style: Theme.of(context).textTheme.titleLarge,
+              const SizedBox(height: 18),
+              ExcludeSemantics(
+                child: Row(
+                  children: [
+                    for (var index = 0; index < _prompts.length; index++) ...[
+                      if (index > 0) const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: index <= _step
+                                ? colors.secondary
+                                : colors.secondary.withValues(alpha: .15),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  finished
+                      ? 'You can return to this exercise whenever you want.'
+                      : (simple ? _simplePrompts[_step] : _prompts[_step]),
+                  style: theme.textTheme.headlineSmall,
+                ),
+              ),
+              const SizedBox(height: 24),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -130,7 +155,7 @@ class _GroundingScreenState extends State<GroundingScreen> {
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

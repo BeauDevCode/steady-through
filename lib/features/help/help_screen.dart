@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 
 /// A route action that also works when a tool is opened above the app shell.
 class HelpNowButton extends StatelessWidget {
@@ -67,107 +68,102 @@ class HelpScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 760),
-        child: ListView(
-          padding: const EdgeInsets.all(20),
+  Widget build(BuildContext context) => SteadyPage(
+    maxWidth: 900,
+    children: [
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: () => Navigator.of(context).maybePop(),
+          icon: const Icon(Icons.arrow_back),
+          label: const Text('Back'),
+        ),
+      ),
+      const SizedBox(height: 12),
+      const Eyebrow('Support is available'),
+      const SizedBox(height: 12),
+      Text('Help now', style: Theme.of(context).textTheme.headlineMedium),
+      const SizedBox(height: 20),
+      _helpCard(
+        context,
+        title: 'Immediate danger',
+        icon: Icons.warning_amber_rounded,
+        child: Text(
+          simpleWords
+              ? 'If you are in danger now, call local emergency services.'
+              : 'If you or someone nearby is in immediate physical danger, contact local emergency services now.',
+        ),
+      ),
+      _helpCard(
+        context,
+        title: 'Crisis support in the U.S.',
+        icon: Icons.phone_in_talk_outlined,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Back'),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text('Help now', style: Theme.of(context).textTheme.headlineLarge),
-            const SizedBox(height: 12),
             Text(
               simpleWords
-                  ? 'You can ask someone you trust to help you read this.'
-                  : 'You deserve support. Choose the option that fits where you are.',
-            ),
-            const SizedBox(height: 20),
-            _helpCard(
-              context,
-              title: 'Immediate danger',
-              icon: Icons.warning_amber_rounded,
-              child: Text(
-                simpleWords
-                    ? 'If you are in danger now, call local emergency services.'
-                    : 'If you or someone nearby is in immediate physical danger, contact local emergency services now.',
-              ),
-            ),
-            _helpCard(
-              context,
-              title: 'Crisis support in the U.S.',
-              icon: Icons.phone_in_talk_outlined,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    simpleWords
-                        ? 'In the U.S., call or text 988 for crisis help (U.S. only).'
-                        : 'Call or text 988 for the 988 Suicide & Crisis Lifeline (U.S. only).',
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.icon(
-                        onPressed: () => _openNumber(context, 'tel'),
-                        icon: const Icon(Icons.call_outlined),
-                        label: const Text('Call 988'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openNumber(context, 'sms'),
-                        icon: const Icon(Icons.sms_outlined),
-                        label: const Text('Text 988'),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => _copyNumber(context),
-                        icon: const Icon(Icons.copy_outlined),
-                        label: const Text('Copy 988'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            _helpCard(
-              context,
-              title: 'Outside the U.S.',
-              icon: Icons.public,
-              child: Text(
-                simpleWords
-                    ? 'Call a crisis service or emergency number where you live.'
-                    : 'Use your local crisis service or local emergency number.',
-              ),
-            ),
-            _helpCard(
-              context,
-              title: 'More support',
-              icon: Icons.people_outline,
-              child: Text(
-                simpleWords
-                    ? 'If things feel worse or daily life is hard, talk to a health professional or someone you trust.'
-                    : 'If distress is getting worse or making daily life hard, consider talking with a health professional. You can also reach out to a trusted person.',
-              ),
+                  ? 'In the U.S., call or text 988 for crisis help (U.S. only).'
+                  : 'Call or text 988 for the 988 Suicide & Crisis Lifeline (U.S. only).',
             ),
             const SizedBox(height: 12),
-            Text(
-              simpleWords
-                  ? 'This app can help you make a plan. It does not give medical care.'
-                  : 'Steady Through offers general self-help and organization. It does not diagnose or provide medical care.',
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: () => _openNumber(context, 'tel'),
+                  icon: const Icon(Icons.call_outlined),
+                  label: const Text('Call 988'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => _openNumber(context, 'sms'),
+                  icon: const Icon(Icons.sms_outlined),
+                  label: const Text('Text 988'),
+                ),
+                TextButton.icon(
+                  onPressed: () => _copyNumber(context),
+                  icon: const Icon(Icons.copy_outlined),
+                  label: const Text('Copy 988'),
+                ),
+              ],
             ),
           ],
         ),
       ),
-    ),
+      _helpCard(
+        context,
+        title: 'Outside the U.S.',
+        icon: Icons.public,
+        child: Text(
+          simpleWords
+              ? 'Call a crisis service or emergency number where you live.'
+              : 'Use your local crisis service or local emergency number.',
+        ),
+      ),
+      _helpCard(
+        context,
+        title: 'More support',
+        icon: Icons.people_outline,
+        child: Text(
+          simpleWords
+              ? 'If things feel worse or daily life is hard, talk to a health professional or someone you trust.'
+              : 'If distress is getting worse or making daily life hard, consider talking with a health professional. You can also reach out to a trusted person.',
+        ),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        simpleWords
+            ? 'You can ask someone you trust to help you read this.'
+            : 'You deserve support. Choose the option that fits where you are.',
+      ),
+      const SizedBox(height: 12),
+      Text(
+        simpleWords
+            ? 'This app can help you make a plan. It does not give medical care.'
+            : 'Steady Through offers general self-help and organization. It does not diagnose or provide medical care.',
+      ),
+    ],
   );
 
   Widget _helpCard(
@@ -175,27 +171,30 @@ class HelpScreen extends StatelessWidget {
     required String title,
     required IconData icon,
     required Widget child,
-  }) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: SurfaceCard(
+      child: Padding(
+        padding: const EdgeInsets.all(0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconBadge(icon: icon),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          child,
-        ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            child,
+          ],
+        ),
       ),
     ),
   );

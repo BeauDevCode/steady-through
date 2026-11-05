@@ -111,7 +111,13 @@ void main() {
 
     expect(controller.data.events, isEmpty);
     expect((await FileAppRepository(temp).load()).events, isEmpty);
-    expect(await File('${temp.path}/steady-through.json.bak').exists(), isFalse);
-    expect(await File('${temp.path}/steady-through.json.tmp').exists(), isFalse);
+    expect(
+      await File('${temp.path}/steady-through.json.bak').exists(),
+      isFalse,
+    );
+    expect(
+      await File('${temp.path}/steady-through.json.tmp').exists(),
+      isFalse,
+    );
   });
 }

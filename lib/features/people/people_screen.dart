@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 abstract class PhoneActions {
@@ -44,31 +45,92 @@ class PeopleScreen extends StatelessWidget {
     builder: (context, _) {
       final people = controller.data.people;
       final simple = controller.data.readingStyle == ReadingStyle.simple;
-      return ListView(
-        padding: const EdgeInsets.all(16),
+      final colors = Theme.of(context).colorScheme;
+      return SteadyPage(
+        maxWidth: 1040,
         children: [
-          Text('People', style: Theme.of(context).textTheme.headlineMedium),
-          const SizedBox(height: 8),
-          Text(
-            simple
+          const Eyebrow('Your support'),
+          const SizedBox(height: 12),
+          SectionHeading(
+            title: 'People',
+            subtitle: simple
                 ? 'Save people you trust. Their numbers stay on this device.'
                 : 'Keep the names and phone numbers of people you trust. Numbers are entered by you and stay on this device.',
-          ),
-          const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: FilledButton.icon(
+            action: FilledButton.icon(
               onPressed: () => _addPerson(context),
               icon: const Icon(Icons.person_add_outlined),
               label: const Text('Add person'),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 28),
           if (people.isEmpty)
-            const Text(
-              'No people saved yet. Add someone you would feel comfortable contacting.',
+            SurfaceCard(
+              color: colors.primaryContainer,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconBadge(
+                    icon: Icons.people_outline,
+                    color: colors.surface,
+                    size: 56,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'A place for your people',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'No people saved yet. Add someone you would feel comfortable contacting.',
+                  ),
+                ],
+              ),
+            )
+          else ...[
+            Text('Saved people', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 14),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth >= 820
+                    ? 3
+                    : constraints.maxWidth >= 560
+                    ? 2
+                    : 1;
+                final width =
+                    (constraints.maxWidth - 20 * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  children: [
+                    for (final person in people)
+                      SizedBox(
+                        width: width,
+                        child: _personCard(context, person),
+                      ),
+                  ],
+                );
+              },
             ),
-          for (final person in people) _personCard(context, person),
+          ],
+          const SizedBox(height: 24),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.lock_outline,
+                size: 18,
+                color: colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  simple ? 'You choose who to save and when to reach out.' : 'You choose who belongs here and when you want to reach out.',
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: colors.onSurfaceVariant),
+                ),
+              ),
+            ],
+          ),
         ],
       );
     },
@@ -76,51 +138,67 @@ class PeopleScreen extends StatelessWidget {
 
   Widget _personCard(BuildContext context, TrustedPerson person) {
     final phone = person.phone?.trim() ?? '';
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(person.name, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 4),
-            Text(phone.isEmpty ? 'No phone number saved' : phone),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: [
-                if (phone.isNotEmpty) ...[
-                  IconButton(
-                    tooltip: 'Call ${person.name}',
-                    icon: const Icon(Icons.call_outlined),
+    final colors = Theme.of(context).colorScheme;
+    return SurfaceCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const IconBadge(icon: Icons.person_outline, size: 44),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Remove ${person.name}',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => _removePerson(context, person),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(person.name, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 6),
+          Text(
+            phone.isEmpty ? 'No phone number saved' : phone,
+            style: Theme.of(context).textTheme.bodyLarge
+                ?.copyWith(color: colors.onSurfaceVariant),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (phone.isNotEmpty) ...[
+                Tooltip(
+                  message: 'Call ${person.name}',
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.call_outlined, size: 18),
+                    label: const Text('Call'),
                     onPressed: () =>
                         _open(context, phone, phoneActions.openPhone, 'phone'),
                   ),
-                  IconButton(
-                    tooltip: 'Text ${person.name}',
-                    icon: const Icon(Icons.sms_outlined),
+                ),
+                Tooltip(
+                  message: 'Text ${person.name}',
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.sms_outlined, size: 18),
+                    label: const Text('Text'),
                     onPressed: () =>
                         _open(context, phone, phoneActions.openSms, 'text'),
                   ),
-                  IconButton(
-                    tooltip: 'Copy ${person.name}’s number',
-                    icon: const Icon(Icons.copy_outlined),
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: phone));
-                      if (context.mounted) _message(context, 'Number copied.');
-                    },
-                  ),
-                ],
+                ),
                 IconButton(
-                  tooltip: 'Remove ${person.name}',
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => _removePerson(context, person),
+                  tooltip: 'Copy ${person.name}’s number',
+                  icon: const Icon(Icons.copy_outlined),
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: phone));
+                    if (context.mounted) _message(context, 'Number copied.');
+                  },
                 ),
               ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -164,6 +242,7 @@ class PeopleScreen extends StatelessWidget {
                         ? 'Enter a name.'
                         : null,
                   ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     decoration: const InputDecoration(
                       labelText: 'Phone number (optional)',
