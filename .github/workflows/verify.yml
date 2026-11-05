@@ -1,0 +1,139 @@
+name: Verify and build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Analyze and test (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  android:
+    name: Android APK (Ubuntu, development signing)
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-ci-not-play-signed
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  ios_simulator:
+    name: iOS simulator (macOS, no code signing)
+    needs: verify
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --simulator --debug
+      - name: Archive simulator app
+        run: ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app steady-through-ios-simulator-ci.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-debug-no-signing
+          path: steady-through-ios-simulator-ci.zip
+          if-no-files-found: error
+
+  macos:
+    name: macOS app (no distribution signing)
+    needs: verify
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build macos --release
+      - name: Archive macOS app
+        run: |
+          APP_PATH=$(find build/macos/Build/Products/Release -maxdepth 1 -type d -name '*.app' -print -quit)
+          test -n "$APP_PATH"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" steady-through-macos-ci.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-ci-not-notarized
+          path: steady-through-macos-ci.zip
+          if-no-files-found: error
+
+  windows:
+    name: Windows app (Windows, unsigned)
+    needs: verify
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Archive Windows bundle
+        shell: pwsh
+        run: Compress-Archive -Path 'build/windows/x64/runner/Release/*' -DestinationPath 'steady-through-windows-ci.zip'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-app-ci-unsigned
+          path: steady-through-windows-ci.zip
+          if-no-files-found: error
+
+  linux:
+    name: Linux app (Ubuntu, unsigned)
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux desktop build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter build linux --release
+      - name: Archive Linux bundle
+        run: tar -czf steady-through-linux-ci.tar.gz -C build/linux/x64/release/bundle .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-app-ci-unsigned
+          path: steady-through-linux-ci.tar.gz
+          if-no-files-found: error
