@@ -1,5 +1,7 @@
 # Steady Through
 
+<img src="assets/brand/steady-through-icon.png" alt="Steady Through path and sun icon" width="96" />
+
 Steady Through is an offline-first Flutter app for getting through a difficult life event one manageable action at a time. It runs from one codebase on Android, iOS, macOS, Windows, and Linux. There is no account or app-operated server.
 
 The app is for personal organization and general self-help. It does not diagnose, measure stress, provide treatment, or replace emergency or professional support. In immediate physical danger, contact local emergency services. In the United States, call or text **988** for crisis support; elsewhere, use your local crisis service. See [Help from NIMH](https://www.nimh.nih.gov/health/publications/my-mental-health-do-i-need-help) and the [988 Lifeline](https://988lifeline.org/get-help/).
@@ -47,6 +49,8 @@ GitHub Actions runs analysis and tests on Ubuntu, then builds the Android APK on
 The tools use original wording informed by the [WHO guide to stress self-help](https://www.who.int/thailand/activities/doing-what-matters-in-times-of-stress). [NIMH guidance](https://www.nimh.nih.gov/health/publications/my-mental-health-do-i-need-help) informs the recommendation to seek professional help when distress worsens or interferes with daily life. The U.S. crisis option is based on the [988 Lifeline](https://988lifeline.org/get-help/). These sources do not validate this app's game, check-ins, or exercises as clinical instruments. The app does not infer a medical state from play.
 
 The privacy approach draws on [FTC mobile health app practices](https://www.ftc.gov/business-guidance/resources/mobile-health-app-developers-ftc-best-practices). Accessibility work draws on [W3C guidance for mobile apps](https://www.w3.org/TR/wcag2mobile-22/), which is informative guidance rather than a certification. Any future store release must also be reviewed against [Apple's App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) and applicable platform rules.
+
+Game-based stress research is still limited for this use. A [controlled adult study](https://www.sciencedirect.com/science/article/pii/S2451958826002502) found a signal in one cognitive-game measure but cautioned that real-world performance may be lower. Another [adult gameplay study](https://pubmed.ncbi.nlm.nih.gov/41322085/) found age-related effects. Neither validates this app's path game as a stress measure across children and older adults. The app therefore treats moves as a prompt for reflection and relies on the player's own answer.
 
 ## Contributing and license
 

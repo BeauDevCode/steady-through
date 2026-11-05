@@ -99,29 +99,37 @@ void main() {
     expect(controller.data.events, hasLength(2));
   });
 
-  test('deleting active event removes its check-ins but keeps game history', () async {
-    await controller.createEvent('First', '');
-    final first = controller.activeEvent!.id;
-    await controller.addCheckIn(first, feeling: 'Worried', intensity: 3, note: '');
-    await controller.recordRound(
-      GameRound(
-        id: 'round-1',
-        createdAt: DateTime.utc(2026, 11, 5),
-        boardId: 0,
-        moves: 6,
-        backtracks: 0,
-        restarts: 0,
-        feeling: RoundFeeling.neither,
-      ),
-    );
-    await controller.createEvent('Second', '');
-    await controller.selectEvent(first);
-    await controller.deleteEvent(first);
+  test(
+    'deleting active event removes its check-ins but keeps game history',
+    () async {
+      await controller.createEvent('First', '');
+      final first = controller.activeEvent!.id;
+      await controller.addCheckIn(
+        first,
+        feeling: 'Worried',
+        intensity: 3,
+        note: '',
+      );
+      await controller.recordRound(
+        GameRound(
+          id: 'round-1',
+          createdAt: DateTime.utc(2026, 11, 5),
+          boardId: 0,
+          moves: 6,
+          backtracks: 0,
+          restarts: 0,
+          feeling: RoundFeeling.neither,
+        ),
+      );
+      await controller.createEvent('Second', '');
+      await controller.selectEvent(first);
+      await controller.deleteEvent(first);
 
-    expect(controller.activeEvent?.title, 'Second');
-    expect(controller.data.checkIns, isEmpty);
-    expect(controller.data.gameRounds.single.id, 'round-1');
-  });
+      expect(controller.activeEvent?.title, 'Second');
+      expect(controller.data.checkIns, isEmpty);
+      expect(controller.data.gameRounds.single.id, 'round-1');
+    },
+  );
 
   test('an action can be added, renamed, completed, and removed', () async {
     await controller.createEvent('Move house', '');
@@ -135,7 +143,10 @@ void main() {
     expect(controller.activeEvent!.actions.last.title, 'Call a friend');
     expect(controller.activeEvent!.actions.last.done, isTrue);
     await controller.removeAction(eventId, action.id);
-    expect(controller.activeEvent!.actions.any((item) => item.id == action.id), isFalse);
+    expect(
+      controller.activeEvent!.actions.any((item) => item.id == action.id),
+      isFalse,
+    );
   });
 
   test('delete-all removes every record and preference', () async {
@@ -175,20 +186,29 @@ void main() {
     await Future.wait([first, second]);
 
     expect(callsBeforeRelease, 1);
-    expect(subject.data.events.map((event) => event.title), ['First', 'Second']);
+    expect(subject.data.events.map((event) => event.title), [
+      'First',
+      'Second',
+    ]);
     expect(blocking.value.events.length, 2);
   });
 
-  test('a failed save leaves state unchanged and later edits can save', () async {
-    final failing = FailOnceRepository();
-    final subject = AppController(failing, AppData.empty());
-    addTearDown(subject.dispose);
+  test(
+    'a failed save leaves state unchanged and later edits can save',
+    () async {
+      final failing = FailOnceRepository();
+      final subject = AppController(failing, AppData.empty());
+      addTearDown(subject.dispose);
 
-    await expectLater(subject.createEvent('First', ''), throwsA(isA<FileSystemExceptionForTest>()));
-    expect(subject.data.events, isEmpty);
-    await subject.createEvent('Second', '');
+      await expectLater(
+        subject.createEvent('First', ''),
+        throwsA(isA<FileSystemExceptionForTest>()),
+      );
+      expect(subject.data.events, isEmpty);
+      await subject.createEvent('Second', '');
 
-    expect(subject.activeEvent?.title, 'Second');
-    expect(failing.value.events.single.title, 'Second');
-  });
+      expect(subject.activeEvent?.title, 'Second');
+      expect(failing.value.events.single.title, 'Second');
+    },
+  );
 }

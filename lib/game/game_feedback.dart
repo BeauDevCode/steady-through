@@ -34,16 +34,23 @@ class GameFeedback {
       }
     }
 
-    var result = 'In your last ${calm + tense + neither} rounds, you marked calm $calm ${_timeWord(calm)}, tense $tense ${_timeWord(tense)}, and neither $neither ${_timeWord(neither)}.';
-    final tenseRounds = recent.where((round) => round.feeling == RoundFeeling.tense).toList();
-    final calmRounds = recent.where((round) => round.feeling == RoundFeeling.calm).toList();
+    var result =
+        'In your last ${calm + tense + neither} rounds, you marked calm $calm ${_timeWord(calm)}, tense $tense ${_timeWord(tense)}, and neither $neither ${_timeWord(neither)}.';
+    final tenseRounds = recent
+        .where((round) => round.feeling == RoundFeeling.tense)
+        .toList();
+    final calmRounds = recent
+        .where((round) => round.feeling == RoundFeeling.calm)
+        .toList();
     if (tenseRounds.length >= 2 && calmRounds.length >= 2) {
-      final tenseAverage = tenseRounds.fold<int>(0, (sum, round) => sum + round.backtracks) /
+      final tenseAverage =
+          tenseRounds.fold<int>(0, (sum, round) => sum + round.backtracks) /
           tenseRounds.length;
-      final calmAverage = calmRounds.fold<int>(0, (sum, round) => sum + round.backtracks) /
+      final calmAverage =
+          calmRounds.fold<int>(0, (sum, round) => sum + round.backtracks) /
           calmRounds.length;
       if (tenseAverage >= calmAverage + 1) {
-        result += ' So far, you changed direction more often in rounds you marked tense than in rounds you marked calm. This is a pattern in your play and answers, not a stress measure.';
+        result += ' So far, you backtracked more times per round in rounds you marked tense than in rounds you marked calm. This is a pattern in your play and answers, not a stress measure.';
       }
     }
     return result;

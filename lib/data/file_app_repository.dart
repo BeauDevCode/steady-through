@@ -4,31 +4,38 @@ import 'dart:io';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/model/app_data.dart';
 
-class FileAppRepository implements AppRepository {
-  FileAppRepository(this.root);
+class FileAppRepository implements AppRepository, ResidualDataRepository {
+  FileAppRepository(this.root, {Future<void> Function(File)? backupCleanup})
+    : _backupCleanup = backupCleanup ?? _deleteBackup;
 
   final Directory root;
+  final Future<void> Function(File) _backupCleanup;
 
-  File get _dataFile => File('${root.path}${Platform.pathSeparator}steady-through.json');
-  File get _backupFile => File('${root.path}${Platform.pathSeparator}steady-through.json.bak');
-  File get _tempFile => File('${root.path}${Platform.pathSeparator}steady-through.json.tmp');
+  static Future<void> _deleteBackup(File file) async {
+    await file.delete();
+  }
+
+  File get _dataFile =>
+      File('${root.path}${Platform.pathSeparator}steady-through.json');
+  File get _backupFile =>
+      File('${root.path}${Platform.pathSeparator}steady-through.json.bak');
+  File get _tempFile =>
+      File('${root.path}${Platform.pathSeparator}steady-through.json.tmp');
 
   @override
   Future<AppData> load() async {
+    // A path occupied by a file or inaccessible to the app is a storage
+    // failure, not an empty document or corrupt JSON.
+    await root.create(recursive: true);
+    await root.list().toList();
     final file = await _dataFile.exists() ? _dataFile : _backupFile;
     if (!await file.exists()) return AppData.empty();
 
-    try {
-      final decoded = jsonDecode(await file.readAsString());
-      if (decoded is! Map<String, dynamic>) {
-        throw const FormatException('The data file must contain a JSON object.');
-      }
-      return AppData.fromJson(decoded);
-    } on FormatException {
-      rethrow;
-    } catch (error) {
-      throw FormatException('Unable to read saved data: $error');
+    final decoded = jsonDecode(await file.readAsString());
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('The data file must contain a JSON object.');
     }
+    return AppData.fromJson(decoded);
   }
 
   @override
@@ -48,12 +55,37 @@ class FileAppRepository implements AppRepository {
     try {
       await _tempFile.rename(_dataFile.path);
     } catch (_) {
-      if (hadCurrent && !await _dataFile.exists() && await _backupFile.exists()) {
+      if (hadCurrent &&
+          !await _dataFile.exists() &&
+          await _backupFile.exists()) {
         await _backupFile.rename(_dataFile.path);
       }
       rethrow;
     }
 
-    if (await _backupFile.exists()) await _backupFile.delete();
+    // The primary file is committed after the rename. Cleanup cannot turn a
+    // successful save into a failure seen by the controller.
+    try {
+      if (await _backupFile.exists()) await _backupCleanup(_backupFile);
+    } catch (_) {
+      // The next save removes a stale backup before rotating the primary.
+    }
+  }
+
+  @override
+  Future<void> purgeResidualData() async {
+    final entries = await root.list(followLinks: false).toList();
+    if (entries.any((entry) => entry.path == _backupFile.path)) {
+      await _backupCleanup(_backupFile);
+    }
+    if (entries.any((entry) => entry.path == _tempFile.path)) {
+      await _tempFile.delete();
+    }
+    final remaining = await root.list(followLinks: false).toList();
+    if (remaining.any(
+      (entry) => entry.path == _backupFile.path || entry.path == _tempFile.path,
+    )) {
+      throw FileSystemException('Residual saved data remains', root.path);
+    }
   }
 }

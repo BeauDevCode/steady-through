@@ -104,6 +104,19 @@ void main() {
     expect(() => AppData.fromJson(document), throwsFormatException);
   });
 
+  test('rejects impossible game revision counts', () {
+    final document = validDocument();
+    final round =
+        (document['gameRounds'] as List).single as Map<String, dynamic>;
+    round['moves'] = 0;
+    round['backtracks'] = 1;
+    expect(() => AppData.fromJson(document), throwsFormatException);
+
+    round['backtracks'] = 0;
+    round['restarts'] = 1;
+    expect(() => AppData.fromJson(document), throwsFormatException);
+  });
+
   test('starts empty with explicit version and default preferences', () {
     final empty = AppData.empty();
 

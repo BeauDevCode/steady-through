@@ -112,7 +112,7 @@ void main() {
     ];
 
     final pattern = GameFeedback.pattern(answers);
-    expect(pattern, contains('changed direction more often'));
+    expect(pattern, contains('backtracked more times per round'));
     expect(pattern, contains('you marked tense'));
     expect(pattern, contains('not a stress measure'));
   });

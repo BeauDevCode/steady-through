@@ -242,6 +242,9 @@ class GameRound {
     if (boardId < 0 || moves < 0 || backtracks < 0 || restarts < 0) {
       throw const FormatException('gameRound counts must not be negative');
     }
+    if (backtracks + restarts > moves) {
+      throw const FormatException('gameRound revisions exceed moves');
+    }
   }
 
   final String id;

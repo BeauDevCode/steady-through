@@ -55,3 +55,7 @@ app.*.map.json
 *.mobileprovision
 /android/key.properties
 /user-exports/
+steady-through-data*.json
+steady-through.json
+steady-through.json.bak
+steady-through.json.tmp

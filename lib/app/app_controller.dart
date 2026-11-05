@@ -26,13 +26,19 @@ class AppController extends ChangeNotifier {
     return bytes.map((value) => value.toRadixString(16).padLeft(2, '0')).join();
   }
 
-  Future<void> _mutate(AppData Function(AppData) change) {
+  Future<void> _mutate(
+    AppData Function(AppData) change, {
+    Future<void> Function()? afterCommit,
+  }) {
     final write = _writeQueue.then((_) async {
       final next = change(_data);
       AppData.fromJson(next.toJson());
       await _repository.save(next);
       _data = next;
       notifyListeners();
+      if (afterCommit != null) {
+        await afterCommit();
+      }
     });
     // Keep the queue usable after a failed write while still surfacing the
     // failure to the caller of this particular operation.
@@ -42,7 +48,9 @@ class AppController extends ChangeNotifier {
 
   Future<void> createEvent(String title, String description) {
     final cleanTitle = title.trim();
-    if (cleanTitle.isEmpty) return Future.error(ArgumentError('Give this event a title.'));
+    if (cleanTitle.isEmpty) {
+      return Future.error(ArgumentError('Give this event a title.'));
+    }
     return _mutate((current) {
       final eventId = _newId();
       final titles = <JourneyStage, String>{
@@ -53,7 +61,14 @@ class AppController extends ChangeNotifier {
         JourneyStage.reflect: 'Notice what helped',
       };
       final actions = JourneyStage.values
-          .map((stage) => PlanAction(id: _newId(), stage: stage, title: titles[stage]!, done: false))
+          .map(
+            (stage) => PlanAction(
+              id: _newId(),
+              stage: stage,
+              title: titles[stage]!,
+              done: false,
+            ),
+          )
           .toList();
       final event = SupportEvent(
         id: eventId,
@@ -77,11 +92,14 @@ class AppController extends ChangeNotifier {
 
   Future<void> updateEvent(String id, String title, String description) {
     final cleanTitle = title.trim();
-    if (cleanTitle.isEmpty) return Future.error(ArgumentError('Give this event a title.'));
-    return _editEvent(id, (event) => event.copyWith(
-      title: cleanTitle,
-      description: description.trim(),
-    ));
+    if (cleanTitle.isEmpty) {
+      return Future.error(ArgumentError('Give this event a title.'));
+    }
+    return _editEvent(
+      id,
+      (event) =>
+          event.copyWith(title: cleanTitle, description: description.trim()),
+    );
   }
 
   Future<void> completeEvent(String id, bool completed) => _editEvent(
@@ -102,36 +120,59 @@ class AppController extends ChangeNotifier {
       events: events,
       activeEventId: selected,
       clearActiveEventId: selected == null,
-      checkIns: current.checkIns.where((checkIn) => checkIn.eventId != id).toList(),
+      checkIns: current.checkIns
+          .where((checkIn) => checkIn.eventId != id)
+          .toList(),
     );
   });
 
   Future<void> addAction(String eventId, JourneyStage stage, String title) {
     final cleanTitle = title.trim();
-    if (cleanTitle.isEmpty) return Future.error(ArgumentError('Write a short action.'));
-    return _editEvent(eventId, (event) => event.copyWith(actions: [
-      ...event.actions,
-      PlanAction(id: _newId(), stage: stage, title: cleanTitle, done: false),
-    ]));
+    if (cleanTitle.isEmpty) {
+      return Future.error(ArgumentError('Write a short action.'));
+    }
+    return _editEvent(
+      eventId,
+      (event) => event.copyWith(
+        actions: [
+          ...event.actions,
+          PlanAction(
+            id: _newId(),
+            stage: stage,
+            title: cleanTitle,
+            done: false,
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> renameAction(String eventId, String actionId, String title) {
     final cleanTitle = title.trim();
-    if (cleanTitle.isEmpty) return Future.error(ArgumentError('Write a short action.'));
-    return _editAction(eventId, actionId, (action) => action.copyWith(title: cleanTitle));
+    if (cleanTitle.isEmpty) {
+      return Future.error(ArgumentError('Write a short action.'));
+    }
+    return _editAction(
+      eventId,
+      actionId,
+      (action) => action.copyWith(title: cleanTitle),
+    );
   }
 
   Future<void> setActionDone(String eventId, String actionId, bool done) =>
       _editAction(eventId, actionId, (action) => action.copyWith(done: done));
 
-  Future<void> removeAction(String eventId, String actionId) => _editEvent(eventId, (event) {
-    if (!event.actions.any((action) => action.id == actionId)) {
-      throw ArgumentError.value(actionId, 'actionId', 'Unknown action');
-    }
-    return event.copyWith(
-      actions: event.actions.where((action) => action.id != actionId).toList(),
-    );
-  });
+  Future<void> removeAction(String eventId, String actionId) =>
+      _editEvent(eventId, (event) {
+        if (!event.actions.any((action) => action.id == actionId)) {
+          throw ArgumentError.value(actionId, 'actionId', 'Unknown action');
+        }
+        return event.copyWith(
+          actions: event.actions
+              .where((action) => action.id != actionId)
+              .toList(),
+        );
+      });
 
   Future<void> _editAction(
     String eventId,
@@ -142,17 +183,23 @@ class AppController extends ChangeNotifier {
       throw ArgumentError.value(actionId, 'actionId', 'Unknown action');
     }
     return event.copyWith(
-      actions: event.actions.map((action) => action.id == actionId ? change(action) : action).toList(),
+      actions: event.actions
+          .map((action) => action.id == actionId ? change(action) : action)
+          .toList(),
     );
   });
 
-  Future<void> _editEvent(String id, SupportEvent Function(SupportEvent) change) =>
-      _mutate((current) {
-        _requireEvent(current, id);
-        return current.copyWith(
-          events: current.events.map((event) => event.id == id ? change(event) : event).toList(),
-        );
-      });
+  Future<void> _editEvent(
+    String id,
+    SupportEvent Function(SupportEvent) change,
+  ) => _mutate((current) {
+    _requireEvent(current, id);
+    return current.copyWith(
+      events: current.events
+          .map((event) => event.id == id ? change(event) : event)
+          .toList(),
+    );
+  });
 
   SupportEvent _requireEvent(AppData data, String id) {
     for (final event in data.events) {
@@ -164,17 +211,23 @@ class AppController extends ChangeNotifier {
   Future<void> addPerson(String name, String phone) {
     final cleanName = name.trim();
     if (cleanName.isEmpty) return Future.error(ArgumentError('Enter a name.'));
-    return _mutate((current) => current.copyWith(people: [
-      ...current.people,
-      TrustedPerson(id: _newId(), name: cleanName, phone: phone.trim()),
-    ]));
+    return _mutate(
+      (current) => current.copyWith(
+        people: [
+          ...current.people,
+          TrustedPerson(id: _newId(), name: cleanName, phone: phone.trim()),
+        ],
+      ),
+    );
   }
 
   Future<void> deletePerson(String id) => _mutate((current) {
     if (!current.people.any((person) => person.id == id)) {
       throw ArgumentError.value(id, 'personId', 'Unknown person');
     }
-    return current.copyWith(people: current.people.where((person) => person.id != id).toList());
+    return current.copyWith(
+      people: current.people.where((person) => person.id != id).toList(),
+    );
   });
 
   Future<void> addCheckIn(
@@ -184,23 +237,29 @@ class AppController extends ChangeNotifier {
     required String note,
   }) {
     final cleanFeeling = feeling.trim();
-    if (cleanFeeling.isEmpty) return Future.error(ArgumentError('Describe how you feel.'));
+    if (cleanFeeling.isEmpty) {
+      return Future.error(ArgumentError('Describe how you feel.'));
+    }
     if (intensity != null && (intensity < 1 || intensity > 5)) {
-      return Future.error(ArgumentError.value(intensity, 'intensity', 'Use 1 through 5.'));
+      return Future.error(
+        ArgumentError.value(intensity, 'intensity', 'Use 1 through 5.'),
+      );
     }
     return _mutate((current) {
       _requireEvent(current, eventId);
-      return current.copyWith(checkIns: [
-        ...current.checkIns,
-        CheckIn(
-          id: _newId(),
-          eventId: eventId,
-          createdAt: DateTime.now().toUtc(),
-          feeling: cleanFeeling,
-          intensity: intensity,
-          note: note.trim(),
-        ),
-      ]);
+      return current.copyWith(
+        checkIns: [
+          ...current.checkIns,
+          CheckIn(
+            id: _newId(),
+            eventId: eventId,
+            createdAt: DateTime.now().toUtc(),
+            feeling: cleanFeeling,
+            intensity: intensity,
+            note: note.trim(),
+          ),
+        ],
+      );
     });
   }
 
@@ -208,16 +267,20 @@ class AppController extends ChangeNotifier {
     if (!current.checkIns.any((checkIn) => checkIn.id == id)) {
       throw ArgumentError.value(id, 'checkInId', 'Unknown check-in');
     }
-    return current.copyWith(checkIns: current.checkIns.where((checkIn) => checkIn.id != id).toList());
+    return current.copyWith(
+      checkIns: current.checkIns.where((checkIn) => checkIn.id != id).toList(),
+    );
   });
 
-  Future<void> recordRound(GameRound round) => _mutate((current) => current.copyWith(
-    gameRounds: [...current.gameRounds, round],
-  ));
+  Future<void> recordRound(GameRound round) => _mutate(
+    (current) => current.copyWith(gameRounds: [...current.gameRounds, round]),
+  );
 
-  Future<void> clearGameRounds() => _mutate((current) => current.copyWith(gameRounds: []));
+  Future<void> clearGameRounds() =>
+      _mutate((current) => current.copyWith(gameRounds: []));
 
-  Future<void> setTheme(ThemeChoice choice) => _mutate((current) => current.copyWith(theme: choice));
+  Future<void> setTheme(ThemeChoice choice) =>
+      _mutate((current) => current.copyWith(theme: choice));
 
   Future<void> setReadingStyle(ReadingStyle style) =>
       _mutate((current) => current.copyWith(readingStyle: style));
@@ -227,5 +290,12 @@ class AppController extends ChangeNotifier {
     return _mutate((_) => validated);
   }
 
-  Future<void> clearAll() => _mutate((_) => AppData.empty());
+  Future<void> clearAll() => _mutate(
+    (_) => AppData.empty(),
+    afterCommit: () async {
+      if (_repository is ResidualDataRepository) {
+        await (_repository as ResidualDataRepository).purgeResidualData();
+      }
+    },
+  );
 }

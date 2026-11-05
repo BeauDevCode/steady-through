@@ -20,7 +20,7 @@ The app does not send your journal entries, event details, or game history to th
 
 ## Deletion and retention
 
-You can delete a check-in, delete an event, clear game history, or use Delete all in settings. Deleting an event also deletes its check-ins; it does not clear the global game history. Delete all removes the app's local records after confirmation. Uninstalling may remove local app data, depending on the platform. Neither action removes exported files, files in backups, or messages/calls handled by another app. The app has no server copy to delete.
+You can delete a check-in, delete an event, clear game history, or use Delete all in settings. Deleting an event also deletes its check-ins; it does not clear the global game history. Delete all removes the app's local records after confirmation and checks that its temporary and backup files were removed. If that cleanup fails, the app says deletion could not be fully verified so you can retry. Uninstalling may remove local app data, depending on the platform. Neither action removes exported files, operating-system backups, or messages/calls handled by another app. The app has no server copy to delete.
 
 ## Children and helpers
 

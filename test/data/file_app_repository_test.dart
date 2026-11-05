@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/file_app_repository.dart';
 import 'package:steady_through/model/app_data.dart';
 
@@ -47,5 +48,70 @@ void main() {
     expect(json['theme'], 'dark');
     expect(json['version'], 1);
     expect(await FileAppRepository(temp).load(), isA<AppData>());
+  });
+
+  test('a storage path occupied by a file is not treated as empty', () async {
+    final occupied = File('${temp.path}/occupied');
+    await occupied.writeAsString('not a directory');
+    final unavailable = FileAppRepository(Directory(occupied.path));
+
+    await expectLater(unavailable.load(), throwsA(isA<FileSystemException>()));
+    expect(await occupied.readAsString(), 'not a directory');
+  });
+
+  test('backup cleanup failure does not desync committed data', () async {
+    final cleanupFails = FileAppRepository(
+      temp,
+      backupCleanup: (file) async {
+        throw FileSystemException('Backup cleanup denied', file.path);
+      },
+    );
+    final controller = AppController(cleanupFails, AppData.empty());
+    addTearDown(controller.dispose);
+
+    await controller.setTheme(ThemeChoice.light);
+    await controller.setTheme(ThemeChoice.dark);
+
+    expect(controller.data.theme, ThemeChoice.dark);
+    expect((await FileAppRepository(temp).load()).theme, ThemeChoice.dark);
+  });
+
+  test('delete-all reports a backup that could not be removed', () async {
+    final cleanupFails = FileAppRepository(
+      temp,
+      backupCleanup: (file) async {
+        throw FileSystemException('Backup cleanup denied', file.path);
+      },
+    );
+    final controller = AppController(cleanupFails, AppData.empty());
+    addTearDown(controller.dispose);
+    await controller.createEvent('Private event', '');
+
+    await expectLater(
+      controller.clearAll(),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    // The committed document and in-memory state agree even when the
+    // deletion cannot be reported as complete.
+    expect(controller.data.events, isEmpty);
+    expect((await FileAppRepository(temp).load()).events, isEmpty);
+    expect(
+      await File('${temp.path}/steady-through.json.bak').readAsString(),
+      contains('Private event'),
+    );
+  });
+
+  test('delete-all removes the active file and its local backup', () async {
+    final controller = AppController(repository, AppData.empty());
+    addTearDown(controller.dispose);
+    await controller.createEvent('Private event', '');
+
+    await controller.clearAll();
+
+    expect(controller.data.events, isEmpty);
+    expect((await FileAppRepository(temp).load()).events, isEmpty);
+    expect(await File('${temp.path}/steady-through.json.bak').exists(), isFalse);
+    expect(await File('${temp.path}/steady-through.json.tmp').exists(), isFalse);
   });
 }
