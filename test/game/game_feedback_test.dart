@@ -102,4 +102,18 @@ void main() {
     expect(pattern, contains('tense 1'));
     expect(pattern, contains('neither 1'));
   });
+
+  test('history can describe a move pattern the player labeled themselves', () {
+    final answers = [
+      round(1, RoundFeeling.tense, backtracks: 3),
+      round(2, RoundFeeling.calm, backtracks: 0),
+      round(3, RoundFeeling.tense, backtracks: 2),
+      round(4, RoundFeeling.calm, backtracks: 0),
+    ];
+
+    final pattern = GameFeedback.pattern(answers);
+    expect(pattern, contains('changed direction more often'));
+    expect(pattern, contains('you marked tense'));
+    expect(pattern, contains('not a stress measure'));
+  });
 }
