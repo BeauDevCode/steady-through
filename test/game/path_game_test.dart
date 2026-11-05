@@ -37,6 +37,13 @@ void main() {
     }
   });
 
+  test('the offered easier board has fewer blocked cells', () {
+    final easiest = PathGame.boards.first.blockedCells.length;
+    for (final board in PathGame.boards.skip(1)) {
+      expect(easiest, lessThan(board.blockedCells.length));
+    }
+  });
+
   test('only adjacent open cells advance the path or move count', () {
     final game = PathGame();
 
@@ -65,6 +72,16 @@ void main() {
     expect(game.moveTo(4), isFalse);
     expect(game.currentCell, 3);
     expect(game.moves, 3);
+  });
+
+  test('moving back to the last cell counts as a revision', () {
+    final game = PathGame();
+    expect(game.moveTo(1), isTrue);
+    expect(game.moveTo(0), isTrue);
+
+    expect(game.path, [0]);
+    expect(game.moves, 2);
+    expect(game.backtracks, 1);
   });
 
   test('Finish requires reaching the goal and undo removes completion', () {

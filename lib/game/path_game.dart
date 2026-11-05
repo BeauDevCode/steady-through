@@ -31,7 +31,7 @@ class PathGame {
       height: 4,
       start: 0,
       goal: 15,
-      blockedCells: {5, 6, 9, 10},
+      blockedCells: {5},
     ),
     PathBoard(
       id: 1,
@@ -77,6 +77,13 @@ class PathGame {
     final columnDistance = (cell % board.width - currentCell % board.width)
         .abs();
     if (rowDistance + columnDistance != 1) return false;
+
+    if (_path.length > 1 && cell == _path[_path.length - 2]) {
+      _path.removeLast();
+      _moves++;
+      _backtracks++;
+      return true;
+    }
 
     _path.add(cell);
     _moves++;
