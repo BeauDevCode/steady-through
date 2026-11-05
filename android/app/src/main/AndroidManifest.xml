@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="steady_through"
+        android:label="Steady Through"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
