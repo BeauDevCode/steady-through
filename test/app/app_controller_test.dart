@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/app_repository.dart';
@@ -15,6 +17,47 @@ class MemoryRepository implements AppRepository {
     value = next;
     saved.add(next);
   }
+}
+
+class BlockingRepository implements AppRepository {
+  AppData value = AppData.empty();
+  final firstSaveEntered = Completer<void>();
+  final releaseFirstSave = Completer<void>();
+  int calls = 0;
+
+  @override
+  Future<AppData> load() async => value;
+
+  @override
+  Future<void> save(AppData next) async {
+    calls++;
+    if (calls == 1) {
+      firstSaveEntered.complete();
+      await releaseFirstSave.future;
+    }
+    value = next;
+  }
+}
+
+class FailOnceRepository implements AppRepository {
+  AppData value = AppData.empty();
+  bool shouldFail = true;
+
+  @override
+  Future<AppData> load() async => value;
+
+  @override
+  Future<void> save(AppData next) async {
+    if (shouldFail) {
+      shouldFail = false;
+      throw const FileSystemExceptionForTest();
+    }
+    value = next;
+  }
+}
+
+class FileSystemExceptionForTest implements Exception {
+  const FileSystemExceptionForTest();
 }
 
 void main() {
@@ -116,5 +159,36 @@ void main() {
     );
     expect(controller.data.checkIns, isEmpty);
     expect(repository.saved.length, savedBefore);
+  });
+
+  test('overlapping edits save in order without losing an event', () async {
+    final blocking = BlockingRepository();
+    final subject = AppController(blocking, AppData.empty());
+    addTearDown(subject.dispose);
+
+    final first = subject.createEvent('First', '');
+    await blocking.firstSaveEntered.future;
+    final second = subject.createEvent('Second', '');
+    await Future<void>.delayed(Duration.zero);
+    final callsBeforeRelease = blocking.calls;
+    blocking.releaseFirstSave.complete();
+    await Future.wait([first, second]);
+
+    expect(callsBeforeRelease, 1);
+    expect(subject.data.events.map((event) => event.title), ['First', 'Second']);
+    expect(blocking.value.events.length, 2);
+  });
+
+  test('a failed save leaves state unchanged and later edits can save', () async {
+    final failing = FailOnceRepository();
+    final subject = AppController(failing, AppData.empty());
+    addTearDown(subject.dispose);
+
+    await expectLater(subject.createEvent('First', ''), throwsA(isA<FileSystemExceptionForTest>()));
+    expect(subject.data.events, isEmpty);
+    await subject.createEvent('Second', '');
+
+    expect(subject.activeEvent?.title, 'Second');
+    expect(failing.value.events.single.title, 'Second');
   });
 }
