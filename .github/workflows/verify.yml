@@ -319,3 +319,91 @@ jobs:
           name: linux-native-runtime-results
           path: build/native-linux*
           if-no-files-found: error
+
+  ios_device_release:
+    name: iPhoneOS Release (macOS, unsigned, not installable)
+    needs: verify
+    runs-on: macos-26
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.9'
+          channel: stable
+          cache: true
+      - name: Record unsigned device source and toolchain evidence
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          mkdir -p build
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          command = ['flutter', 'build', 'ios', '--release', '--no-codesign', '--target', 'lib/main.dart']
+          provenance = {
+              'source': os.environ['GITHUB_SHA'],
+              'repository': os.environ['GITHUB_REPOSITORY'],
+              'runId': int(os.environ['GITHUB_RUN_ID']),
+              'runAttempt': int(os.environ['GITHUB_RUN_ATTEMPT']),
+              'command': command,
+              'productionTarget': 'lib/main.dart',
+              'codeSigning': False,
+              'developerDir': os.environ['DEVELOPER_DIR'],
+          }
+          provenance_path = Path('build/ios-device-release-provenance.json')
+          provenance_path.write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n')
+          def capture(*args):
+              return subprocess.check_output(args, text=True).strip()
+          flutter = json.loads(capture('flutter', '--version', '--machine'))
+          xcode = capture('xcodebuild', '-version')
+          sdk = capture('xcrun', '--sdk', 'iphoneos', '--show-sdk-version')
+          toolchain = {'flutter': flutter, 'xcode': xcode, 'iphoneosSDKVersion': sdk,
+                       'developerDir': os.environ['DEVELOPER_DIR']}
+          Path('build/ios-device-release-toolchain.json').write_text(json.dumps(toolchain, indent=2, sort_keys=True) + '\n')
+          provenance.update(flutterVersion=flutter['frameworkVersion'], xcodeVersion=xcode, iphoneosSDKVersion=sdk)
+          provenance_path.write_text(json.dumps(provenance, indent=2, sort_keys=True) + '\n')
+          if flutter['frameworkVersion'] != '3.47.9' or not xcode.startswith('Xcode 26.5\n') or sdk != '26.5':
+              raise SystemExit('Unexpected pinned device toolchain')
+          PY
+      - run: flutter pub get
+        timeout-minutes: 5
+      - name: Build production iPhoneOS Release without code signing
+        shell: bash
+        timeout-minutes: 30
+        run: |
+          set -o pipefail
+          flutter build ios --release --no-codesign --target lib/main.dart 2>&1 | tee build/ios-device-release-build.log
+      - name: Validate unsigned device directory
+        timeout-minutes: 2
+        run: python tool/ci/verify_ios_device_bundle.py build/ios/iphoneos/Runner.app --pubspec pubspec.yaml --report build/ios-device-release-validation.json
+      - name: Archive the complete logical unsigned device app
+        timeout-minutes: 3
+        run: ditto -c -k --keepParent --norsrc --noextattr --noqtn build/ios/iphoneos/Runner.app steady-through-ios-device-release-unsigned-ci.zip
+      - name: Verify exact device archive against validated directory
+        timeout-minutes: 2
+        run: python tool/ci/verify_ios_device_bundle.py build/ios/iphoneos/Runner.app --pubspec pubspec.yaml --report build/ios-device-release-validation.json --archive steady-through-ios-device-release-unsigned-ci.zip
+      - name: Preserve unsigned device package (not installable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-device-release-unsigned-not-installable
+          path: steady-through-ios-device-release-unsigned-ci.zip
+          if-no-files-found: error
+      - name: Preserve device source, toolchain, build and validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-device-release-evidence
+          path: |
+            build/ios-device-release-build.log
+            build/ios-device-release-toolchain.json
+            build/ios-device-release-provenance.json
+            build/ios-device-release-validation.json
+          if-no-files-found: warn
