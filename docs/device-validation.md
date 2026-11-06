@@ -1,6 +1,14 @@
 # Manual device validation guide
 
-## Current 1.4.0 preview — manual checks remain unexecuted
+## Current 1.5.0 work in progress — CI and publication pending
+
+Working **1.5.0+9** has no final-source CI, native-runtime, package or publication result yet. The encrypted fixture has been extended for edited fictional people/cleared phones/stable ID/order and focused-completion API persistence, with ratings and other records/settings retained. Native execution remains pending CI; the fixture does not exercise native contact handoffs or focused-route navigation. **Local verification passed:** 413 Flutter tests, 88 Python CI-helper tests, no analyzer issues, and 109 Dart files format-checked with no changes. All three capture profiles passed; all 24 generated fictional actual-widget PNGs were visually inspected. These renderings do not validate native accessibility. Fresh whole-branch review remains pending. [Current quality status](quality-status.md#current-150-work-in-progress--ci-and-publication-pending) separates the observed local results and regressions from these pending gates. The optional-phone label now wraps above the input with its full semantic label after a 320px/200% text clipping regression; native accessibility still requires observation.
+
+Schema **4/read 1/2/3/4**, encryption, adapters, permissions and learning remain unchanged. The additional walkthrough below is **unexecuted**. Keep all learning sources off and use a disposable fictional vault. No real call/text, OS dialog/grant, physical-device, signing or accessibility result is claimed by this document.
+
+<a id="current-140-preview--manual-checks-remain-unexecuted"></a>
+
+## Published 1.4.0 preview — historical automated evidence; manual checks unexecuted
 
 Published **1.4.0+8** has verified seven-job CI, all original three native cases per runtime, package/source checks, server hashes and anonymous public downloads. [Quality status](quality-status.md#current-140-preview--verified-evidence) records exact source `a0a12ecc7badf359411e520b21a4081dcd06854d` and [the release](https://github.com/BeauDevCode/steady-through/releases/tag/v1.4.0-preview.1). Automated evidence does not execute this human checklist or establish physical-device behavior.
 
@@ -89,6 +97,19 @@ These are additional **unexecuted** 1.4 checks. Keep every learning source off f
 - At 320 logical pixels/200% text, light/dark, Simple words, keyboard-only and native screen-reader settings, check prompt/history/dialog scrolling, wrapped actions, 48-pixel control targets, focus, live save/error announcements and safe dismissal. Verify return labels from Home, Tools, Insights and game breaks. Synthetic screenshots do not establish native assistive-technology usability.
 - For an already-consented optional motion session, inspect current possible-vehicle behavior only while safely stopped or using a consenting passenger's device. Rating prompts/mutation controls must be suppressed while Help and Back remain reachable. Do not request a source permission solely to unblock ratings; missing motion stays unknown, and no driving-detector guarantee is made. Never interact with the app while driving.
 
+## Quick support and exact next action — unexecuted 1.5 walkthrough
+
+These are future checks on the actual source/build recorded for the session. Keep every source off. Use only fictional names, numbers and events; do not place a real call or send a real text. Phone/SMS handoffs require a separate authorized test with a controlled handler/destination and must otherwise be recorded **Not run**. No permission grant is needed for the basic support flow.
+
+- Open Help from Home, the shell and a standalone tool. Check existing crisis content/Back, the first three saved people in stored order, **View all saved people**, and the explicit Add person empty state. Full People returns to Help; Help from breathing pauses it, and returning does not resume it automatically. Verify the same flow without an active event.
+- Add a fictional person, then edit from both Help/People surfaces. Check prefilled fields, trimming, blank-name rejection, clearing the optional phone, Save/Cancel and confirmed removal. Preserve ID/order, other people and unrelated settings. After a safely observed save error, input should remain retryable; avoid manufacturing disk failures on a personal device. Cancel remains available during a pending save.
+- Inspect explicit Call/Text/Copy controls without activating real destinations. In a separately authorized controlled-handler test, record false/throw/unavailable behavior and the visible-number/copy fallback. Record clipboard success/failure separately. An external app opening is neither delivery nor a successful call/text. Native handlers/clipboard dialogs are unverified until actually observed.
+- Open Add person, Add a rating or Clear ratings, then replace the document using only a separate fictional import in a controlled session. An old dialog must remain bound to the document present at opening and cannot add to or clear imported records. Repeat background/close-before-save observations only when timing can be controlled safely; distinguish rejected queued saves from already-started atomic saves.
+- From Home choose **Go to this step**. Verify **Your next step** identifies the exact event/action; opening it changes no completion. Mark step done and Undo explicitly, inspect persisted state, and confirm there is no automatic advance. Check Back to Home, Help now and View full path. No-action/all-done/completed-event states retain full Path access.
+- In controlled fictional fixtures, remove the target, complete/change the active event, or replace the document with same-ID imported records while the focused route is open. It should explain that the target is unavailable, preserve the imported/current records and offer a way back/current Path. Record storage timing races **Not run** unless safely controlled.
+- Repeat Help, People, Edit and Your next step at 320 logical pixels/200% text, Simple words, reduced motion and light/dark appearance. Record wrapping/reachable 48px controls, focus, Back, live error/success feedback, keyboard and native screen-reader behavior separately. Synthetic renderings do not validate native assistive technology.
+- Export/reimport the fictional edited people and explicitly completed action, then lock/reopen. Check stable IDs/order, cleared optional number, ratings and other records/settings. Keep real OS backup dialogs and native source-consent reset as separate observations; scripted encrypted fixture results do not establish them.
+
 ## Locked-vault passphrase help and preservation
 
 These are additional unexecuted checks, using only the fictional vault created above. Never reset or uninstall a real vault to demonstrate the help UI. Keep every learning source off and do not approve a permission prompt just to proceed.
@@ -156,6 +177,9 @@ Visual/accessibility (steps 10–12): Pass / Fail / Not run / Unavailable — no
 Sources (steps 13–16): Pass / Fail / Not run / Unavailable — notes:
 Tool ratings / settings / clear scope / backup: Pass / Fail / Not run / Unavailable — notes:
 Breathing pause / Done / Start again / reduced motion: Pass / Fail / Not run / Unavailable — notes:
+Quick support / People edit / document-replacement guard: Pass / Fail / Not run / Unavailable — notes:
+Exact next step / completion / Undo / stale target / full Path: Pass / Fail / Not run / Unavailable — notes:
+Controlled contact handoff / clipboard (no real call/text): Pass / Fail / Not run / Unavailable — notes:
 Consent/grant states tested and actual reading/status:
 Issue links, reproduction steps, and synthetic evidence:
 Remaining unverified items / follow-up owner:

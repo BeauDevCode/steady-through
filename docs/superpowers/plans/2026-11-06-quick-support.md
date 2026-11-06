@@ -29,35 +29,35 @@
 
 ---
 
-### Task1: Guarded ownership mutations and foreground policy
+### Task 1: Guarded ownership mutations and foreground policy
 
 **Files:** modify `lib/app/app_controller.dart`; create `lib/ui/view_activity.dart`, `test/app/quick_support_test.dart`.
 **Interfaces:** addPerson optional expectedRevision/isActive; updatePerson required expected TrustedPerson+revision; deletePerson optional expected/revision/isActive (UI always supplies); setFocusedActionDone(eventId,actionId,done,{required PlanAction expected,required int expectedRevision,bool Function()? isActive}); ViewActivity as Global Constraints. Person edit/remove explicitly purge residuals.
 
-- [ ] Write tests for trimmed name/phone, blank rejection, clear phone, ID/order/other-data preservation; exact-ID/instance and revision mismatch; queued theme+edit; foreground callback evaluated at execution; closed rejection; primary failure versus committed cleanup warning. Focus requires same active unfinished event and exact action; test done/undo/failure/deleted/completed/other-active/same-ID import and unrelated writes.
-- [ ] Run `flutter test test/app/quick_support_test.dart --reporter expanded` (expected RED missing methods/guards), implement current-state APIs and ViewActivity, then run targeted file (expected PASS). Root owns controller and policy file.
-- [ ] Run full Flutter suite after integration; commit Task1 files and record exact RED/GREEN and full-suite evidence in ledger.
+- [x] Write tests for trimmed name/phone, blank rejection, clear phone, ID/order/other-data preservation; exact-ID/instance and revision mismatch; queued theme+edit; foreground callback evaluated at execution; closed rejection; primary failure versus committed cleanup warning. Focus requires same active unfinished event and exact action; test done/undo/failure/deleted/completed/other-active/same-ID import and unrelated writes.
+- [x] Run `flutter test test/app/quick_support_test.dart --reporter expanded` (expected RED missing methods/guards), implement current-state APIs and ViewActivity, then run targeted file (expected PASS). Root owns controller and policy file.
+- [x] Run full Flutter suite after integration; commit Task1 files and record exact RED/GREEN and full-suite evidence in ledger.
 
-### Task2: Shared trusted people, editing and Help preview
+### Task 2: Shared trusted people, editing and Help preview
 
 **Files:** create `lib/features/people/phone_actions.dart`, `person_card.dart`, `person_form_dialog.dart`, `trusted_people_section.dart`, `test/widget/trusted_people_test.dart`; refactor `people_screen.dart`; modify `lib/features/help/help_screen.dart`.
 **Interfaces:** PhoneActions/UrlLauncherPhoneActions moved with PeopleScreen re-export; PersonCard(controller,person,{phoneActions,showManagement=true}); PersonFormDialog(controller,{person}); showPersonForm(context,controller,{person}); TrustedPeopleSection(controller,{phoneActions}); HelpScreen optional controller and phoneActions; HelpNowButton optional controller. Root Task3 handles shell/tool forwarding.
 
-- [ ] Write widget tests before implementation: explicit-only Call/Text/Copy, false/thrown handler fallback, clipboard failure, missing number, latest data after edit/import, Help up-to3 preview/View all/empty Add, editing prefill/clear/cancel/fail/retry/duplicate/save persistence, exact stale same-ID edit/remove, cancel/foreground/disposal late completion, cleanup warning versus failed save, sources off, narrow/200%/Simple/reduced-motion and return to Help. Run file to observe RED.
-- [ ] Implement focused shared cards/form/section with current-state guards, duplicate suppression, complete labels/live errors and no auto-handoff; retain ordinary People remove confirmation. Run targeted file (expected PASS) and root integration suites.
-- [ ] Commit Task2 files after full green integration and ledger evidence. No new source or permission; emergency Help content remains unchanged.
+- [x] Write widget tests before implementation: explicit-only Call/Text/Copy, false/thrown handler fallback, clipboard failure, missing number, latest data after edit/import, Help up-to3 preview/View all/empty Add, editing prefill/clear/cancel/fail/retry/duplicate/save persistence, exact stale same-ID edit/remove, cancel/foreground/disposal late completion, cleanup warning versus failed save, sources off, narrow/200%/Simple/reduced-motion and return to Help. Run file to observe RED.
+- [x] Implement focused shared cards/form/section with current-state guards, duplicate suppression, complete labels/live errors and no auto-handoff; retain ordinary People remove confirmation. Run targeted file (expected PASS) and root integration suites.
+- [x] Commit Task2 files after full green integration and ledger evidence. No new source or permission; emergency Help content remains unchanged.
 
-### Task3: Focused next action, entry points, native fixture and visuals
+### Task 3: Focused next action, entry points, native fixture and visuals
 
 **Files:** create `lib/model/next_action_target.dart`, `lib/features/journey/focused_action_screen.dart`, `test/widget/focused_action_test.dart`, `tool/capture_quick_support_ui_test.dart`; modify `home_screen.dart`, `steady_through_app.dart`, all tool HelpNowButton call sites, `test/widget/journey_test.dart`, `test/widget/tools_test.dart` as needed, `integration_test/native_smoke_test.dart`, `test/data/data_portability_test.dart`.
 **Interfaces:** NextActionTarget(eventId,actionId,replacementRevision), FocusedActionScreen(controller,target,{onOpenHelp,onOpenPath}), optional Home.onOpenNextAction ValueChanged<NextActionTarget>. Root owns Home/shell/tool forwarding/integration/native/captures; focused-screen worker owns only target/screen/standalone test.
 
-- [ ] Write standalone and shell widget regressions for exact action vs five-stage Path, explicit-only completion/Undo/no advance, failure/retry/concurrency, stale target/import/deleted/completed/changed-active cases, immediate Help/Back/fullPath, Home no-next states and proper return/pause from all Help entry points. Observe RED before production integration.
-- [ ] Implement target/focus screen and Home navigation; forward controller to shell and fallback Help buttons. Reuse existing full Path and People routing. Run targeted files (expected PASS).
-- [ ] Extend real encrypted unit and existing native backup case with fictional edited people: stable ID/order, optional phone clearing and preservation through export/import/authenticated reopen, with ratings/guides/settings/native consent behavior intact. Preserve exactly original3 native case names. No real handoff in native tests.
-- [ ] Generate/inspect synthetic Help/People/edit/focus mobile light, desktop dark and320px/200%/Simple/reduced-motion captures. Run format/analyze/full Flutter/Python helper suite (expected PASS), commit and ledger actual results.
+- [x] Write standalone and shell widget regressions for exact action vs five-stage Path, explicit-only completion/Undo/no advance, failure/retry/concurrency, stale target/import/deleted/completed/changed-active cases, immediate Help/Back/fullPath, Home no-next states and proper return/pause from all Help entry points. Observe RED before production integration.
+- [x] Implement target/focus screen and Home navigation; forward controller to shell and fallback Help buttons. Reuse existing full Path and People routing. Run targeted files (expected PASS).
+- [x] Extend real encrypted unit and existing native backup case with fictional edited people: stable ID/order, optional phone clearing and preservation through export/import/authenticated reopen, with ratings/guides/settings/native consent behavior intact. Preserve exactly original3 native case names. No real handoff in native tests.
+- [x] Generate/inspect synthetic Help/People/edit/focus mobile light, desktop dark and320px/200%/Simple/reduced-motion captures. Run format/analyze/full Flutter/Python helper suite (expected PASS), commit and ledger actual results.
 
-### Task4: Review and verified public1.5 preview
+### Task 4: Review and verified public1.5 preview
 
 **Files:** pubspec.yaml, README.md, PRIVACY.md, docs quality/device/iOS records; new docs/releases/1.5.0-decisions.md and publication snapshot.
 

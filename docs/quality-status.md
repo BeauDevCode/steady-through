@@ -1,8 +1,31 @@
 # Quality status
 
+<a id="current-150-work-in-progress--ci-and-publication-pending"></a>
+
+## Current 1.5.0 work in progress — CI and publication pending
+
+Working **1.5.0+9**, intended tag **v1.5.0-preview.1**, adds Help's first-three trusted-people preview/full People route, shared Add/Edit and explicit Call/Text/Copy failure handling, plus Home's exact existing-action route with completion/Undo and full Path access. No action is completed by navigation, and there is no automatic advancement. Edits trim names, reject blank names, allow a cleared phone and preserve ID/order and unrelated records. Controller/document/lifecycle guards protect stale targets and imports. Schema **4/read 1/2/3/4**, encryption/KDF, native adapters, permissions and learning remain unchanged; all sources may stay off.
+
+**Observed scoped regression evidence:** new Add person and existing Add a rating/Clear ratings dialogs captured the document-replacement revision lazily, allowing an old dialog to acquire the revision of imported data. Revision capture now occurs eagerly when each dialog opens, so it remains bound to the original document. Three new regressions were observed RED before the fix and PASS after it. `.superpowers/sdd/2026-11-06-quick-support/contact-shell-green.log` ends with **64 scoped tests passed**. This remains scoped regression evidence; the final local full-suite result is recorded below and is not final-source CI.
+
+A separate visual regression exposed a clipped optional-phone label at 320 logical pixels/200% text. The label now wraps in full above the input while retaining its complete semantic label; Help uses the existing responsive column layout. The final local suite passed after these changes.
+
+| Area | Current evidence boundary and remaining gate |
+| --- | --- |
+| Source/local verification | 413 Flutter tests and 88 Python CI-helper tests passed; analyzer reported no issues; all 109 Dart files passed format checking with no changes. Fresh whole-branch review remains pending. These are local results, not CI/native execution. |
+| Encrypted fixture | Extended for edited fictional people, a cleared optional phone, stable ID/order, unrelated records/settings, ratings and the exact focused-completion controller API through export/import and reopen. Native execution of the extension remains pending CI; fixture code is not a native execution result. |
+| Native runtime | All three original case names remain required on Android, iOS Simulator, macOS, Windows and Linux. No 1.5 native pass is claimed. The backup fixture does not validate native contact handoffs or focused-route navigation; file gateway/confirmation callbacks stay scripted. |
+| Visual review | All three capture profiles passed and generated 24 fictional PNGs in `docs/screenshots/quick-support/`: light/mobile, dark/desktop and narrow Simple words/200% text/reduced motion. All 24 regenerated actual-widget scenes were visually inspected through three contact sheets, followed by full-size narrow Edit and desktop Help. The optional label wraps fully, buttons remain intact and desktop cards use the available width; focused content remains scrollable on narrow layouts. These fictional renderings do not validate native accessibility. |
+| Release gates | Exact-source seven-job CI, thirteen artifacts, six package payloads/metadata, ten assets, source/tag/main equivalence, exact release body, server hashes/sizes and anonymous access remain pending. No 1.5 preview is claimed published. |
+| Manual/distribution | No real calls/texts, actual OS dialogs/grants, physical devices/sources, native assistive-technology walkthroughs, distribution signing/notarization or efficacy validation were performed for this work. Any iPhoneOS archive remains unsigned, not installable and physically untested. |
+
+Final local logs are in `.superpowers/sdd/2026-11-06-quick-support/`: `full-green-final.log` (413 passed), `analyze-final.log` (no issues), `helpers-final.log` (88 passed), `format-check-final.log` (109 files, no changes) and `captures-final.log` (three passing profiles).
+
+The [1.5 decisions](releases/1.5.0-decisions.md), [design](superpowers/specs/2026-11-06-quick-support-design.md), [manual checks](device-validation.md) and [iOS handoff](ios-distribution.md) describe the intended behavior and unexecuted steps. Every 1.4 result below remains tied to its named historical source.
+
 <a id="current-140-preview--verified-evidence"></a>
 
-## Current 1.4.0 preview — verified evidence
+## Published 1.4.0 preview — historical verified evidence
 
 **[v1.4.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.4.0-preview.1) is published**, app version **1.4.0+8**. The tag and all six packages use exact tested source `a0a12ecc7badf359411e520b21a4081dcd06854d` under [CI run 42308127205](https://github.com/BeauDevCode/steady-through/actions/runs/42308127205). All seven jobs succeeded on attempt 1. Optional **What helps you** ratings are explicit personal preferences, separate from feeling learning and game-round feelings. Completion, Skip, Stop and Help do not themselves save an answer. A bounded ownership history supports manual add, exact-record change/delete/Undo and confirmed Clear ratings. Descriptive counts and a dated, explained Helpful suggestion leave every ordinary tool available; neither is an effectiveness or prediction claim.
 

@@ -2,7 +2,19 @@
 
 _Last updated: November 6, 2026_
 
-## Current 1.4.0 preview
+## Current 1.5.0 work in progress — CI and publication pending
+
+Working **1.5.0+9** adds trusted people inside Help, editing saved people and an exact next-action route using existing encrypted records. It still writes **schema 4** and reads strictly validated **1/2/3/4**. Encryption/export passphrases/KDF, permissions, native adapters and learning rules are unchanged; no account, new collection or source consent is required. **Local verification passed:** 413 Flutter tests, 88 Python CI-helper tests, no analyzer issues, and 109 Dart files format-checked with no changes. All three capture profiles passed; all 24 generated fictional actual-widget captures were visually inspected. These renderings do not validate native accessibility. Fresh whole-branch review, exact-source CI, native execution, package checks and publication remain pending. Published 1.4 results below are historical, not evidence for the new source. See [1.5 decisions](docs/releases/1.5.0-decisions.md) and [current quality status](docs/quality-status.md#current-150-work-in-progress--ci-and-publication-pending).
+
+Help displays at most the first three people in stored order and links to the full People route. Names/optional numbers are manually entered, encrypted and never learning examples or features; no relationship is inferred. Add/Edit trims text, rejects blank names, allows clearing a phone and preserves identity/order and unrelated records. Corrections/removals request cleanup of known residual local copies, retaining the distinction between a primary failure and a committed-save cleanup warning. External exports and OS backups remain outside app deletion control.
+
+Call, Text and Copy each require an explicit tap. A phone/SMS handoff may expose the chosen number to that app/provider and is not a delivery guarantee. Failed or unavailable handlers leave the number visible with a copy fallback; clipboard failures are reported. The development checks do not call or text real people or validate actual OS handoff dialogs. No contacts permission is requested.
+
+Your next step targets an existing action and current event/document identity. Mark step done/Undo are explicit; navigation neither completes an action nor advances to another. Replaced documents, changed events and removed actions cannot redirect a queued mutation into another or same-ID imported record. Dialog ownership is captured when opened; stale Add person, Add a rating and Clear ratings dialogs cannot mutate a later imported document.
+
+<a id="current-140-preview"></a>
+
+## Published 1.4.0 preview — historical record
 
 Published **1.4.0+8** adds optional tool-rating preferences in the encrypted vault, writes **schema 4**, and reads strictly validated versions **1, 2, 3 and 4**. Exact-source seven-job CI, package hashes and public access are verified in quality status. Earlier release evidence remains historical. New version 4 vaults/exports cannot be read by an app that supports only up to version 3. Preserve a usable earlier backup if you may return to an older app. Encryption, export passphrases, the KDF and native source permissions remain unchanged. See the [1.4 decisions](docs/releases/1.4.0-decisions.md) and [quality status](docs/quality-status.md).
 
