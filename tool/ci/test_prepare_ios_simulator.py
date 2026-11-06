@@ -51,6 +51,173 @@ def inventory(*devices):
     return {"devices": {"com.apple.CoreSimulator.SimRuntime.iOS-99-3": list(devices)}}
 
 
+class PreferredRuntimeSelectionTest(unittest.TestCase):
+    """Match Flutter's selected-Xcode build contract without invoking simctl.
+
+    Primary contract: Flutter 3.47.9 dev/devicelab/lib/framework/ios.dart 43-113:
+    https://github.com/flutter/flutter/blob/3.47.9/dev/devicelab/lib/framework/ios.dart#L43-L113
+    The override wins over preferredBuild; matching must use an exact available
+    runtime build, rather than the lexical first/oldest runtime or a UUID.
+    """
+
+    preferred_id = "com.apple.CoreSimulator.SimRuntime.iOS-26-5"
+    other_id = "com.apple.CoreSimulator.SimRuntime.iOS-26-2"
+
+    def setUp(self):
+        spec = importlib.util.spec_from_file_location("runtime_selection_helper", SCRIPT)
+        self.helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.helper)
+
+    def runtime(self, identifier=None, build="23F73", available=True):
+        return {"identifier": identifier or self.preferred_id,
+                "buildversion": build, "isAvailable": available}
+
+    def matches(self, **values):
+        return {"iphoneos26.5": values or {"preferredBuild": "23F73"},
+                "watchos26.5": {"preferredBuild": "watch-only-build"}}
+
+    def test_maps_preferred_build_to_exact_available_ios_runtime(self):
+        runtimes = {"runtimes": [self.runtime(self.other_id, "23C54"), self.runtime(),
+                                 self.runtime("com.apple.CoreSimulator.SimRuntime.tvOS-26-5", "23F73")]}
+        self.assertEqual(self.helper.preferred_runtime(self.matches(), runtimes), self.preferred_id)
+
+    def test_user_override_precedes_preferred_build(self):
+        matches = self.matches(userOverriddenBuild="23C54", preferredBuild="23F73")
+        runtimes = {"runtimes": [self.runtime(), self.runtime(self.other_id, "23C54")]}
+        self.assertEqual(self.helper.preferred_runtime(matches, runtimes), self.other_id)
+
+    def test_missing_override_runtime_does_not_fall_back_to_preferred_build(self):
+        with self.assertRaises(ValueError):
+            self.helper.preferred_runtime(self.matches(userOverriddenBuild="not-installed", preferredBuild="23F73"),
+                                          {"runtimes": [self.runtime()]})
+
+    def test_missing_unavailable_or_only_prefix_matching_runtime_fails(self):
+        for runtimes in ([], [self.runtime(available=False)], [self.runtime(available="true")],
+                         [self.runtime(build="23F73-extra")], [self.runtime(build="other-build")]):
+            with self.subTest(runtimes=runtimes), self.assertRaises(ValueError):
+                self.helper.preferred_runtime(self.matches(), {"runtimes": runtimes})
+
+    def test_ambiguous_matching_runtime_build_fails(self):
+        for runtimes in ([self.runtime(), self.runtime(self.other_id)], [self.runtime(), self.runtime()]):
+            with self.subTest(runtimes=runtimes), self.assertRaises(ValueError):
+                self.helper.preferred_runtime(self.matches(), {"runtimes": runtimes})
+
+    def test_missing_ambiguous_or_malformed_selected_xcode_match_fails(self):
+        invalid = (
+            [], {}, {"watchos26.5": {"preferredBuild": "23F73"}},
+            {"iphoneos26.5": {}}, {"iphoneos26.5": []},
+            self.matches(preferredBuild=""), self.matches(preferredBuild=23),
+            self.matches(userOverriddenBuild=None, preferredBuild="23F73"),
+            self.matches(userOverriddenBuild="", preferredBuild="23F73"),
+            {"iphoneos26.5": {"preferredBuild": "23F73"}, "iphoneos26.2": {"preferredBuild": "23C54"}},
+        )
+        for matches in invalid:
+            with self.subTest(matches=matches), self.assertRaises(ValueError):
+                self.helper.preferred_runtime(matches, {"runtimes": [self.runtime()]})
+
+    def test_malformed_runtime_inventory_fails(self):
+        for runtimes in ([], {}, {"runtimes": {}}, {"runtimes": [None]},
+                         {"runtimes": [{"identifier": self.preferred_id, "isAvailable": True}]},
+                         {"runtimes": [{"buildversion": "23F73", "isAvailable": True}]}):
+            with self.subTest(runtimes=runtimes), self.assertRaises(ValueError):
+                self.helper.preferred_runtime(self.matches(), runtimes)
+
+    def test_constrained_selection_ignores_booted_device_on_other_runtime(self):
+        data = {"devices": {self.other_id: [device(BOOTED_ID, state="Booted")],
+                            self.preferred_id: [device()]}}
+        selected = self.helper.select_device(data, runtime_identifier=self.preferred_id)
+        self.assertEqual(selected["udid"], PHONE_ID)
+
+    def test_constrained_selection_never_falls_back_when_preferred_has_no_iphone(self):
+        for preferred_devices in ([], [device(available=False)], [device(kind="iPad-Pro")]):
+            data = {"devices": {self.other_id: [device(BOOTED_ID, state="Booted")],
+                                self.preferred_id: preferred_devices}}
+            with self.subTest(devices=preferred_devices), self.assertRaises(ValueError):
+                self.helper.select_device(data, runtime_identifier=self.preferred_id)
+
+    def test_preferred_runtime_device_type_breaks_ties_before_random_uuid(self):
+        air = device(PHONE_ID, kind="iPhone-Air")
+        phone = device(BOOTED_ID, kind="iPhone-17-Pro")
+        for devices in ([air, phone], [phone, air]):
+            with self.subTest(devices=devices):
+                selected = self.helper.select_device({"devices": {self.preferred_id: devices}},
+                                                     runtime_identifier=self.preferred_id)
+                self.assertEqual(selected["deviceTypeIdentifier"], phone["deviceTypeIdentifier"])
+                self.assertEqual(selected["udid"], BOOTED_ID)
+
+    def test_preferred_runtime_keeps_booted_preference_and_same_type_uuid_tie_break(self):
+        booted_air = device(BOOTED_ID, state="Booted", kind="iPhone-Air")
+        shutdown_phone = device(PHONE_ID, kind="iPhone-17-Pro")
+        selected = self.helper.select_device({"devices": {self.preferred_id: [shutdown_phone, booted_air]}},
+                                             runtime_identifier=self.preferred_id)
+        self.assertEqual(selected["udid"], BOOTED_ID)
+        same_type = [device(BOOTED_ID), device(PHONE_ID)]
+        selected = self.helper.select_device({"devices": {self.preferred_id: same_type}},
+                                             runtime_identifier=self.preferred_id)
+        self.assertEqual(selected["udid"], PHONE_ID)
+
+    def test_main_retains_runtime_inventories_and_selection_before_boot_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            evidence = Path(directory) / "evidence"
+            env = Path(directory) / "environment"
+            matches = self.matches()
+            runtimes = {"runtimes": [self.runtime(self.other_id, "23C54"), self.runtime()]}
+            devices = {"devices": {self.other_id: [device(BOOTED_ID, state="Booted")],
+                                   self.preferred_id: [device()]}}
+            responses = {
+                ("xcrun", "simctl", "runtime", "match", "list", "--json"): matches,
+                ("xcrun", "simctl", "list", "runtimes", "--json"): runtimes,
+                ("xcrun", "simctl", "list", "devices", "available", "--json"): devices,
+            }
+
+            def fixture_run(command, **kwargs):
+                return subprocess.CompletedProcess(command, 0, stdout=json.dumps(responses[tuple(command)]), stderr="")
+
+            def failed_boot(selected, environment_file, evidence_directory):
+                selection = json.loads((evidence / "native-ios-selection.json").read_text())
+                self.assertEqual(selection["udid"], PHONE_ID)
+                self.assertEqual(selection["runtimeIdentifier"], self.preferred_id)
+                self.assertEqual(selected, selection)
+                self.assertEqual(Path(environment_file), env)
+                self.assertEqual(Path(evidence_directory), evidence)
+                self.assertFalse(env.exists(), "Selection identity must not export readiness")
+                raise ValueError("fixture boot failed after diagnostic selection was recorded")
+
+            with patch.dict(os.environ, {"GITHUB_ENV": str(env)}), \
+                    patch.object(sys, "argv", [str(SCRIPT), "--evidence-directory", str(evidence)]), \
+                    patch.object(self.helper.subprocess, "run", side_effect=fixture_run) as run, \
+                    patch.object(self.helper, "boot_and_export", side_effect=failed_boot) as boot:
+                self.assertEqual(self.helper.main(), 1)
+            boot.assert_called_once()
+            self.assertEqual(json.loads((evidence / "native-ios-runtime-matches.json").read_text()), matches)
+            self.assertEqual(json.loads((evidence / "native-ios-runtimes.json").read_text()), runtimes)
+            self.assertEqual(json.loads((evidence / "native-ios-devices.json").read_text()), devices)
+            self.assertEqual([tuple(call.args[0]) for call in run.call_args_list], list(responses))
+            self.assertTrue(all(call.kwargs["check"] and 0 < call.kwargs["timeout"] <= 60 for call in run.call_args_list))
+            self.assertFalse(env.exists())
+
+    def test_main_no_exact_runtime_match_retains_inputs_without_selection_or_boot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            evidence = Path(directory) / "evidence"
+            env = Path(directory) / "environment"
+            responses = {
+                ("xcrun", "simctl", "runtime", "match", "list", "--json"): self.matches(),
+                ("xcrun", "simctl", "list", "runtimes", "--json"): {"runtimes": [self.runtime(self.other_id, "23C54")]},
+                ("xcrun", "simctl", "list", "devices", "available", "--json"): {"devices": {self.other_id: [device()]}},
+            }
+            with patch.dict(os.environ, {"GITHUB_ENV": str(env)}), \
+                    patch.object(sys, "argv", [str(SCRIPT), "--evidence-directory", str(evidence)]), \
+                    patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs:
+                                 subprocess.CompletedProcess(command, 0, stdout=json.dumps(responses[tuple(command)]), stderr="")), \
+                    patch.object(self.helper, "boot_and_export") as boot:
+                self.assertEqual(self.helper.main(), 1)
+            boot.assert_not_called()
+            self.assertTrue((evidence / "native-ios-runtime-matches.json").exists())
+            self.assertTrue((evidence / "native-ios-runtimes.json").exists())
+            self.assertFalse((evidence / "native-ios-selection.json").exists())
+            self.assertFalse(env.exists())
+
+
 class SimulatorSelectionCliTest(unittest.TestCase):
     def select(self, data):
         with tempfile.TemporaryDirectory() as directory:

@@ -24,12 +24,53 @@ def validated_udid(device):
     return udid
 
 
-def select_device(inventory):
+def preferred_runtime(runtime_matches, runtime_inventory):
+    """Resolve the selected Xcode's exact available iOS runtime build.
+
+    Build precedence follows Flutter's device-lab contract. Missing or ambiguous
+    metadata fails closed instead of selecting an unrelated installed runtime.
+    https://github.com/flutter/flutter/blob/3.47.9/dev/devicelab/lib/framework/ios.dart#L43-L113
+    """
+    if not isinstance(runtime_matches, dict):
+        raise ValueError("selected-Xcode runtime matches must be an object")
+    ios_matches = [value for key, value in runtime_matches.items() if "iphoneos" in key]
+    if len(ios_matches) != 1 or not isinstance(ios_matches[0], dict):
+        raise ValueError("selected Xcode must identify exactly one iPhoneOS runtime match")
+    match = ios_matches[0]
+    build_key = "userOverriddenBuild" if "userOverriddenBuild" in match else "preferredBuild"
+    build = match.get(build_key)
+    if not isinstance(build, str) or not build or build.strip() != build:
+        raise ValueError(f"selected Xcode has no valid {build_key} runtime build")
+    if not isinstance(runtime_inventory, dict) or not isinstance(runtime_inventory.get("runtimes"), list):
+        raise ValueError("simctl runtime inventory has no runtimes array")
+    matches = []
+    for runtime in runtime_inventory["runtimes"]:
+        if not isinstance(runtime, dict) or not isinstance(runtime.get("identifier"), str):
+            raise ValueError("simctl runtime has no valid identifier")
+        identifier = runtime["identifier"]
+        if not identifier.startswith("com.apple.CoreSimulator.SimRuntime.iOS-"):
+            continue
+        runtime_build = runtime.get("buildversion")
+        if not isinstance(runtime_build, str) or not runtime_build:
+            raise ValueError("simctl iOS runtime has no valid buildversion")
+        if runtime_build == build and runtime.get("isAvailable") is True:
+            matches.append(identifier)
+    if len(matches) != 1:
+        raise ValueError(f"selected Xcode runtime build {build} has {len(matches)} exact available iOS matches; expected one")
+    return matches[0]
+
+
+def select_device(inventory, runtime_identifier=None):
     if not isinstance(inventory, dict) or not isinstance(inventory.get("devices"), dict):
         raise ValueError("simctl inventory has no devices map")
+    if runtime_identifier is not None and (not isinstance(runtime_identifier, str)
+            or not runtime_identifier.startswith("com.apple.CoreSimulator.SimRuntime.iOS-")):
+        raise ValueError("preferred runtime identifier must name an iOS runtime")
     candidates = []
     for runtime, devices in inventory["devices"].items():
         if not runtime.startswith("com.apple.CoreSimulator.SimRuntime.iOS-"):
+            continue
+        if runtime_identifier is not None and runtime != runtime_identifier:
             continue
         if not isinstance(devices, list):
             raise ValueError("simctl runtime devices must be an array")
@@ -42,10 +83,10 @@ def select_device(inventory):
                     and kind.startswith("com.apple.CoreSimulator.SimDeviceType.iPhone-")
                     and device.get("state") in ("Booted", "Shutdown")):
                 udid = validated_udid(device)
-                candidates.append((device["state"] != "Booted", runtime, udid, device))
+                candidates.append((device["state"] != "Booted", runtime, kind, udid, device))
     if not candidates:
         raise ValueError("no available iPhone simulator in an installed iOS runtime")
-    return min(candidates, key=lambda item: item[:3])[3]
+    return min(candidates, key=lambda item: item[:4])[4]
 
 
 def selected_simulator_app():
@@ -162,11 +203,24 @@ def main():
         environment_file = os.environ.get("GITHUB_ENV")
         if not environment_file:
             raise ValueError("GITHUB_ENV is required for CI simulator preparation")
-        result = subprocess.run(["xcrun", "simctl", "list", "devices", "available", "--json"],
-                                capture_output=True, text=True, check=True, timeout=60)
         arguments.evidence_directory.mkdir(parents=True, exist_ok=True)
-        (arguments.evidence_directory / "native-ios-devices.json").write_text(result.stdout, encoding="utf-8")
-        boot_and_export(select_device(json.loads(result.stdout)), environment_file, arguments.evidence_directory)
+        inventories = []
+        for command, filename in (
+                (["xcrun", "simctl", "runtime", "match", "list", "--json"], "native-ios-runtime-matches.json"),
+                (["xcrun", "simctl", "list", "runtimes", "--json"], "native-ios-runtimes.json"),
+                (["xcrun", "simctl", "list", "devices", "available", "--json"], "native-ios-devices.json")):
+            result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=60)
+            (arguments.evidence_directory / filename).write_text(result.stdout, encoding="utf-8")
+            inventories.append(result.stdout)
+        runtime_matches, runtimes, devices = (json.loads(value) for value in inventories)
+        runtime_identifier = preferred_runtime(runtime_matches, runtimes)
+        selected = select_device(devices, runtime_identifier=runtime_identifier)
+        selection = {**selected, "udid": validated_udid(selected), "runtimeIdentifier": runtime_identifier}
+        # Diagnostic identity is recorded before boot, independently of the
+        # readiness gate. Only boot_and_export may publish GITHUB_ENV readiness.
+        (arguments.evidence_directory / "native-ios-selection.json").write_text(
+            json.dumps(selection, indent=2) + "\n", encoding="utf-8")
+        boot_and_export(selection, environment_file, arguments.evidence_directory)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(f"Simulator preparation failed: {error}", file=sys.stderr)
         if isinstance(error, subprocess.CalledProcessError) and error.stderr:
