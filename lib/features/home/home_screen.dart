@@ -198,7 +198,7 @@ class HomeScreen extends StatelessWidget {
   List<Widget> _eventContents(BuildContext context, SupportEvent event) {
     final text = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
-    final next = event.actions.where((action) => !action.done).firstOrNull;
+    final next = event.nextPendingAction;
     final doneCount = event.actions.where((action) => action.done).length;
     final actionCount = event.actions.length;
     return [

@@ -51,6 +51,139 @@ Map<String, dynamic> validDocument() => {
 };
 
 void main() {
+  group('SupportEvent.nextPendingAction', () {
+    SupportEvent eventWith(List<PlanAction> actions) => SupportEvent(
+      id: 'ordered-event',
+      title: 'Moving house',
+      createdAt: DateTime.utc(2026, 11, 5),
+      actions: actions,
+    );
+
+    test('recommends late-added Orient before unfinished later stages', () {
+      final event = eventWith([
+        PlanAction(
+          id: 'original',
+          stage: JourneyStage.orient,
+          title: 'Original orientation',
+          done: true,
+        ),
+        PlanAction(
+          id: 'settle',
+          stage: JourneyStage.settle,
+          title: 'Take a pause',
+        ),
+        PlanAction(
+          id: 'late',
+          stage: JourneyStage.orient,
+          title: 'Check the moving date',
+        ),
+      ]);
+
+      expect(event.nextPendingAction?.id, 'late');
+      expect(event.actions.map((action) => action.id), [
+        'original',
+        'settle',
+        'late',
+      ]);
+    });
+
+    test('follows stage order even when actions are stored in reverse', () {
+      var event = eventWith([
+        PlanAction(
+          id: 'reflect',
+          stage: JourneyStage.reflect,
+          title: 'Reflect',
+        ),
+        PlanAction(id: 'plan', stage: JourneyStage.plan, title: 'Plan'),
+        PlanAction(
+          id: 'support',
+          stage: JourneyStage.support,
+          title: 'Support',
+        ),
+        PlanAction(id: 'settle', stage: JourneyStage.settle, title: 'Settle'),
+        PlanAction(id: 'orient', stage: JourneyStage.orient, title: 'Orient'),
+      ]);
+
+      for (final expectedId in [
+        'orient',
+        'settle',
+        'support',
+        'plan',
+        'reflect',
+      ]) {
+        expect(event.nextPendingAction?.id, expectedId);
+        event = event.copyWith(
+          actions: [
+            for (final action in event.actions)
+              action.id == expectedId ? action.copyWith(done: true) : action,
+          ],
+        );
+      }
+      expect(event.nextPendingAction, isNull);
+    });
+
+    test('preserves stored order among unfinished actions in one stage', () {
+      final event = eventWith([
+        PlanAction(
+          id: 'done',
+          stage: JourneyStage.orient,
+          title: 'Already done',
+          done: true,
+        ),
+        PlanAction(
+          id: 'z-first',
+          stage: JourneyStage.orient,
+          title: 'Z comes first',
+        ),
+        PlanAction(
+          id: 'a-second',
+          stage: JourneyStage.orient,
+          title: 'A comes second',
+        ),
+      ]);
+
+      expect(event.nextPendingAction?.id, 'z-first');
+      final advanced = event.copyWith(
+        actions: [
+          for (final action in event.actions)
+            action.id == 'z-first' ? action.copyWith(done: true) : action,
+        ],
+      );
+      expect(advanced.nextPendingAction?.id, 'a-second');
+    });
+
+    test('returns null for an empty event', () {
+      expect(eventWith([]).nextPendingAction, isNull);
+    });
+
+    test('returns null when all actions are done', () {
+      final event = eventWith([
+        PlanAction(
+          id: 'done',
+          stage: JourneyStage.reflect,
+          title: 'Finished reflecting',
+          done: true,
+        ),
+      ]);
+      expect(event.nextPendingAction, isNull);
+    });
+
+    test('returns null for a completed event with unfinished actions', () {
+      final event = eventWith([
+        PlanAction(
+          id: 'unfinished',
+          stage: JourneyStage.orient,
+          title: 'Still unfinished',
+        ),
+      ]).copyWith(completedAt: DateTime.utc(2026, 11, 6));
+      expect(event.nextPendingAction, isNull);
+      expect(
+        event.copyWith(clearCompletedAt: true).nextPendingAction?.id,
+        'unfinished',
+      );
+    });
+  });
+
   test('version one migrates to an off-by-default learning document', () {
     final data = AppData.fromJson(validDocument());
     expect(data.learning.enabledSources, isEmpty);

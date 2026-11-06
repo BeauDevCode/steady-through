@@ -82,6 +82,17 @@ class SupportEvent {
   final DateTime? completedAt;
   final List<PlanAction> actions;
 
+  /// The next unfinished action in path order, retaining order within a stage.
+  PlanAction? get nextPendingAction {
+    if (completedAt != null) return null;
+    for (final stage in JourneyStage.values) {
+      for (final action in actions) {
+        if (action.stage == stage && !action.done) return action;
+      }
+    }
+    return null;
+  }
+
   factory SupportEvent.fromJson(Map<String, dynamic> json) {
     _checkKeys(
       json,

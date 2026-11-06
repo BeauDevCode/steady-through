@@ -220,10 +220,7 @@ class JourneyScreen extends StatelessWidget {
 
     final doneCount = event.actions.where((action) => action.done).length;
     final actionCount = event.actions.length;
-    final nextStage = event.actions
-        .where((action) => !action.done)
-        .firstOrNull
-        ?.stage;
+    final nextStage = event.nextPendingAction?.stage;
     return SteadyPage(
       maxWidth: 1000,
       children: [
