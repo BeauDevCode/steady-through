@@ -25,6 +25,9 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
   String? _warning;
   bool? _hasVault;
   bool _locking = false;
+  bool _opening = false;
+  bool _confirmingReset = false;
+  bool _resetting = false;
   String? _storageError;
 
   @override
@@ -50,13 +53,17 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
     } catch (_) {
       if (mounted) {
         setState(
-          () => _storageError = 'Local storage could not be opened. Your existing files have not been reset.',
+          () => _storageError = 'Local storage could not be opened. Try again to check whether a vault remains.',
         );
       }
     }
   }
 
   Future<void> _open(String passphrase) async {
+    if (_opening || _confirmingReset || _resetting || _vault != null) {
+      throw StateError('Another vault operation is still in progress.');
+    }
+    setState(() => _opening = true);
     final epoch = _activity.lockEpoch;
     VaultSession? vault;
     AppController? controller;
@@ -103,6 +110,7 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
       rethrow;
     } finally {
       _pendingLearning = null;
+      if (mounted) setState(() => _opening = false);
     }
   }
 
@@ -148,58 +156,76 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
   }
 
   Future<void> _reset(BuildContext context) async {
+    if (_opening || _confirmingReset || _resetting || _vault != null) return;
+    setState(() => _confirmingReset = true);
     var confirmation = '';
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, update) => AlertDialog(
-          title: const Text('Permanently delete this vault?'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'This removes the encrypted vault, local backups, and any older app records on this device. It cannot recover a forgotten passphrase. Exported copies remain where you saved them. This cannot be undone.',
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: const InputDecoration(
-                    labelText: 'Type DELETE to confirm',
-                  ),
-                  onChanged: (value) => update(() => confirmation = value),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Keep vault'),
-            ),
-            FilledButton(
-              onPressed: confirmation == 'DELETE'
-                  ? () => Navigator.pop(dialogContext, true)
-                  : null,
-              child: const Text('Delete vault'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (confirmed != true) return;
     try {
-      await widget.store.reset();
-      await _checkStorage();
-    } catch (_) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Deletion could not be fully verified. Some local data may remain. Please try again.',
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, update) => AlertDialog(
+            title: const Text('Permanently delete this vault?'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'This removes the encrypted vault, local backups, and any older app records on this device. It cannot recover a forgotten passphrase. Exported copies remain where you saved them. This cannot be undone.',
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Type DELETE to confirm',
+                    ),
+                    onChanged: (value) => update(() => confirmation = value),
+                  ),
+                ],
+              ),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Keep vault'),
+              ),
+              FilledButton(
+                onPressed: confirmation == 'DELETE'
+                    ? () => Navigator.pop(dialogContext, true)
+                    : null,
+                child: const Text('Delete vault'),
+              ),
+            ],
           ),
-        );
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      setState(() {
+        _confirmingReset = false;
+        _resetting = true;
+      });
+      try {
+        await widget.store.reset();
+      } catch (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Deletion could not be fully verified. Some local data may remain. Please try again.',
+              ),
+            ),
+          );
+        }
+      } finally {
+        // A partial reset may remove the encrypted vault before another local
+        // copy fails to delete. Offer recovery based on the files that remain.
+        await _checkStorage();
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _confirmingReset = false;
+          _resetting = false;
+        });
       }
     }
   }
@@ -259,6 +285,23 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
       darkTheme: steadyTheme(Brightness.dark),
       home: Builder(
         builder: (inside) {
+          if (_resetting) {
+            return const Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Deleting your private vault…'),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
           if (_storageError != null) {
             return Scaffold(
               body: Center(
@@ -287,7 +330,9 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
           return VaultUnlockScreen(
             creating: !_hasVault!,
             onSubmit: _open,
-            onReset: _hasVault! ? () => _reset(inside) : null,
+            onReset: _hasVault! && !_opening && !_confirmingReset
+                ? () => _reset(inside)
+                : null,
           );
         },
       ),
