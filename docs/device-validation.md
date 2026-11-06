@@ -2,7 +2,7 @@
 
 This is a checklist for a future human walkthrough of Steady Through. **No checks in this guide are claimed as executed or passed.** Record
 results separately for Android, iOS, macOS, Windows, and Linux; a build or automated native smoke test is not a substitute for these
-observations. Use the source commit and build under review, not an older preview. The published preview is **1.2.1+6**; its automated CI/package/publication evidence is in [quality status](quality-status.md#current-121-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
+observations. Use the source commit and build under review, not an older preview. The published preview is **1.3.0+7**; its automated CI/package/publication evidence is in [quality status](quality-status.md#current-130-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
 
 ## Set up a safe test session
 
@@ -62,7 +62,7 @@ These checks remain **Not run** until performed and recorded on the specific nat
    choose **Keep current data** at **Replace all local data?** and confirm both events remain. Import again and choose **Replace all data**;
    confirm only the exported state returns, including its guide, action wording/order/done states and appearance/reading settings. Lock and reopen the vault to confirm disk persistence. If a separate test export contains enabled system sources, confirm device usage and motion reset off
    after import; otherwise mark that subcheck **Not run**. Manual and in-app choices may be restored from an export.
-   Current documents write version 3; the current app accepts validated versions 1/2/3. If separately prepared version 1/2 fictional files are available, confirm their events use General and retain saved steps. Older apps cannot read newly written v3 vaults or exports: never try this compatibility check on a real vault or discard the only usable older copy. Invalid v3 context must fail before replacement confirmation and leave current records intact.
+   Current documents write version 3; the current app accepts validated versions 1/2/3. If separately prepared version 1/2 fictional files are available, confirm their events use General and retain saved steps. Apps that understand only v1/v2 cannot read v3 vaults or exports: never try this compatibility check on a real vault or discard the only usable older copy. Invalid v3 context must fail before replacement confirmation and leave current records intact.
 9. With fictional data only, inspect **Clear game history** and **Delete all data** in Settings, plus **Clear learning** in Insights, including
    confirmation and resulting scope if included in this run. A committed clear can still show a cleanup warning if older known recovery files
    cannot be removed; that warning means the active vault changed, not that every local copy was erased. Do not force a storage failure on a
