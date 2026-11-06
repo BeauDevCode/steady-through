@@ -1,13 +1,13 @@
 # iOS packages and distribution handoff
 
-This guide describes the **1.2.1+6** source and planned **v1.2.1-preview.1** packages. Final seven-job CI, device-package verification and publication are **pending** in the [quality record](quality-status.md#current-121-preview--pending-evidence). Commands below are instructions, not evidence that a build, signing step or physical test has run.
+This guide describes the published **1.2.1+6 / [v1.2.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.1-preview.1)** packages. All seven jobs and device-package/archive checks passed on exact source `0f62db5ee2ba0e0769273de5872b1214ea6bafc5`; the [quality record](quality-status.md#current-121-preview--verified-evidence) records the observed evidence and limits. Commands below remain instructions; the future signing and physical steps have not been performed.
 
 ## Choose the right output
 
 | Output | Build and package | What it establishes |
 | --- | --- | --- |
-| iOS Simulator | `flutter build ios --simulator --debug`; `build/ios/iphonesimulator/Runner.app`; planned public `steady-through-1.2.1-preview.1-ios-simulator.zip` | Debug app for a compatible Simulator. The existing Simulator job separately checks its selected available runtime, boot readiness and three actual native cases. It is not an iPhone package. |
-| Unsigned iPhoneOS Release | `flutter build ios --release --no-codesign --target lib/main.dart`; `build/ios/iphoneos/Runner.app`; planned public `steady-through-1.2.1-preview.1-ios-device-release-unsigned.zip` | Device-targeted production compilation and validated package contents only. **Unsigned, not installable, not physically validated.** It is an app ZIP, not a signed Xcode archive or IPA. |
+| iOS Simulator | `flutter build ios --simulator --debug`; `build/ios/iphonesimulator/Runner.app`; public `steady-through-1.2.1-preview.1-ios-simulator.zip` | Debug app for a compatible Simulator. The existing Simulator job separately checks its selected available runtime, boot readiness and three actual native cases. It is not an iPhone package. |
+| Unsigned iPhoneOS Release | `flutter build ios --release --no-codesign --target lib/main.dart`; `build/ios/iphoneos/Runner.app`; public `steady-through-1.2.1-preview.1-ios-device-release-unsigned.zip` | Device-targeted production compilation and validated package contents only. **Unsigned, not installable, not physically validated.** It is an app ZIP, not a signed Xcode archive or IPA. |
 | Future signed archive/IPA | A separately generated `.xcarchive` and `.ipa`, after the owner supplies an Apple Team, valid signing identity and provisioning for the chosen distribution method | A separate signing/distribution result that must be validated and tested on a physical iPhone. Neither preview ZIP supplies it. |
 
 The new device job does not replace Simulator execution. An arm64 slice can belong to a Simulator: the device validator requires **every Mach-O slice to declare platform 2 / iOS**, alongside arm64, appropriate executable types and deployment metadata. Its current app minimum is iOS 15.0. These are package checks; they do not prove behavior on all supported hardware or OS versions.
@@ -52,7 +52,7 @@ The `iPhoneOS Release (macOS, unsigned, not installable)` job preserves two CI a
 
 A failed job may upload partial evidence; artifact presence does not establish success. The provenance records the source, repository, run/attempt, production command, disabled code signing and toolchain. Local commands above do not fabricate a GitHub source/run identity. Retain local source/toolchain observations separately, and use the actual CI provenance for a release.
 
-The intended public device filename is **`steady-through-1.2.1-preview.1-ios-device-release-unsigned.zip`**. Release staging must preserve the validated CI ZIP bytes, map its original name to the public name in build information and compare hashes. The full planned release has six app packages plus `BUILD-INFO.txt`, `SHA256SUMS.txt`, `android-motion-unit-results.xml` and `native-runtime-reports.zip` (ten assets); the report ZIP includes the four device evidence files alongside the original native reports. Public main/tag, anonymous downloads and all server hashes/sizes must be observed before publication is recorded as complete.
+The public device filename is **`steady-through-1.2.1-preview.1-ios-device-release-unsigned.zip`**. Release staging must preserve the validated CI ZIP bytes, map its original name to the public name in build information and compare hashes. The published release has six app packages plus `BUILD-INFO.txt`, `SHA256SUMS.txt`, `android-motion-unit-results.xml` and `native-runtime-reports.zip` (ten assets); the report ZIP includes the four device evidence files alongside the original native reports. Public main/tag, anonymous downloads and all server hashes/sizes must be observed before publication is recorded as complete.
 
 ## Future owner-controlled signing and physical iPhone work
 
