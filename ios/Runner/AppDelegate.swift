@@ -22,7 +22,7 @@ import CoreMotion
 /// requested, and no raw activity samples are passed to Flutter or written.
 private final class IOSDeviceSignals {
   private let channel: FlutterMethodChannel
-  private let motion = CMMotionActivityManager()
+  private var motion: CMMotionActivityManager?
   private var permissionManager: CMMotionActivityManager?
   private var observers: [NSObjectProtocol] = []
   private var motionEnabled = false
@@ -93,9 +93,13 @@ private final class IOSDeviceSignals {
 
   private func startMotionIfAuthorized() {
     guard UIApplication.shared.applicationState == .active, motionEnabled, CMMotionActivityManager.isActivityAvailable(), CMMotionActivityManager.authorizationStatus() == .authorized else { return }
+    // Construct Core Motion only for an opted-in, authorized active session.
+    // Keep passive bridge registration and stop paths free of manager operations.
+    let manager = CMMotionActivityManager()
+    motion = manager
     sessionStarted = Date()
     let currentGeneration = generation
-    motion.startActivityUpdates(to: .main) { [weak self] activity in
+    manager.startActivityUpdates(to: .main) { [weak self] activity in
       guard let self = self, self.motionEnabled, self.generation == currentGeneration, let activity = activity else { return }
       // Core Motion emits changes, not a heartbeat. An unclassified update
       // provides no evidence that an earlier vehicle classification ended.
@@ -114,7 +118,8 @@ private final class IOSDeviceSignals {
     guard motionEnabled else { result(value); return }
     guard CMMotionActivityManager.isActivityAvailable() else { value["motionStatus"] = "unsupported"; result(value); return }
     guard CMMotionActivityManager.authorizationStatus() == .authorized else {
-      motion.stopActivityUpdates()
+      motion?.stopActivityUpdates()
+      motion = nil
       latestVehicle = false
       vehicleMinutes = nil
       walkingMinutes = nil
@@ -122,7 +127,7 @@ private final class IOSDeviceSignals {
       result(value)
       return
     }
-    guard let started = sessionStarted else { value["motionStatus"] = "awaiting-data"; result(value); return }
+    guard let started = sessionStarted, let manager = motion else { value["motionStatus"] = "awaiting-data"; result(value); return }
     let now = Date()
     let cutoff = max(started, now.addingTimeInterval(-3600))
     value["motionStatus"] = summaryState
@@ -137,14 +142,15 @@ private final class IOSDeviceSignals {
     queryInFlight = true
     lastQueryAt = now
     let currentGeneration = generation
-    motion.queryActivityStarting(from: cutoff, to: now, to: .main) { [weak self] activities, error in
+    manager.queryActivityStarting(from: cutoff, to: now, to: .main) { [weak self] activities, error in
       guard let self = self, self.motionEnabled, self.generation == currentGeneration else { return }
       self.queryInFlight = false
       guard CMMotionActivityManager.authorizationStatus() == .authorized else {
         self.vehicleMinutes = nil
         self.walkingMinutes = nil
         self.summaryState = "permission-denied"
-        self.motion.stopActivityUpdates()
+        self.motion?.stopActivityUpdates()
+        self.motion = nil
         return
       }
       guard error == nil, let activities = activities, !activities.isEmpty else {
@@ -184,7 +190,8 @@ private final class IOSDeviceSignals {
   private func stop() {
     generation += 1
     motionEnabled = false
-    motion.stopActivityUpdates()
+    motion?.stopActivityUpdates()
+    motion = nil
     sessionStarted = nil
     latestVehicle = false
     vehicleMinutes = nil
@@ -195,7 +202,8 @@ private final class IOSDeviceSignals {
   }
 
   deinit {
-    motion.stopActivityUpdates()
+    motion?.stopActivityUpdates()
+    motion = nil
     for observer in observers { NotificationCenter.default.removeObserver(observer) }
     channel.setMethodCallHandler(nil)
   }

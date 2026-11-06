@@ -277,7 +277,9 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install Linux desktop build tools
-        timeout-minutes: 10
+        # A cold hosted mirror took more than ten minutes for 27 MB. Keep the
+        # dependency wait bounded without cutting off a progressing download.
+        timeout-minutes: 20
         run: |
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev xvfb xauth
