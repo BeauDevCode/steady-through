@@ -1,0 +1,43 @@
+# Saved moments and understandable Insights
+
+## Intent and scope
+
+Make Steady Through's existing private learning useful to a person who wants to notice their own feelings, understand what was saved, and repair mistakes. The user authorized continued implementation, delegated design choices, and explicitly requested internet research. This is the next complete product increment, retaining Flutter, the existing visual system, the encrypted local vault, free core features, and optional sources.
+
+## Evidence and approaches
+
+Research checked 2026-11-06. These sources inform design; they do not validate this app or its sample thresholds.
+
+- [JITAI design framework](https://academic.oup.com/abm/article/52/6/446/4733473): adaptations need explicit decision rules, a measurable near-term goal and an option to provide no intervention. Our inference: improve user-initiated feedback before automatic delivery.
+- [Stressor Type Matters, original cross-dataset study](https://arxiv.org/abs/2405.09563): HRV-model generalization depended on stressor type. This study does not test games or this app's feeling labels. Our inference: optional observations remain context and comparisons remain tentative.
+- [Original randomized EMA-design study](https://pmc.ncbi.nlm.nih.gov/articles/PMC11347889/): no universal ideal prompting schedule is established by its studied design factors. Our inference: add no reminders or collection quotas to reach model thresholds.
+- [W3C cognitive accessibility guidance](https://www.w3.org/TR/coga-usable/#use-clear-words): literal wording and small chunks. Our inference: put personal history before technical settings.
+- [W3C error prevention](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html) and [Apple undo](https://developer.apple.com/design/human-interface-guidelines/undo-and-redo): predictable correction, confirmation or reversal for user records.
+- [W3C status messages](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html) and [Flutter accessibility](https://docs.flutter.dev/ui/accessibility): announce action results without focus movement; respect text scaling, targets and assistive technology.
+
+Considered: broader passive prediction (more collection and still unvalidated); automatic coaching (requires a separate helpfulness/outcome and delivery evaluation); understandable personal records (direct benefit using existing encrypted data). Builder choice: implement the third now. Optional tool-helpfulness feedback is a subsequent independent increment, not part of this schema-preserving change.
+
+## Product behavior
+
+1. Insights order: current reflection, action feedback, saved moments, source choices, session readings, expandable learning details, clear learning. No cloud or new permissions/dependencies.
+2. Saved moments shows the latest three entries with a route to all retained entries. Newest first by saved timestamp, ties by ID descending. Dates/times display locally using Flutter's locale formatting; stored dates stay unchanged. Each row identifies the chosen feeling and included context. Detail shows the exact aggregate counts/minutes and observation time. Empty snapshot means “No aggregate readings saved”, not proof of manual-only consent. Infer included source categories only from saved metric keys and possible-vehicle context; never from current consent choices.
+3. Every saved entry has explicit Edit feeling and Delete actions. Edit replaces only its label and keeps ID, saved/observed time, metrics and vehicle flag exactly. Confirm edits with Save changes; Cancel does nothing. Delete confirmation identifies the entry and explains derived-model invalidation; Cancel does nothing. No delete-undo storage. Full history uses a lazy list and remains practical for 1,000 records. Viewing/management remains available while learning is paused or sources are off. Hide interactive history controls during currently detected possible vehicle movement; Get help remains reachable. Session management mutations reject a closed/background session or detected vehicle context.
+4. Saving a new feeling is a new moment. A persistent, non-timed Undo saved feeling action targets only the latest committed save's exact record. No captured whole-document restore. Undo is invalidated by another save, edit/delete of its target, pruning, clear, replacement/import or session close. Failed save/delete preserves the old durable state and any still-valid undo receipt. A queued edit of that target invalidates undo rather than deleting the edited record. Results are announced as live status without moving focus.
+5. Correcting/deleting/undoing evidence or retention removal clears derived calibration model, revision, adoption date, counters and old review reason. Preserve startedAt and lastReviewedAt when moments remain, retaining the review cadence; clear the entire calibration when no moments remain. A fresh same-label edit is a no-op. No review/adoption is triggered by a history mutation. Assessment may still compute a conservative fresh comparison from remaining records. The old-label recovery copy must be purged after an edit, with the existing committed-save/cleanup-warning distinction.
+6. A personal summary counts chosen feelings in the past seven rolling days, including Unsure, and explicitly describes self-reports without claiming an inferred current mood or improvement. It works with every source off. A person never needs to reach a quota to use any core feature.
+7. Expandable “How learning works” details explain the existing comparison safeguards using structured diagnostics from the engine: retained count; non-Unsure count; distinct UTC observation days; feelings with at least five examples; whether the same complete-feature training coverage used by assess is present; and the engine's actual current evidence/blocking reason. Distinguish historical coverage from current comparability and from prediction correctness. Reuse training/coverage paths, not an independent UI algorithm. No “AI ready”/accuracy percentage, no instruction to change feelings or enable a source. Keep 60-day review and its existing evaluation/adoption rules separate and unchanged. Explain that a completed insufficient review starts the next review window.
+8. Existing colors/typography, explicit text/icons rather than color alone, controls at least 48 logical pixels, wrapping layouts, keyboard-friendly dialogs, 200% text and reduced motion. Technical details start collapsed. Display save/edit/delete failures with retryable actions and no false-success claim.
+
+## Architecture and constraints
+
+- Keep schema version 3 and its JSON shape unchanged; versions 1/2/3 stay readable. Existing LearningExample is the history record.
+- Pure LearningData relabel/remove behavior; serialized current-state controller mutations, no precomputed whole-learning replacement for edits. Save returns a committed receipt. Session owns the transient undo receipt and lifecycle invalidation.
+- Add a small evidence/summary model at the learning layer and focused widgets for saved history and learning details. Keep Insights as composition/coordinator; avoid further expanding its current large file.
+- The same encrypted AppRepository write queue is authoritative. Failed primary writes do not update live state. Persisted corrections request residual purge; cleanup failure is a committed change plus warning.
+- Retention remains inclusive 180 days, at most 1,000 examples, deterministic ties. Existing consent/native collectors, model thresholds, crypto, game scoring and source capture stay unchanged.
+
+## Verification and completion
+
+Meaningful data/controller/session tests cover exact-record edits, no-op/missing IDs, source/pause preservation, primary-write failure, residual purge and cleanup warning, queued unrelated writes, stale undo target, clear/import/close/prune invalidation, and derived-model invalidation. Evidence tests cover seven-day boundaries, UTC observation days, Unsure, one class, mixed/missing/partial features, revoked sources, stale/future readings and uncertain/vehicle results. Widget tests exercise history, details, edit/cancel/delete/undo, failures, source-off access, action-result semantics, narrow width and 200% text/reduced motion.
+
+Run formatter, analyzer and full Flutter suite; inspect synthetic captures in light/dark/mobile/desktop/large text and dialogs. Run existing CI/native packages for all five platforms before describing a new release as verified. Physical-device permissions, real OS file dialogs, native screen-reader walkthroughs and distribution signing remain separate unexecuted items. Do not claim clinical effectiveness, all-age validation or full-device monitoring.
