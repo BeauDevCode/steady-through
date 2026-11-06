@@ -1,12 +1,14 @@
 # Privacy and data in Steady Through
 
-_Last updated: November 5, 2026_
+_Last updated: November 6, 2026_
 
 Steady Through works locally without an account, app-operated backend, analytics, advertising, in-app cloud sync or cloud emotion service. The whole app is free. Device permissions are optional; declining them leaves planning, tools, people, manual check-ins and help available. The app does not request a birth date, location permission, contacts permission or notification permission. People and phone numbers are typed in manually. Its features support personal organization and general self-help; they are not medical care or a validated stress measurement.
 
 ## Records you choose to keep
 
-The app saves event titles and descriptions, stage actions and completion state, event check-ins (your words, optional 1–5 intensity and note), manually entered trusted people and phone numbers, appearance and reading settings, and path-game round summaries. Round summaries include counts and the feeling you select after a round. They do not contain a raw sequence of game taps.
+The app saves event titles and descriptions, the guide you choose for each event, stage actions and completion state, event check-ins (your words, optional 1–5 intensity and note), manually entered trusted people and phone numbers, appearance and reading settings, and path-game round summaries. Round summaries include counts and the feeling you select after a round. They do not contain a raw sequence of game taps.
+
+Guide choices are General, School & growing up, Adult life changes, Caring for someone, and Later life changes. You select a guide voluntarily for each event; the app does not infer age, a caregiving relationship or emotional state from it. No birth date or helper account is collected. The guide is encrypted event metadata, never a learning-model input. Guide and step text are not learning features. If you explicitly enable In-app activity, ordinary taps and navigation while using these controls can contribute to aggregate counters. Choosing a guide does not enable any source or request a permission. Changing it does not rewrite saved actions; Clear learning preserves guide choices and actions.
 
 If you choose learning sources, the vault also holds your source choices, device-owner confirmation, bounded aggregate snapshots, the feeling labels you explicitly choose, and personal calibration parameters and review results. The app does not turn clicks, app switches or possible vehicle movement into a factual emotional or medical diagnosis. A tentative comparison asks whether it fits; you choose your answer and can add a correction as a new example.
 
@@ -19,6 +21,8 @@ The app does not save the passphrase and has no recovery account or server. Keep
 Readable records and a derived key necessarily exist in memory while the vault is unlocked. Locking closes the owned key object and clears its reference, but cannot guarantee erasure of every runtime or operating-system memory copy. Encryption does not protect an already compromised unlocked device or someone using your unlocked session. A privacy cover hides the app when it becomes inactive; learning sources pause. Returning after at least five minutes away requires another unlock. This is not a claim that the key is erased by a timer while the operating system suspends the app.
 
 ## Older unencrypted records
+
+The current app writes version 3 data documents and accepts strictly validated versions 1, 2 and 3 inside the encrypted vault/export or through readable legacy import. Version 1/2 events receive General context while keeping existing actions and records. Version 3 requires a valid guide on each event; missing or unsupported context is rejected before replacement confirmation. Older apps cannot read newly written version 3 vaults or exports. Encryption and independent export passphrases remain in place; there is no silent format downgrade or plaintext fallback.
 
 When an older local JSON document exists, creating the vault first validates it, writes the encrypted copy, authenticates it and reads it back. Only then does the app remove its known legacy JSON primary, backup and temporary files. If cleanup fails, a visible warning explains that older unencrypted copies may remain; cleanup is retried on a later unlock. A failed cleanup must not be mistaken for successful removal. Existing operating-system backups, copied JSON files and files outside those known app paths are not removed by migration.
 

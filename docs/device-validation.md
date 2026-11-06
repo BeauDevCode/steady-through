@@ -27,17 +27,16 @@ observations. Use the source commit and build under review, not an older preview
    privacy cover. Return before five minutes and check that content reappears only when active. Repeat after at least five minutes away; return
    and confirm **Unlock vault** is required. Note actual OS lifecycle behavior, especially if a desktop window remains visible while another app
    is focused.
-3. **Create and navigate an event.** On Home choose **Create event** and add a fictional title. In **Path**, confirm the five stages—**Get
-   oriented**, **Settle**, **Find support**, **Make a plan**, **Reflect**—and their default actions. Finish the earliest action, add a new
+3. **Create and navigate an event.** On Home choose **Create event** and add a fictional title. Choose a guide voluntarily, then choose any starter steps, including none. Check General, School & growing up, Adult life changes, Caring for someone, and Later life changes without entering a birth date or helper account. Cancel each picker once and confirm prior choices remain. Confirming the same guide must preserve the selected steps; a different guide starts with its five suggestions selected. In **Path**, confirm the five stages—**Get
+   oriented**, **Settle**, **Find support**, **Make a plan**, **Reflect**—and the selected actions. A zero-step event should invite adding a step rather than say the work is done. Finish the earliest action, add a new
    unfinished action to an earlier stage, then check Home and Path recommend that earliest unfinished stage. Rename, finish, and remove an
-   action; create a second event and use **Switch event**.
+   action; add selected suggestions from **Choose starter steps**, checking that existing matches, including done steps, are unavailable. Change the event's guide and confirm saved edits, done states and check-ins remain. Create a second event with another guide and use **Switch event**; Home and Path must reflect that event's own guide.
 4. **Use support without Insights consent.** Open **Tools** for grounding (**Skip** and **Stop**), gentle breathing (**Stop**), and the untimed
    **Path game** (**Undo**, **Restart**, and the post-round feeling choice). Confirm **Help now** can be reached from the main destinations and
    during a tool. The game should give neutral move feedback and ask how the round felt; do not treat its moves as a stress measurement.
 5. **Save and review fictional records.** Add an event-owned entry in **Check-ins** and a fictional person under **More → People**. Check that
    the entry and person survive a lock/unlock, and that the check-in disappears if its event is deleted. Try **Settings → Reading style → Simple
-   words** and inspect the shorter prompts. Home offers examples from school through retirement, while Path uses general stages; there is no
-   separate child, older-adult, or caregiver program to validate.
+   words** and inspect the shorter guide labels, prompts and newly selected suggestions. Previously saved step wording must stay unchanged. Guides offer optional context ideas, not an age classification or clinical program; check that the wording does not assume a diagnosis, retirement, dependency or family arrangement. A helper can read along while preserving the person's own choices.
 6. **Inspect contact handoff without contacting anyone.** Test the copy-number icon with the fictional number. Use **Call** and **Text** only with a controlled
    test handler or disconnected simulator/emulator that guarantees no connection or message delivery. Inspect any OS handler preview, then cancel
    it without calling or sending. On a live device whose handler may dial immediately, skip Call and record it as **Not run**; do not assume the
@@ -51,20 +50,21 @@ observations. Use the source commit and build under review, not an older preview
 8. Add a second fictional event after exporting. In **Import data**, inspect and cancel the actual OS picker; confirm both events remain. Select
    the saved file, try a wrong export passphrase at **Unlock your backup**, and confirm current data remains. Retry with the export passphrase;
    choose **Keep current data** at **Replace all local data?** and confirm both events remain. Import again and choose **Replace all data**;
-   confirm only the exported state returns. If a separate test export contains enabled system sources, confirm device usage and motion reset off
+   confirm only the exported state returns, including its guide, action wording/order/done states and appearance/reading settings. Lock and reopen the vault to confirm disk persistence. If a separate test export contains enabled system sources, confirm device usage and motion reset off
    after import; otherwise mark that subcheck **Not run**. Manual and in-app choices may be restored from an export.
+   Current documents write version 3; the current app accepts validated versions 1/2/3. If separately prepared version 1/2 fictional files are available, confirm their events use General and retain saved steps. Older apps cannot read newly written v3 vaults or exports: never try this compatibility check on a real vault or discard the only usable older copy. Invalid v3 context must fail before replacement confirmation and leave current records intact.
 9. With fictional data only, inspect **Clear game history** and **Delete all data** in Settings, plus **Clear learning** in Insights, including
    confirmation and resulting scope if included in this run. A committed clear can still show a cleanup warning if older known recovery files
    cannot be removed; that warning means the active vault changed, not that every local copy was erased. Do not force a storage failure on a
-   personal device. Exported files and OS backups require separate owner action.
+   personal device. Confirm Clear learning keeps the guide and saved actions as well as the other event records. Exported files and OS backups require separate owner action.
 
 ## Accessibility and visual review on each platform
 
-10. Review Home, Path, Tools, game, Check-ins, People, Settings, vault setup/unlock, and Insights in light and dark themes. On a narrow/mobile
+10. Review event creation, both guide/starter pickers, Home, Path, Tools, game, Check-ins, People, Settings, vault setup/unlock, and Insights in light and dark themes, with standard and Simple words. On a narrow/mobile
     window and at 200% text, check for clipped text, hidden buttons, unreachable dialogs, scroll traps, and touch targets. Enable the OS
     reduced-motion setting and check that optional transitions are not needed to understand state.
 11. Use VoiceOver on iOS/macOS, TalkBack on Android, and the available native screen reader on Windows/Linux. Read navigation, stage progress,
-    game cells, source switches/status, errors, passphrase controls, and confirmation dialogs. Record missing names, misleading order/state, or
+    game cells, guide radio choices, starter checkboxes and existing-step explanations, source switches/status, errors, passphrase controls, and confirmation dialogs. Record missing names, misleading order/state, or
     controls that cannot be activated.
 12. With a physical keyboard on desktop and where supported on mobile, traverse the same flows using Tab/Shift-Tab, arrows where appropriate,
     Enter/Space, and Escape/Back. Check visible focus, logical order, game navigation, modal focus return, and the Help now path. Note any

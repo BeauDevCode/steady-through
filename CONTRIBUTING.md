@@ -8,7 +8,7 @@ Use Flutter **3.47.9** and the native toolchain for the platform you are testing
 
 ```sh
 flutter pub get
-dart format --output=none --set-exit-if-changed lib test
+dart format --output=none --set-exit-if-changed lib test integration_test tool
 flutter analyze
 flutter test
 ```
@@ -33,11 +33,18 @@ The verifier requires these three named application tests in **each** native rep
 
 Native fixtures use fictional records and uniquely created temporary directories. The suite uses the real `VaultGate`, `VaultStore`, KDF, codec and filesystem repository; it asks `path_provider` for a native temporary path only to check plugin registration. Successful fixtures are cleaned up only after their app/session is closed. A failed or timed-out UI fixture may be left in its owned temporary directory for diagnosis; tests must never touch a person's normal app records. The encrypted import/export case calls `DataPortability` with a test-owned file gateway and scripted passphrase/confirmation callbacks. Actual encryption, file bytes, validation, replacement behavior and repository persistence remain exercised; the OS chooser and Settings passphrase/confirmation dialogs are outside that native case. Every optional learning source stays off, and the suite requests no OS grant or physical sensor reading.
 
+The third native case creates a caregiving event with two selected steps, edits and completes one, adds a custom step, and keeps dark/Simple words settings. It compares complete event JSON after independent-passphrase import and after authenticated disk reopen. Keep all three exact test names, the real KDF and file gateway, and sources off. The separate encrypted portability unit test uses synthetic all-source choices without constructing a collector to establish that import retains manual/in-app choices while resetting native sources and owner confirmation. Do not claim the native sources-off fixture establishes enabled-source consent reset.
+
+For reproducible guidance images, run `flutter test --update-goldens tool/capture_guidance_ui_test.dart`. It uses actual creation, guide chooser, starter picker, Path and Home UI with bundled fonts and fictional data. Four profiles cover standard/light mobile, Simple/dark mobile, 320px Simple/light at 200% text, and 1440px standard/dark desktop. Inspect every generated `docs/screenshots/guidance-*.png`; a successful render alone does not establish useful layouts or native accessibility. The capture builds no learning session and uses no passphrase, vault or permission grant.
+
 CI is configured to run this suite on an Android emulator, an iOS simulator, macOS and Windows hosts, and Linux under Xvfb, with per-target JSON/log artifacts and report verification. Native-channel registration and paused/unsupported behavior can be checked there. This does not establish behavior with real Usage Access or motion permission grants, physical sensors, phone/SMS handlers, OS file dialogs, screen readers or actual users. Record those separately on physical devices or appropriate native hosts before making broader source or accessibility claims.
 
 Use the [manual device-validation guide](docs/device-validation.md) for the physical-device and native usability checks outside this suite. Record an outcome for each platform/build; the guide itself is not evidence that a check passed.
 
 ## Changes that need particular care
+
+- Keep context voluntary and per event. The five guides share the existing five journey stages and include standard/Simple words content. Preserve saved action IDs, order, wording and done states when guide, reading style or catalog copy changes. Validate stable starter IDs inside the serialized mutation queue; reject unknown, repeated and cross-guide IDs without partial writes. Guide metadata and event text never become learning inputs; explicitly enabled in-app aggregate counters may include ordinary UI taps. Cite guidance sources in [the content note](docs/guidance-content.md) without claiming endorsement, diagnosis or age-wide effectiveness.
+- Preserve the version boundary: write version 3; read validated versions 1/2/3, assigning General to legacy events and retaining their actions. Older apps cannot read new version 3 documents. Reject invalid version 3 context before import confirmation or replacement. Do not silently downgrade data or bypass authenticated encryption.
 
 - Keep the whole app free and usable offline without accounts, analytics, advertising, cloud emotion services or personal-data transmission. Every learning source starts off in a new vault. Imports may restore manual/in-app choices, while system usage and motion sources reset off. Device permissions must stay optional; planning, tools, people and help remain available if all sources or permissions are declined. Do not add permissions or data collection without explaining the need and updating [PRIVACY.md](PRIVACY.md).
 - Treat game moves as observable actions within a game. Do not claim they measure stress, diagnose a condition, or support a clinical score. Ask the player how a round felt before tailoring a suggestion. Avoid saving raw tap traces.

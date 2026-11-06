@@ -62,9 +62,9 @@
 - Path guide card shows description/helper note and `Choose starter steps`; batch saves once using controller. Per-stage prompts catalog-driven. Home selected guide label; zero-action unfinished state says `Choose a starter step or add your own in Path.` (simple: `Add a step in Path when you are ready.`). Completed-event and all-done nonempty copy retained.
 - Existing first two TextFormFields stay title/description; Save event bottom action remains reachable. All Help/Tools access unchanged. Brief guide-card animation respects MediaQuery.disableAnimations; default duration at most200ms, zero when reduced motion.
 
-- [ ] Write widget regressions for deliberate guide/step creation, none selection/zero-action invitation, same-guide/cancel preservation, edit-with-done-actions retention, existing-step disabling, per-event switching, Simple words and failed saves staying open.
-- [ ] Root confirms RED; implement reusable selectors, typed submission adapters and contextual display.
-- [ ] Root checks 320px/200% text and1200px, keyboard/semantics, existing full navigation suite; task review/fixes and commit.
+- [x] Write widget regressions for deliberate guide/step creation, none selection/zero-action invitation, same-guide/cancel preservation, edit-with-done-actions retention, existing-step disabling, per-event switching, Simple words and failed saves staying open.
+- [x] Root confirms RED; implement reusable selectors, typed submission adapters and contextual display.
+- [x] Root checks 320px/200% text and1200px, keyboard/semantics, existing full navigation suite; task review/fixes and commit.
 
 ### Task 3: Encrypted portability, native/capture evidence and public preview
 
@@ -72,7 +72,7 @@
 
 **Interfaces:** Use catalog/context from Task1 and real selectors fromTask2. Preserve native three exact test names, timeouts, real encryption/filesystem and no-grant sources-off behavior. Native backup case creates a non-General guide with edited/done steps, then verifies restored metadata/actions through the independent passphrase and authenticated reopen. Native test OS chooser/scripted-dialog limit remains explicit.
 
-- [ ] Add meaningful encrypted round-trip regression for context, selected/edited/done actions and retained manual choices while native consent resets; invalid3 context must not reach import confirmation or change records. Root observes RED where missing behavior remains, then corrects production owner via follow-up rather than weakening tests.
+- [x] Add meaningful encrypted round-trip regression for context, selected/edited/done actions and retained manual choices while native consent resets; invalid3 context must not reach import confirmation or change records. Root observes RED where missing behavior remains, then corrects production owner via follow-up rather than weakening tests.
 - [ ] Render synthetic creation/pickers/Path/Home in standard/Simple/light/dark, narrow200% text and large desktop; visually inspect PNGs. No real passphrases or permissions in captures.
 - [ ] Run formatter, analyzer, full Flutter suite, helper tests, scoped source reviews, then one whole-branch review; fix material findings with regression evidence.
 - [ ] Run all five production/native CI targets at intended source; inspect actual3-case JSON per platform and Android JUnit, archive versions/contents/checksums.

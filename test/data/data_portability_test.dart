@@ -7,6 +7,7 @@ import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/data/data_portability.dart';
 import 'package:steady_through/data/vault_codec.dart';
+import 'package:steady_through/learning/learning_data.dart';
 import 'package:steady_through/model/app_data.dart';
 
 class _MemoryRepository implements AppRepository {
@@ -125,6 +126,123 @@ void main() {
     portability = DataPortability(controller, gateway: gateway);
   });
   tearDown(() => controller.dispose());
+
+  test('encrypted restore preserves guidance and chosen steps while resetting system consent', () async {
+    await controller.setTheme(ThemeChoice.dark);
+    await controller.setReadingStyle(ReadingStyle.simple);
+    await controller.createEvent(
+      'Fictional caregiving plan',
+      'A synthetic support arrangement.',
+      guidanceContext: GuidanceContext.caregiving,
+      starterStepIds: ['caregiving.orient', 'caregiving.plan'],
+    );
+    expect(controller.activeEvent!.actions, hasLength(2));
+    final originalId = controller.activeEvent!.id;
+    final editedActionId = controller.activeEvent!.actions.first.id;
+    await controller.renameAction(
+      originalId,
+      editedActionId,
+      'Arrange fictional Tuesday cover',
+    );
+    await controller.setActionDone(originalId, editedActionId, true);
+    await controller.addAction(
+      originalId,
+      JourneyStage.reflect,
+      'Write one fictional helpful detail',
+    );
+    final eventSnapshot = controller.activeEvent!.toJson();
+    await controller.updateLearning(
+      LearningData(
+        enabledSources: SignalSource.values.toSet(),
+        deviceOwnerConfirmed: true,
+        pausedByUser: true,
+      ),
+    );
+
+    await portability.exportData(passphrase: 'a separate export passphrase');
+    final exported = await VaultCodec.decryptDocument(
+      gateway.savedBytes!,
+      'a separate export passphrase',
+    );
+    expect(exported.events.single.toJson(), eventSnapshot);
+    expect(exported.theme, ThemeChoice.dark);
+    expect(exported.readingStyle, ReadingStyle.simple);
+    expect(exported.learning.enabledSources, SignalSource.values.toSet());
+    expect(exported.learning.deviceOwnerConfirmed, isTrue);
+    expect(exported.learning.pausedByUser, isTrue);
+
+    await controller.createEvent('Fictional later event', 'Replace on import');
+    gateway.picked = gateway.savedBytes;
+    var confirmations = 0;
+    expect(
+      await portability.importData(
+        requestPassphrase: () async => 'a separate export passphrase',
+        confirm: (replacement) async {
+          confirmations++;
+          expect(replacement.events.single.toJson(), eventSnapshot);
+          expect(
+            replacement.learning.enabledSources,
+            SignalSource.values.toSet(),
+          );
+          expect(replacement.learning.deviceOwnerConfirmed, isTrue);
+          return true;
+        },
+      ),
+      isTrue,
+    );
+
+    expect(confirmations, 1);
+    expect(controller.data.events, hasLength(1));
+    expect(controller.data.activeEventId, originalId);
+    expect(controller.activeEvent!.actions, hasLength(3));
+    expect(controller.activeEvent!.toJson(), eventSnapshot);
+    expect(controller.data.theme, ThemeChoice.dark);
+    expect(controller.data.readingStyle, ReadingStyle.simple);
+    expect(controller.data.learning.enabledSources, {
+      SignalSource.checkIns,
+      SignalSource.inApp,
+    });
+    expect(controller.data.learning.deviceOwnerConfirmed, isFalse);
+    expect(controller.data.learning.pausedByUser, isTrue);
+    expect(repository.value.toJson(), controller.data.toJson());
+
+    await controller.clearLearning();
+    expect(controller.activeEvent!.toJson(), eventSnapshot);
+    expect(controller.data.activeEventId, originalId);
+    expect(controller.data.theme, ThemeChoice.dark);
+    expect(controller.data.readingStyle, ReadingStyle.simple);
+    expect(controller.data.learning.toJson(), LearningData().toJson());
+    expect(repository.value.toJson(), controller.data.toJson());
+  });
+
+  test(
+    'invalid version three guidance context is rejected before confirmation',
+    () async {
+      await controller.createEvent('Fictional existing event', 'Keep this');
+      final visibleBefore = controller.data.toJson();
+      final savedBefore = repository.value.toJson();
+      final document = controller.data.toJson();
+      expect(document['version'], 3);
+      (document['events'] as List).first['guidanceContext'] =
+          'unsupported-context';
+      gateway.picked = _jsonFile(document);
+      var confirmations = 0;
+
+      await expectLater(
+        portability.importData(
+          confirm: (_) async {
+            confirmations++;
+            return true;
+          },
+        ),
+        throwsFormatException,
+      );
+
+      expect(confirmations, 0);
+      expect(controller.data.toJson(), visibleBefore);
+      expect(repository.value.toJson(), savedBefore);
+    },
+  );
 
   test('invalid import leaves existing data and storage untouched', () async {
     await controller.createEvent('Keep this', '');

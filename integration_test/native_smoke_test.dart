@@ -18,6 +18,7 @@ import 'package:steady_through/data/vault_store.dart';
 import 'package:steady_through/features/journey/event_form.dart';
 import 'package:steady_through/features/settings/settings_screen.dart';
 import 'package:steady_through/learning/device_signals.dart';
+import 'package:steady_through/model/app_data.dart';
 
 const _vaultPassphrase = 'Fictional native test river garden';
 const _exportPassphrase = 'Separate fictional backup meadow';
@@ -376,12 +377,34 @@ void main() {
       final store = VaultStore(directory);
       final session = await store.create(_vaultPassphrase);
       final controller = AppController(session.repository, session.initialData);
+      late Map<String, dynamic> eventSnapshot;
+      late String originalId;
       try {
+        await controller.setTheme(ThemeChoice.dark);
+        await controller.setReadingStyle(ReadingStyle.simple);
         await controller.createEvent(
           'Fictional backup event',
           'Synthetic backup record',
+          guidanceContext: GuidanceContext.caregiving,
+          starterStepIds: ['caregiving.orient', 'caregiving.plan'],
         );
-        final originalId = controller.data.events.single.id;
+        expect(controller.activeEvent!.actions, hasLength(2));
+        originalId = controller.activeEvent!.id;
+        final editedActionId = controller.activeEvent!.actions.first.id;
+        await controller.renameAction(
+          originalId,
+          editedActionId,
+          'Arrange fictional Tuesday cover',
+        );
+        await controller.setActionDone(originalId, editedActionId, true);
+        await controller.addAction(
+          originalId,
+          JourneyStage.reflect,
+          'Write one fictional helpful detail',
+        );
+        eventSnapshot = controller.activeEvent!.toJson();
+        expect(controller.data.learning.enabledSources, isEmpty);
+        expect(controller.data.learning.deviceOwnerConfirmed, isFalse);
         final file = File('${directory.path}/backup.steady');
         final portability = DataPortability(
           controller,
@@ -410,12 +433,21 @@ void main() {
         expect(
           await portability.importData(
             requestPassphrase: () async => _exportPassphrase,
-            confirm: (replacement) async => replacement.events.length == 1,
+            confirm: (replacement) async {
+              expect(replacement.events.single.toJson(), eventSnapshot);
+              return true;
+            },
           ),
           isTrue,
         );
         expect(controller.data.events.single.id, originalId);
+        expect(controller.data.activeEventId, originalId);
+        expect(controller.data.events.single.toJson(), eventSnapshot);
+        expect(controller.data.events.single.actions, hasLength(3));
+        expect(controller.data.theme, ThemeChoice.dark);
+        expect(controller.data.readingStyle, ReadingStyle.simple);
         expect(controller.data.learning.enabledSources, isEmpty);
+        expect(controller.data.learning.deviceOwnerConfirmed, isFalse);
         await controller.flush();
       } finally {
         controller.dispose();
@@ -423,10 +455,12 @@ void main() {
       }
       final restored = await store.unlock(_vaultPassphrase);
       try {
-        expect(
-          restored.initialData.events.single.title,
-          'Fictional backup event',
-        );
+        expect(restored.initialData.events.single.toJson(), eventSnapshot);
+        expect(restored.initialData.activeEventId, originalId);
+        expect(restored.initialData.theme, ThemeChoice.dark);
+        expect(restored.initialData.readingStyle, ReadingStyle.simple);
+        expect(restored.initialData.learning.enabledSources, isEmpty);
+        expect(restored.initialData.learning.deviceOwnerConfirmed, isFalse);
       } finally {
         restored.close();
         await directory.delete(recursive: true);
