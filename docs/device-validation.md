@@ -1,5 +1,11 @@
 # Manual device validation guide
 
+## Current 1.4 work in progress — CI and release pending
+
+The working build is **1.4.0+8**, with optional tool preferences and **schema 4 / validated read 1/2/3/4**. No 1.4 walkthrough, physical-device result, release package or final CI outcome is asserted here. The earlier published 1.3 evidence is historical. New version 4 vaults/exports cannot be read by an app supporting only up to version 3; keep a usable older backup if a return is needed, and never test downgrade on a real vault. Existing guides/actions/settings/learning must survive migration, while older documents begin with empty ratings/default-on rating settings.
+
+Synthetic rating UI references are planned for `docs/screenshots/what-helps/`; those captures and automated layouts do not execute this manual guide. Record actual observations separately using the result block below. See [1.4 decisions](releases/1.4.0-decisions.md) and [quality status](quality-status.md).
+
 This is a checklist for a future human walkthrough of Steady Through. **No checks in this guide are claimed as executed or passed.** Record
 results separately for Android, iOS, macOS, Windows, and Linux; a build or automated native smoke test is not a substitute for these
 observations. Use the source commit and build under review, not an older preview. The published preview is **1.3.0+7**; its automated CI/package/publication evidence is in [quality status](quality-status.md#current-130-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
@@ -62,11 +68,26 @@ These checks remain **Not run** until performed and recorded on the specific nat
    choose **Keep current data** at **Replace all local data?** and confirm both events remain. Import again and choose **Replace all data**;
    confirm only the exported state returns, including its guide, action wording/order/done states and appearance/reading settings. Lock and reopen the vault to confirm disk persistence. If a separate test export contains enabled system sources, confirm device usage and motion reset off
    after import; otherwise mark that subcheck **Not run**. Manual and in-app choices may be restored from an export.
-   Current documents write version 3; the current app accepts validated versions 1/2/3. If separately prepared version 1/2 fictional files are available, confirm their events use General and retain saved steps. Apps that understand only v1/v2 cannot read v3 vaults or exports: never try this compatibility check on a real vault or discard the only usable older copy. Invalid v3 context must fail before replacement confirmation and leave current records intact.
+   Current documents write version 4; the current app accepts validated versions 1/2/3/4. If separately prepared version 1/2/3 fictional files are available, confirm existing guides/actions remain and tool ratings start empty with default-on settings; version 1/2 events use General without replacing saved steps. Apps that understand only up to v3 cannot read v4 vaults or exports: never try this compatibility check on a real vault or discard the only usable older copy. Invalid v3/v4 context or malformed/over-cap v4 tool ratings must fail before replacement confirmation and leave current records intact.
 9. With fictional data only, inspect **Clear game history** and **Delete all data** in Settings, plus **Clear learning** in Insights, including
    confirmation and resulting scope if included in this run. A committed clear can still show a cleanup warning if older known recovery files
    cannot be removed; that warning means the active vault changed, not that every local copy was erased. Do not force a storage failure on a
    personal device. Confirm Clear learning keeps the guide and saved actions as well as the other event records. Exported files and OS backups require separate owner action.
+
+## Optional tool ratings, ownership and pacing
+
+These are additional **unexecuted** 1.4 checks. Keep every learning source off for the basic flow, use only fictional answers, and record source/OS permissions separately. Ratings are opinions about tools, not feelings, completed exercises or evidence of effectiveness.
+
+- In Grounding, Skip every step to the ending. In Breathing, start, pause, resume manually and choose **Done for now**. Reach Finish in the Path game without choosing a feeling. At each stopping point inspect collapsed **Rate this tool (optional)**, open it, and choose Skip. Confirm no rating or game feeling was created merely by stopping, finishing, skipping or opening Help. Stop/Back/Help must remain immediate.
+- Choose Helpful for one tool and Not this time for another. Confirm success appears after persistence, accidental repeated taps do not duplicate the same answer, and a retry after an observed write error preserves the choice. Change a saved answer in place or Undo it, then inspect **Your tool ratings**. ID/time/tool must stay stable on correction. Do not manufacture disk errors on a personal installation; mark that subcheck Not run if it cannot be safely observed.
+- Inspect **What helps you** counts/latest answers, including the date and reason for a suggested tool. A latest Not this time must prevent that tool from being suggested without hiding or reordering its ordinary tool entry. Open the idea only by tapping it. The suggestion must not claim a score, emotional state or treatment benefit.
+- Hide **Show optional ratings after tools**, then use manual **Add a rating**, including an opinion after stopping early. Switch **Use my ratings for ideas** off and verify the idea disappears while history remains. Lock/reopen and confirm both settings persist. Pausing learning or leaving all sources off must not block rating ownership.
+- Change/delete an exact history entry, cancel Clear ratings once, then confirm it on fictional data. Confirm ratings alone disappear while rating settings, events, game history and feeling history remain. Separately confirm Clear learning and Clear game history preserve tool ratings. Delete all resets the rating settings with other data. A cleanup warning means the active change committed but old copies may remain; external exports/OS backups need separate deletion.
+- Export fictional ratings covering all tools/both answers and non-default settings, change the local data, cancel an import once, then confirm import. Inspect exact answers/settings and lock/reopen. Confirm native usage/motion consent still resets off independently. Current version 4 documents must fail in an older reader that only supports up to 3; use a separate test installation and preserve the older usable backup.
+- Start another breathing attempt or game board during a pending rating write, navigate away, background/resume, and import replacement data while a stale dialog is open in separate safe trials. Queued stale actions must not mutate the new document/attempt; already-started atomic writes may finish without late success on another route. If storage timing cannot be controlled safely, mark the race observation Not run and retain automated results as separate evidence.
+- While breathing, background or open Help, then return: pace must stay paused, with no automatic completion/rating or resume. Choose Start again after Done and verify a fresh collapsed prompt at its next ending. With reduced motion on, the circle stays static while readable pace text changes; do not accept a zero-duration resize animation as the static path.
+- At 320 logical pixels/200% text, light/dark, Simple words, keyboard-only and native screen-reader settings, check prompt/history/dialog scrolling, wrapped actions, 48-pixel control targets, focus, live save/error announcements and safe dismissal. Verify return labels from Home, Tools, Insights and game breaks. Synthetic screenshots do not establish native assistive-technology usability.
+- For an already-consented optional motion session, inspect current possible-vehicle behavior only while safely stopped or using a consenting passenger's device. Rating prompts/mutation controls must be suppressed while Help and Back remain reachable. Do not request a source permission solely to unblock ratings; missing motion stays unknown, and no driving-detector guarantee is made. Never interact with the app while driving.
 
 ## Locked-vault passphrase help and preservation
 
@@ -133,6 +154,8 @@ Backup and data (steps 7–9): Pass / Fail / Not run / Unavailable — notes:
 Passphrase help / dismissal / reset cancellation / preservation: Pass / Fail / Not run / Unavailable — notes:
 Visual/accessibility (steps 10–12): Pass / Fail / Not run / Unavailable — notes:
 Sources (steps 13–16): Pass / Fail / Not run / Unavailable — notes:
+Tool ratings / settings / clear scope / backup: Pass / Fail / Not run / Unavailable — notes:
+Breathing pause / Done / Start again / reduced motion: Pass / Fail / Not run / Unavailable — notes:
 Consent/grant states tested and actual reading/status:
 Issue links, reproduction steps, and synthetic evidence:
 Remaining unverified items / follow-up owner:

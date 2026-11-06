@@ -4,6 +4,16 @@
 
 Steady Through is a free, offline-first Flutter app for getting through a difficult life event one manageable action at a time. One codebase targets Android, iOS, macOS, Windows, and Linux. There is no account, subscription, app-operated server, or cloud emotion service.
 
+## Current 1.4 work in progress — CI and release pending
+
+The working app version is **1.4.0+8**. **What helps you** adds optional personal tool ratings, a manageable local history, and an explained idea drawn from tools you explicitly marked Helpful. These are your preferences, separate from feeling reports, game-round feelings and any claim that a tool is effective. The [design](docs/superpowers/specs/2026-11-06-what-helps-design.md) and [implementation decisions](docs/releases/1.4.0-decisions.md) describe the scope.
+
+This source writes **schema 4** and reads strictly validated **versions 1, 2, 3 and 4**. Schema 4 adds encrypted tool ratings/settings; older documents start with no ratings and both rating settings on. Apps that read only up to version 3 cannot read newly written version 4 vaults or exports. Keep a usable earlier backup under your control if you may return to an older app; a new export also uses version 4. There is no silent downgrade or plaintext fallback.
+
+Fresh whole-branch review, final local verification, exact-source seven-job CI, package checks and public release/hash/access verification are **pending for 1.4**. Historical counts and downloads below validate their named older release only. Synthetic feedback captures are planned for `docs/screenshots/what-helps/`; their existence or inspection will be recorded separately in [quality status](docs/quality-status.md).
+
+## Previous published previews
+
 **[v1.3.0-preview.1 is published](https://github.com/BeauDevCode/steady-through/releases/tag/v1.3.0-preview.1)**, with app version **1.3.0+7**, private saved-moment history, exact-record Undo, in-place feeling corrections and clearer Insights. All seven jobs passed in [CI run 42293841631](https://github.com/BeauDevCode/steady-through/actions/runs/42293841631): **309 Flutter tests, 88 CI-helper tests, 12 Android native unit tests, and all three application cases on each of five runtime targets**. The tag is exact tested source `3dd1fe72dfceb1f9d7ae5716a479c11e2faff65f`. All ten public assets matched server SHA-256 hashes/sizes and were anonymously accessible. See the [verified evidence record](docs/quality-status.md#current-130-preview--verified-evidence) and [research-informed design](docs/superpowers/specs/2026-11-06-saved-moments-design.md). The separate iPhone ZIP remains unsigned, not installable and physically untested.
 
 [Download the saved-moments preview](https://github.com/BeauDevCode/steady-through/releases/tag/v1.3.0-preview.1) · [Current validation and remaining limits](docs/quality-status.md)
@@ -18,8 +28,9 @@ The app is for personal organization and general self-help. It does not diagnose
 
 - Keep several life events, choose the one to focus on, and work through five stages: Get oriented, Settle, Find support, Make a plan, and Reflect. Home and Path recommend the earliest unfinished stage, including an earlier-stage step added later. Add, rename, complete, or remove steps. Finish, reopen, or delete an event.
 - Choose an optional guide for each event: General, School & growing up, Adult life changes, Caring for someone, or Later life changes. Choose any starter steps, including none, and add more from Path. Each guide has standard and Simple words prompts. Changing a guide or reading style keeps saved steps, edits and completion states intact. The guide is your choice; the app does not infer it from age, activity or feelings, and a helper can read along without a separate account.
-- Use optional, self-paced grounding and gentle breathing tools. Grounding has Skip and Stop; breathing has Stop. Help now remains available while using a tool.
+- Use optional, self-paced grounding and gentle breathing tools. Grounding has Skip and Stop; breathing adds Done for now after Start and pauses on backgrounding or Help without automatically resuming. Reduced motion keeps its circle static while pace text remains usable. Stop, Back and Help stay available without requiring a rating.
 - Play an optional, untimed path game with Undo and Restart. The app can describe moves such as backtracks and offer a break. After a round, **you** choose whether it felt calm, tense, or neither. Moves alone are not a validated stress measure, diagnosis, or score. Only round summaries and your answer are kept, not a raw tap trace.
+- Optionally choose Helpful or Not this time after a tool, or add a manual rating even if you stopped early. Skip, Stop, Help and reaching an ending save no rating by themselves. Review, change or delete exact entries in Your tool ratings; Clear ratings removes that history while preserving its two settings and other records. What helps you shows descriptive counts/latest answers and can offer a tool whose latest retained answer is Helpful. It opens only after a tap, and every ordinary tool stays available.
 - Write event-specific check-ins in your own words, with an optional 1–5 intensity and note. Save trusted people and manually entered phone numbers; open the phone/SMS handler after a tap, or copy a number if no handler is available.
 - Choose light or dark appearance and a Simple words reading style. No birth date is required. A trusted adult or helper can read along.
 - Keep records and settings in a passphrase-protected encrypted local vault. Lock it when you choose; a privacy cover hides the app when it is inactive, and returning after five minutes away requires an unlock.
@@ -29,7 +40,15 @@ The app is for personal organization and general self-help. It does not diagnose
 
 Event check-ins are deleted with their event. Game history belongs to the person and remains until cleared separately or removed by Delete all. [Privacy and data details](PRIVACY.md) explain local storage, exports, backups, and deletion.
 
-The app writes **version 3** documents and reads validated versions **1, 2 and 3**. Older version 1/2 events receive the General guide without changing their existing steps. Apps that understand only versions 1/2 cannot read version 3 vaults or exports; keep a usable older backup before upgrading if you may need to return to an older app. There is no silent downgrade or plaintext export fallback.
+The working app writes **version 4** documents and reads validated versions **1, 2, 3 and 4**. Older version 1/2 events receive the General guide without changing their existing steps; version 3/4 documents must preserve valid guide metadata. Versions 1/2/3 migrate with empty tool ratings and default rating settings. Apps that understand only up to version 3 cannot read new version 4 vaults or exports; keep a usable older backup before upgrading if you may need to return to an older app. There is no silent downgrade or plaintext export fallback.
+
+## Your tool ratings
+
+**Show optional ratings after tools** and **Use my ratings for ideas** each default on and persist independently. Hiding prompts leaves manual Add a rating and history management available. Turning ideas off stops the suggestion without deleting ratings. All rating ownership works with learning sources off or learning paused; a rating never enables a source, trains the feeling model or creates a GameRound.
+
+Ratings retain only an ID, UTC time, tool and explicit answer in the existing encrypted vault and independently encrypted export. The active history excludes future records, retains the inclusive last 180 days and keeps at most 1,000 entries. Corrections preserve ID, time and tool. Pruning runs at unlock, export and committed mutations; correction/deletion/pruning request removal of known older local copies. Cleanup can fail after a successful active-vault write, leaving a distinct warning. Exports and OS backups remain outside local deletion control. Clear learning and Clear game history preserve tool ratings; Delete all resets them with other app records.
+
+Current possible-vehicle context from the existing optional motion session suppresses rating prompts and mutation controls while Help and Back remain reachable. No new source or permission is requested; absent motion stays unknown. This is not a driving-detector guarantee. Queued rating changes reject replaced documents or expired foreground/tool attempts; an atomic save already begun may finish without showing success on a different attempt.
 
 ## Private learning
 

@@ -1,5 +1,15 @@
 # iOS packages and distribution handoff
 
+## Current 1.4 work in progress — CI and release pending
+
+The working app is **1.4.0+8**. New packages, exact-source CI, metadata/archive validation, publication hashes and public access for 1.4 are **pending**. The published 1.3 packages described below are historical; their successful jobs do not validate the working revision. The build/verification instructions operate on the checked-out `pubspec.yaml`; a new 1.4 bundle must report **1.4.0/build 8**, and its source/toolchain/package observations need fresh evidence before any publication claim.
+
+Schema **4** adds optional encrypted tool ratings/settings and the app reads strictly validated **1/2/3/4**. A reader supporting only up to 3 cannot open a newly written 4 vault/export. Preserve a usable older backup before upgrading if a return is needed; there is no format downgrade or plaintext fallback. Ratings are personal preferences, distinct from feeling learning or effectiveness evidence. Their 180-day/1,000-record history, independent settings, source-off ownership, foreground/attempt guards and current possible-vehicle suppression are described in the [1.4 decisions](releases/1.4.0-decisions.md).
+
+Synthetic feedback captures are planned for `docs/screenshots/what-helps/`; they are separate from package/native execution evidence. Physical grants/devices, real OS dialogs, VoiceOver, signing/notarization and outcomes remain unexecuted. Neither a Simulator package nor an unsigned iPhoneOS ZIP is a signed, installable distribution. Keep the owner-controlled signing/physical prerequisites below.
+
+## Historical 1.3 published package reference
+
 This guide describes the published **1.3.0+7 / [v1.3.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.3.0-preview.1)** packages. All seven jobs and device-package/archive checks passed on exact source `3dd1fe72dfceb1f9d7ae5716a479c11e2faff65f`; the [quality record](quality-status.md#current-130-preview--verified-evidence) records the observed evidence and limits. Commands below remain instructions; future signing and physical steps have not been performed.
 
 ## Choose the right output
@@ -43,7 +53,7 @@ shasum -a 256 steady-through-ios-device-release-unsigned-ci.zip
 
 The first verifier creates the report and refuses to overwrite an existing report. Keep that baseline unchanged and do not rebuild or modify `Runner.app` between validation and archive verification. The second verifier requires the prior report, revalidates the directory against it and checks exact ZIP membership, types, modes, lengths and file hashes. On success it adds the archive's name, size, SHA-256 and member count to the report. If a check fails, preserve the failed report/log/archive for diagnosis; do not delete or rewrite the baseline to make a changed bundle appear to match. A new build needs a separately preserved build/evidence session.
 
-Expected app metadata includes `com.beaudevcode.steadyThrough`, display/name `Steady Through`, executable `Runner`, **1.3.0/build 7**, iPhoneOS/`iphoneos`, and minimum iOS 15.0. The verifier also checks embedded frameworks and Mach-O slices, bundled icons/storyboards/fonts/assets, active `objective_c` native-asset mapping, pinned plugin privacy resources, absence of root signing/provisioning artifacts and absence of known test/debug fixture content. Read the actual JSON and build log; a ZIP existing on disk is insufficient.
+For the working 1.4 source, expected app metadata includes `com.beaudevcode.steadyThrough`, display/name `Steady Through`, executable `Runner`, **1.4.0/build 8**, iPhoneOS/`iphoneos`, and minimum iOS 15.0. The verifier also checks embedded frameworks and Mach-O slices, bundled icons/storyboards/fonts/assets, active `objective_c` native-asset mapping, pinned plugin privacy resources, absence of root signing/provisioning artifacts and absence of known test/debug fixture content. Read the actual JSON and build log; a ZIP existing on disk is insufficient.
 
 The `iPhoneOS Release (macOS, unsigned, not installable)` job preserves two CI artifacts:
 
@@ -52,7 +62,7 @@ The `iPhoneOS Release (macOS, unsigned, not installable)` job preserves two CI a
 
 A failed job may upload partial evidence; artifact presence does not establish success. The provenance records the source, repository, run/attempt, production command, disabled code signing and toolchain. Local commands above do not fabricate a GitHub source/run identity. Retain local source/toolchain observations separately, and use the actual CI provenance for a release.
 
-The public device filename is **`steady-through-1.3.0-preview.1-ios-device-release-unsigned.zip`**. Release staging must preserve the validated CI ZIP bytes, map its original name to the public name in build information and compare hashes. The published release has six app packages plus `BUILD-INFO.txt`, `SHA256SUMS.txt`, `android-motion-unit-results.xml` and `native-runtime-reports.zip` (ten assets); the report ZIP includes the four device evidence files alongside the original native reports. Public main/tag, anonymous downloads and all server hashes/sizes must be observed before publication is recorded as complete.
+The historical 1.3 public device filename is **`steady-through-1.3.0-preview.1-ios-device-release-unsigned.zip`**; a 1.4 public filename/publication has not yet been verified. Release staging must preserve the validated CI ZIP bytes, map its original name to the public name in build information and compare hashes. The published release has six app packages plus `BUILD-INFO.txt`, `SHA256SUMS.txt`, `android-motion-unit-results.xml` and `native-runtime-reports.zip` (ten assets); the report ZIP includes the four device evidence files alongside the original native reports. Public main/tag, anonymous downloads and all server hashes/sizes must be observed before publication is recorded as complete.
 
 ## Future owner-controlled signing and physical iPhone work
 
