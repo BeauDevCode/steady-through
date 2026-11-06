@@ -4,6 +4,8 @@
 
 Steady Through is a free, offline-first Flutter app for getting through a difficult life event one manageable action at a time. One codebase targets Android, iOS, macOS, Windows, and Linux. There is no account, subscription, app-operated server, or cloud emotion service.
 
+[Download the private-learning preview](https://github.com/BeauDevCode/steady-through/releases/tag/v1.1.0-preview.1) · [Verification and remaining limits](docs/quality-status.md)
+
 The app is for personal organization and general self-help. It does not diagnose, measure stress, provide treatment, or replace emergency or professional support. In immediate physical danger, contact local emergency services. In the United States, call or text **988** for crisis support; elsewhere, use your local crisis service. See [Help from NIMH](https://www.nimh.nih.gov/health/publications/my-mental-health-do-i-need-help) and the [988 Lifeline](https://988lifeline.org/get-help/).
 
 ## What it does
@@ -85,7 +87,7 @@ Run these commands from the repository root after `flutter pub get`, on a host w
 | Windows | `flutter build windows --release` | Bundle in `build/windows/x64/runner/Release/`; keep the executable, DLLs, and data together. |
 | Linux | `flutter build linux --release` | Bundle in `build/linux/x64/release/bundle/`; keep the executable and data together. |
 
-The GitHub Actions workflow is configured to run analysis and tests on Ubuntu, then build the Android APK on Ubuntu, the iOS simulator and macOS apps on macOS, the Windows app on Windows, and the Linux app on Ubuntu. It uploads clearly labelled CI artifacts. Check the current run and [quality status](docs/quality-status.md) for this revision; previous successful builds do not validate newly added native sources. A successful build is a compilation check, not a device usability test, medical validation, store approval, or signed release. App Store/TestFlight distribution needs an Apple developer setup and signing; Play distribution needs a release signing key and a store-ready bundle. Review Flutter's [Android release](https://docs.flutter.dev/deployment/android) and [iOS release](https://docs.flutter.dev/deployment/ios) guides before distribution.
+The GitHub Actions workflow is configured to run analysis and tests on Ubuntu, then build the Android APK on Ubuntu, the iOS simulator and macOS apps on macOS, the Windows app on Windows, and the Linux app on Ubuntu. It uploads clearly labelled CI artifacts. The private-learning app source at `77cf8e3` passed [all six CI jobs](https://github.com/BeauDevCode/steady-through/actions/runs/42146917661), including the Android release unit tests. Check the [quality status](docs/quality-status.md) for the exact evidence and limits; previous successful builds do not validate newly added native sources. A successful build is a compilation check, not a device usability test, medical validation, store approval, or signed release. App Store/TestFlight distribution needs an Apple developer setup and signing; Play distribution needs a release signing key and a store-ready bundle. Preview Android APKs can use different development keys between builds. Export a backup before replacing an older preview; a signing mismatch can require uninstalling the old app, which removes its local data. Review Flutter's [Android release](https://docs.flutter.dev/deployment/android) and [iOS release](https://docs.flutter.dev/deployment/ios) guides before distribution.
 
 ## Source basis and limits
 

@@ -1,8 +1,8 @@
 # Quality status
 
-_Private-learning revision in progress: November 5, 2026_
+_Private-learning preview verification: November 5, 2026 (local date)_
 
-Steady Through is a development preview. The current revision adds a passphrase-protected encrypted local vault, independently encrypted `.steady` exports, explicit learning-source consent, personal pattern comparisons and native aggregate adapters. Its verification record is being refreshed. Earlier build/test results do not establish that these new paths or native sources are verified.
+Steady Through is a development preview. The current revision adds a passphrase-protected encrypted local vault, independently encrypted `.steady` exports, explicit learning-source consent, personal pattern comparisons and native aggregate adapters. App code and build configuration at commit `77cf8e3df88ab61741da7655d4db9800f70329a3` passed all six jobs in [CI run 42146917661](https://github.com/BeauDevCode/steady-through/actions/runs/42146917661). This record distinguishes compilation and automated checks from physical-device validation. Later documentation-only changes do not alter the verified app source.
 
 ## Current verification record
 
@@ -11,14 +11,14 @@ Steady Through is a development preview. The current revision adds a passphrase-
 | Formatter and static analysis | `dart format lib test tool/capture_learning_ui_test.dart` completed; `flutter analyze --no-pub` reported no issues on the current Dart source. |
 | Full automated suite | `flutter test --no-pub` passed **195 tests**, including the full vault/KDF/recovery suite, Unicode validation, import-safe consent, live interaction boundaries and fresh motion checks. The separate capture harness passed five additional render checks. |
 | Vault security and recovery | Authenticated encryption, tampering/passphrase failure, fresh nonces, migration/cleanup, interrupted-save recovery and encrypted portability have automated regression coverage. Independent source review found no remaining material issues in the reviewed vault, lifecycle and retention boundaries after fixes; final suite record below applies. |
-| Consent, lifecycle and inference | The 195-test suite covers optional sources, unavailable readings, explicit labels, persistent pause, uncertain evidence, vehicle suppression, chronological review, bounded retention and cleanup. Material source-review findings were fixed; native collector compilation and Android unit verification remain pending below. |
-| Android build | Current native adapter compilation and 12 Kotlin motion-state unit tests pending CI. Device Usage Access and Activity Recognition behavior are not physically validated. |
-| iOS build | Current Core Motion adapter compilation result pending. Simulator compilation cannot validate motion hardware, change-only updates or permission dialogs. |
-| macOS build | Current NSWorkspace adapter compilation result pending. Actual activation counts, session suspension and permission/lifecycle behavior need a native walkthrough. |
-| Windows and Linux builds | Current revision build results pending. System usage/motion adapters are intentionally unsupported. |
+| Consent, lifecycle and inference | The 195-test suite covers optional sources, unavailable readings, explicit labels, persistent pause, uncertain evidence, vehicle suppression, chronological review, bounded retention and cleanup. Material source-review findings were fixed; the five native builds and Android unit verification passed in the linked CI run. Physical collector behavior remains unverified. |
+| Android build | `flutter build apk --release` passed on Ubuntu. `./gradlew :app:testReleaseUnitTest` passed; the downloaded JUnit XML confirms **12 tests, 0 failures, 0 errors, 0 skipped**. Artifact: `android-apk-ci-not-play-signed`. Device Usage Access and Activity Recognition behavior are not physically validated. |
+| iOS build | `flutter build ios --simulator --debug` passed on macOS. Artifact: `ios-simulator-debug-no-signing`. Simulator compilation cannot validate motion hardware, change-only updates or permission dialogs. |
+| macOS build | `flutter build macos --release` passed. Artifact: `macos-app-ci-not-notarized`. A local walkthrough was attempted, but the computer-use service failed to start its capture stream (ScreenCaptureKit -3811); no completed native UI or source validation is claimed. |
+| Windows and Linux builds | `flutter build windows --release` passed on Windows; `flutter build linux --release` passed on Ubuntu. Artifacts: `windows-app-ci-unsigned` and `linux-app-ci-unsigned`. System usage/motion adapters are intentionally unsupported. |
 | Current vault/Insights captures | `flutter test --no-pub --update-goldens tool/capture_learning_ui_test.dart` passed five captures. All five PNGs were visually inspected: vault mobile, Insights mobile/desktop/dark, and source controls mobile. Bundled fonts and fictional examples; no passphrase, KDF, OS grant or personal data used. |
 
-Before this revision is reported as verified, replace these pending entries with exact commands, counts, target/runtime details and any failure or unavailable toolchain. A successful five-platform CI run is still a compilation check, not physical-source or medical validation.
+The initial CI run compiled every target but failed at the Android unit-test command because AGP 9 did not create release unit-test components by default. The configuration now explicitly enables them, and the final linked run passed with the XML report retained as `android-motion-unit-results`. Local Android SDK/full Xcode toolchains were unavailable, so native compilation used CI hosts. Five-platform compilation is not physical-source or medical validation.
 
 ## What is implemented, and what remains limited
 

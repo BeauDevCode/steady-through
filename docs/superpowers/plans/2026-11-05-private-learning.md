@@ -32,7 +32,11 @@
 - [x] Learning owner: add learning models, AppData version migration, explainable engine and 60-day candidate evaluation; tests for coverage, uncertainty, temporal holdout and adoption limits.
 - [x] Platform owner: implement consent-neutral capabilities/start/read/stop bridge and macOS/Android/iOS aggregate adapters. No collection before start; no raw app content. Root verifies builds.
 - [x] Root: integrate vault setup/unlock/privacy cover/lock and learning controller/UI with source controls, feedback, support actions and accessible motion.
-- [ ] Root: encrypted import/export UI, failure states, full tests and reduced-motion/narrow checks; independent crypto/inference review and native build verification.
-- [ ] Root: update privacy/setup/quality docs and public source/release with exact platform and validation limits.
+- [x] Root: encrypted import/export UI, failure states, full tests and reduced-motion/narrow checks; independent crypto/inference review and native build verification.
+- [x] Root: update privacy/setup/quality docs and public source/release with exact platform and validation limits.
 
 Cosmetic changes use render checks and existing tests; behavioral and security changes start with tests that expose the missing behavior. The user has asked for continued execution, so plan and implementation proceed in this chat without a separate approval stop.
+
+## Verified preview outcome
+
+App source/build configuration at `77cf8e3df88ab61741da7655d4db9800f70329a3` passed all six jobs in [CI run 42146917661](https://github.com/BeauDevCode/steady-through/actions/runs/42146917661). Local verification passed 195 Flutter tests, static analysis and formatting; the capture harness passed five visually inspected renders. Downloaded Android JUnit XML confirms 12 tests with zero failures/errors/skips. Physical source/accessibility testing and distribution signing remain explicit release limits in `docs/quality-status.md`.
