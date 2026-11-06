@@ -32,10 +32,10 @@
 
 **Interfaces:** Preserve VaultGate(store:) and VaultUnlockScreen APIs. Reuse the existing DELETE confirmation. No test-only methods in production.
 
-- [ ] Add delayed/failing VaultStore.reset widget regressions that attempt unlock during deletion and verify recovery after failure.
-- [ ] Root runs the focused test and confirms meaningful RED before product edits.
-- [ ] Guard both directions of competing operations and repeated confirmations, show deletion progress, and clear state in finally; recheck actual files after errors.
-- [ ] Root runs focused GREEN and stages only task-owned files for review.
+- [x] Add delayed/failing VaultStore.reset widget regressions that attempt unlock during deletion and verify recovery after failure.
+- [x] Root runs the focused test and confirms meaningful RED before product edits.
+- [x] Guard both directions of competing operations and repeated confirmations, show deletion progress, and clear state in finally; recheck actual files after errors.
+- [x] Root runs focused GREEN and stages only task-owned files for review.
 
 ### Task 2: Report committed saves and cleanup accurately
 
@@ -43,10 +43,10 @@
 
 **Interfaces:** Add `String? get cleanupWarning`. Mutation futures complete successfully after a successful save even when residual cleanup fails. Pre-commit errors still throw. Only confirmed cleanup clears the warning. Existing sources, storageWarning and onLock interfaces remain.
 
-- [ ] Add regressions for import and event save that commit before cleanup fails; assert new records, successful result and visible warning. Pin pre-commit failure and retry behavior.
-- [ ] Root confirms RED; implement warning state and truthful import/clear feedback, including the global app banner.
-- [ ] Update the old residual-failure regression to the new explicit committed-with-warning contract; do not weaken unchanged-data assertions for genuine save failures.
-- [ ] Run focused GREEN and review failure copy at narrow/large text using existing UI checks.
+- [x] Add regressions for import and event save that commit before cleanup fails; assert new records, successful result and visible warning. Pin pre-commit failure and retry behavior.
+- [x] Root confirms RED; implement warning state and truthful import/clear feedback, including the global app banner.
+- [x] Update the old residual-failure regression to the new explicit committed-with-warning contract; do not weaken unchanged-data assertions for genuine save failures.
+- [x] Run focused GREEN and review failure copy at narrow/large text using existing UI checks.
 
 ### Task 3: Recommend actions in stage order
 
@@ -54,9 +54,9 @@
 
 **Interfaces:** `PlanAction? get SupportEvent.nextPendingAction`. It uses JourneyStage.values order and stored order within each stage; null when nothing remains or the event is completed even with unfinished actions.
 
-- [ ] Write tests for late-added Orient action after its original is done, stable same-stage order and completed/empty events; show the same recommended stage in Home and Path.
-- [ ] Root observes RED; add shared selector and use it in both screens.
-- [ ] Root runs model/widget GREEN, then task review.
+- [x] Write tests for late-added Orient action after its original is done, stable same-stage order and completed/empty events; show the same recommended stage in Home and Path.
+- [x] Root observes RED; add shared selector and use it in both screens.
+- [x] Root runs model/widget GREEN, then task review.
 
 ### Task 4: Native runtime suite and CI
 
@@ -64,15 +64,15 @@
 
 **Interfaces:** Use the real VaultGate/VaultStore in owned temporary directories. Supported native channel is `steady_through/device_signals`; directly assert its registration without requesting permissions. Windows/Linux verify the supported wrapper fallback. Use `flutter test integration_test/native_smoke_test.dart -d <target> --reporter expanded --file-reporter json:build/native-<platform>-results.json --timeout 5m`.
 
-- [ ] Add SDK dev dependency and a small shared native suite covering real encrypted setup, persisted event, lock/wrong/correct unlock, sources off, encrypted portability and paused native bridge.
-- [ ] Preserve existing unit/widget coverage; no production dependency injection solely for tests.
-- [ ] Add runtime checks to native CI jobs: Android emulator with pinned action/KVM; available iPhone simulator chosen from simctl JSON; macOS/Windows direct; Linux xvfb-run. Keep release build artifacts intact.
-- [ ] Retain JSON/log evidence on success and failure and require actual named tests with zero failures; root fixes concrete runtime failures before calling any host validated.
+- [x] Add SDK dev dependency and a small shared native suite covering real encrypted setup, persisted event, lock/wrong/correct unlock, sources off, encrypted portability and paused native bridge.
+- [x] Preserve existing unit/widget coverage; no production dependency injection solely for tests.
+- [x] Add runtime checks to native CI jobs: Android emulator with pinned action/KVM; available iPhone simulator chosen from simctl JSON; macOS/Windows direct; Linux xvfb-run. Keep release build artifacts intact.
+- [x] Retain JSON/log evidence on success and failure and require actual named tests with zero failures; root fixes concrete runtime failures before calling any host validated.
 
 ### Task 5: Review, verification and public update
 
 **Files:** README.md; PRIVACY.md; CONTRIBUTING.md; docs/quality-status.md; plan checkboxes.
 
-- [ ] Run formatting, static analysis, full local suite, targeted task checks and current five-platform CI/native runtime gates; inspect every result.
-- [ ] Obtain fresh source review of the whole branch, resolve material findings with regression evidence, and verify app-code equality for any later documentation-only commit.
+- [x] Run formatting, static analysis, full local suite, targeted task checks and current five-platform CI/native runtime gates; inspect every result.
+- [x] Obtain fresh source review of the whole branch, resolve material findings with regression evidence, and verify app-code equality for any later documentation-only commit.
 - [ ] Update quality evidence and limitations, publish the next patch preview and verify remote source/assets/checksums. User publication authorization persists from the original request.
