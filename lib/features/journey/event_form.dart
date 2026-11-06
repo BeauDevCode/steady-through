@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/event_guidance.dart';
+import 'package:steady_through/features/journey/guidance_picker.dart';
 import 'package:steady_through/ui/steady_ui.dart';
+
+@immutable
+class EventFormSubmission {
+  EventFormSubmission({
+    required this.title,
+    required this.description,
+    required this.guidanceContext,
+    required List<String>? starterStepIds,
+  }) : starterStepIds = starterStepIds == null
+           ? null
+           : List<String>.unmodifiable(starterStepIds);
+
+  final String title;
+  final String description;
+  final GuidanceContext guidanceContext;
+  final List<String>? starterStepIds;
+}
 
 /// Creates or edits an event. Saving is owned by the caller so the same form
 /// works with the app's durable controller and in widget tests.
@@ -14,7 +33,7 @@ class EventForm extends StatefulWidget {
 
   final SupportEvent? event;
   final bool simpleWords;
-  final Future<void> Function(String title, String description) onSave;
+  final Future<void> Function(EventFormSubmission submission) onSave;
 
   @override
   State<EventForm> createState() => _EventFormState();
@@ -26,6 +45,8 @@ class _EventFormState extends State<EventForm> {
   late final TextEditingController _descriptionController;
   bool _saving = false;
   String? _saveError;
+  late GuidanceContext _guidanceContext;
+  late List<String> _starterStepIds;
 
   @override
   void initState() {
@@ -34,6 +55,10 @@ class _EventFormState extends State<EventForm> {
     _descriptionController = TextEditingController(
       text: widget.event?.description ?? '',
     );
+    _guidanceContext = widget.event?.guidanceContext ?? GuidanceContext.general;
+    _starterStepIds = guideFor(_guidanceContext).starterSteps
+        .map((step) => step.id)
+        .toList();
   }
 
   @override
@@ -50,7 +75,14 @@ class _EventFormState extends State<EventForm> {
       _saveError = null;
     });
     try {
-      await widget.onSave(_titleController.text, _descriptionController.text);
+      await widget.onSave(
+        EventFormSubmission(
+          title: _titleController.text,
+          description: _descriptionController.text,
+          guidanceContext: _guidanceContext,
+          starterStepIds: widget.event == null ? _starterStepIds : null,
+        ),
+      );
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (mounted) {
@@ -60,6 +92,33 @@ class _EventFormState extends State<EventForm> {
         });
       }
     }
+  }
+
+  Future<void> _chooseGuide() async {
+    final selected = await showGuidancePicker(
+      context,
+      selected: _guidanceContext,
+      simpleWords: widget.simpleWords,
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      if (selected != _guidanceContext) {
+        _guidanceContext = selected;
+        _starterStepIds = guideFor(selected).starterSteps
+            .map((step) => step.id)
+            .toList();
+      }
+    });
+  }
+
+  Future<void> _chooseSteps() async {
+    final selected = await showStarterStepsPicker(
+      context,
+      guidanceContext: _guidanceContext,
+      simpleWords: widget.simpleWords,
+      selectedIds: _starterStepIds,
+    );
+    if (selected != null && mounted) setState(() => _starterStepIds = selected);
   }
 
   @override
@@ -144,6 +203,16 @@ class _EventFormState extends State<EventForm> {
                   ],
                 ],
               ),
+            ),
+            const SizedBox(height: 16),
+            GuidanceCard(
+              guidanceContext: _guidanceContext,
+              simpleWords: widget.simpleWords,
+              onChooseGuide: _saving ? null : _chooseGuide,
+              onChooseSteps: isEditing || _saving ? null : _chooseSteps,
+              selectionNote: isEditing
+                  ? 'Your saved steps stay as they are.'
+                  : '${_starterStepIds.length} starter ${_starterStepIds.length == 1 ? 'step' : 'steps'} selected',
             ),
           ],
         ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/event_guidance.dart';
+import 'package:steady_through/features/journey/guidance_picker.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 const _stageTitles = <JourneyStage, String>{
@@ -9,23 +11,6 @@ const _stageTitles = <JourneyStage, String>{
   JourneyStage.support: 'Find support',
   JourneyStage.plan: 'Make a plan',
   JourneyStage.reflect: 'Reflect',
-};
-
-const _stagePrompts = <JourneyStage, String>{
-  JourneyStage.orient:
-      'What needs your attention first? Start with what you know.',
-  JourneyStage.settle: 'Pause and notice what is around you.',
-  JourneyStage.support: 'Who could help with one part of this?',
-  JourneyStage.plan: 'Choose one manageable next step.',
-  JourneyStage.reflect: 'What helped, even a little?',
-};
-
-const _simpleStagePrompts = <JourneyStage, String>{
-  JourneyStage.orient: 'What needs to happen first?',
-  JourneyStage.settle: 'Look around and take a short pause.',
-  JourneyStage.support: 'Who can help you?',
-  JourneyStage.plan: 'What is one small thing you can do?',
-  JourneyStage.reflect: 'What helped you?',
 };
 
 class JourneyScreen extends StatelessWidget {
@@ -43,6 +28,18 @@ class JourneyScreen extends StatelessWidget {
   final VoidCallback onDeleted;
 
   bool get _simpleWords => controller.data.readingStyle == ReadingStyle.simple;
+
+  Future<void> _chooseSteps(BuildContext context, SupportEvent event) =>
+      showDialog<void>(
+        context: context,
+        builder: (_) => StarterStepsPickerDialog(
+          guidanceContext: event.guidanceContext,
+          simpleWords: _simpleWords,
+          selectedIds: const [],
+          existingActions: event.actions,
+          onSave: (ids) => controller.addStarterActions(event.id, ids),
+        ),
+      );
 
   void _showError(BuildContext context, String message) {
     if (!context.mounted) return;
@@ -270,6 +267,12 @@ class JourneyScreen extends StatelessWidget {
                 ),
                 semanticsLabel: 'Action progress',
               ),
+              const SizedBox(height: 16),
+              GuidanceCard(
+                guidanceContext: event.guidanceContext,
+                simpleWords: _simpleWords,
+                onChooseSteps: () => _chooseSteps(context, event),
+              ),
             ],
           ),
         ),
@@ -396,9 +399,8 @@ class JourneyScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      (_simpleWords
-                          ? _simpleStagePrompts
-                          : _stagePrompts)[stage]!,
+                      guideFor(event.guidanceContext)
+                          .stagePrompt(stage, simpleWords: _simpleWords),
                       style: text.bodyMedium?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),

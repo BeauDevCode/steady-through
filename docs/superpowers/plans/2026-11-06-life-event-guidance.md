@@ -45,10 +45,10 @@
 
 **Copy decisions:** General standard titles retain exactly `Notice what needs attention first`, `Take a short pause`, `Choose someone to reach out to`, `Write one next step`, `Notice what helped`. Compatibility means their identities/stages remain; Simple mode may copy simpler titles for newly selected steps, while existing titles remain. Other guides use original short copy informed by the six authoritative sources in the content research brief. Every guide has one step and prompt per stage. Describe context, not an age classification. Caregiving break copy requires care safely covered. School helper note offers a trusted adult/person; later-life choice never assumes loss/retirement.
 
-- [ ] Write regressions for legacy1/2 migration, strict3 context parsing/round-trip/copy retention and real controller selection/preservation/dedup/failure/concurrency behavior. Update old v2-output assertions to3 and unsupported-version fixture to4/99; retain v1/v2 input coverage.
-- [ ] Root runs focused RED and confirms missing behavior before production edits.
-- [ ] Implement the model/catalog/controller contracts and source/limits content note; no UI/native files.
-- [ ] Root runs focused tests, full suite and analysis; task source review, fixes and commit.
+- [x] Write regressions for legacy1/2 migration, strict3 context parsing/round-trip/copy retention and real controller selection/preservation/dedup/failure/concurrency behavior. Update old v2-output assertions to3 and unsupported-version fixture to4/99; retain v1/v2 input coverage.
+- [x] Root runs focused RED and confirms missing behavior before production edits.
+- [x] Implement the model/catalog/controller contracts and source/limits content note; no UI/native files.
+- [x] Root runs focused tests, full suite and analysis; task source review, fixes and commit.
 
 ### Task 2: Accessible guide and starter selection throughout the event flow
 

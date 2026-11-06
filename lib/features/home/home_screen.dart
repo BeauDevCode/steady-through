@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/event_guidance.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -212,6 +213,15 @@ class HomeScreen extends StatelessWidget {
               const Eyebrow('Your current event'),
               const SizedBox(height: 10),
               Text(event.title, style: text.headlineLarge),
+              const SizedBox(height: 8),
+              Text(
+                _simpleWords
+                    ? guideFor(event.guidanceContext).simpleLabel
+                    : guideFor(event.guidanceContext).label,
+                style: text.labelLarge?.copyWith(
+                  color: colors.onPrimaryContainer,
+                ),
+              ),
               if (event.description.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 Text(event.description, style: text.bodyMedium),
@@ -280,7 +290,11 @@ class HomeScreen extends StatelessWidget {
                             ? 'Done for now. You can open it again in Path.'
                             : 'This event is complete. You can reopen it from Path.')
                       : next?.title ??
-                            (_simpleWords
+                            (actionCount == 0
+                                ? (_simpleWords
+                                      ? 'Add a step in Path when you are ready.'
+                                      : 'Choose a starter step or add your own in Path.')
+                                : _simpleWords
                                 ? 'You did every step. You can finish when ready.'
                                 : 'All actions are done. You can reflect or finish when ready.'),
                   style: text.bodyLarge,

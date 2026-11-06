@@ -160,7 +160,12 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
         builder: (_) => EventForm(
           simpleWords:
               widget.controller.data.readingStyle == ReadingStyle.simple,
-          onSave: widget.controller.createEvent,
+          onSave: (submission) => widget.controller.createEvent(
+            submission.title,
+            submission.description,
+            guidanceContext: submission.guidanceContext,
+            starterStepIds: submission.starterStepIds,
+          ),
         ),
       ),
     );
@@ -174,8 +179,12 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
           event: event,
           simpleWords:
               widget.controller.data.readingStyle == ReadingStyle.simple,
-          onSave: (title, description) =>
-              widget.controller.updateEvent(event.id, title, description),
+          onSave: (submission) => widget.controller.updateEvent(
+            event.id,
+            submission.title,
+            submission.description,
+            guidanceContext: submission.guidanceContext,
+          ),
         ),
       ),
     );

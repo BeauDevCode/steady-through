@@ -172,10 +172,16 @@ void main() {
       CheckboxListTile,
       'Notice what needs attention first',
     );
+    await tester.ensureVisible(action);
+    await tester.pumpAndSettle();
     await tester.tap(action);
     await _settleWrite(tester);
 
     expect(controller.activeEvent!.actions.first.done, isTrue);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 600));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('1 of 5 actions done'));
+    await tester.pumpAndSettle();
     expect(find.text('1 of 5 actions done'), findsOneWidget);
   });
 
@@ -185,6 +191,8 @@ void main() {
     await tester.tap(find.text('Path'));
     await tester.pumpAndSettle();
 
+    await tester.ensureVisible(find.text('Add action').first);
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Add action').first);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).last, 'Pack one box');
@@ -215,16 +223,22 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.scrollUntilVisible(find.text('Finish event'), 300);
+      await tester.ensureVisible(find.text('Finish event'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Finish event'));
       await _settleWrite(tester);
       expect(controller.activeEvent!.completedAt, isNotNull);
       await tester.scrollUntilVisible(find.text('Reopen event'), 300);
+      await tester.ensureVisible(find.text('Reopen event'));
+      await tester.pumpAndSettle();
       expect(find.text('Reopen event'), findsOneWidget);
 
       await tester.tap(find.text('Reopen event'));
       await _settleWrite(tester);
       expect(controller.activeEvent!.completedAt, isNull);
       await tester.scrollUntilVisible(find.text('Delete event'), 300);
+      await tester.ensureVisible(find.text('Delete event'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Delete event'));
       await tester.pumpAndSettle();
       expect(controller.activeEvent, isNotNull);
