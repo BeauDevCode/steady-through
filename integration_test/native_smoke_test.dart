@@ -19,6 +19,7 @@ import 'package:steady_through/features/journey/event_form.dart';
 import 'package:steady_through/features/settings/settings_screen.dart';
 import 'package:steady_through/learning/device_signals.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/tool_feedback.dart';
 
 const _vaultPassphrase = 'Fictional native test river garden';
 const _exportPassphrase = 'Separate fictional backup meadow';
@@ -378,6 +379,7 @@ void main() {
       final session = await store.create(_vaultPassphrase);
       final controller = AppController(session.repository, session.initialData);
       late Map<String, dynamic> eventSnapshot;
+      late Map<String, dynamic> ratingsSnapshot;
       late String originalId;
       try {
         await controller.setTheme(ThemeChoice.dark);
@@ -403,6 +405,22 @@ void main() {
           'Write one fictional helpful detail',
         );
         eventSnapshot = controller.activeEvent!.toJson();
+        for (final tool in SupportTool.values) {
+          for (final rating in ToolRating.values) {
+            await controller.recordToolFeedback(
+              tool,
+              rating,
+              expectedRevision: controller.replacementRevision,
+            );
+          }
+        }
+        await controller.updateToolFeedbackOptions(
+          showPrompts: false,
+          useSuggestions: false,
+          expectedRevision: controller.replacementRevision,
+        );
+        ratingsSnapshot = controller.data.toolFeedback.toJson();
+        expect(controller.data.toolFeedback.ratings, hasLength(6));
         expect(controller.data.learning.enabledSources, isEmpty);
         expect(controller.data.learning.deviceOwnerConfirmed, isFalse);
         final file = File('${directory.path}/backup.steady');
@@ -417,6 +435,15 @@ void main() {
         expect(
           await file.readAsString(),
           isNot(contains('Fictional backup event')),
+        );
+        expect(await file.readAsString(), isNot(contains('toolFeedback')));
+        await controller.clearToolFeedback(
+          expectedRevision: controller.replacementRevision,
+        );
+        await controller.updateToolFeedbackOptions(
+          showPrompts: true,
+          useSuggestions: true,
+          expectedRevision: controller.replacementRevision,
         );
         await controller.createEvent(
           'Fictional later event',
@@ -435,6 +462,7 @@ void main() {
             requestPassphrase: () async => _exportPassphrase,
             confirm: (replacement) async {
               expect(replacement.events.single.toJson(), eventSnapshot);
+              expect(replacement.toolFeedback.toJson(), ratingsSnapshot);
               return true;
             },
           ),
@@ -444,6 +472,7 @@ void main() {
         expect(controller.data.activeEventId, originalId);
         expect(controller.data.events.single.toJson(), eventSnapshot);
         expect(controller.data.events.single.actions, hasLength(3));
+        expect(controller.data.toolFeedback.toJson(), ratingsSnapshot);
         expect(controller.data.theme, ThemeChoice.dark);
         expect(controller.data.readingStyle, ReadingStyle.simple);
         expect(controller.data.learning.enabledSources, isEmpty);
@@ -456,6 +485,7 @@ void main() {
       final restored = await store.unlock(_vaultPassphrase);
       try {
         expect(restored.initialData.events.single.toJson(), eventSnapshot);
+        expect(restored.initialData.toolFeedback.toJson(), ratingsSnapshot);
         expect(restored.initialData.activeEventId, originalId);
         expect(restored.initialData.theme, ThemeChoice.dark);
         expect(restored.initialData.readingStyle, ReadingStyle.simple);

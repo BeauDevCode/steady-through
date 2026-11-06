@@ -3,21 +3,26 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/features/help/help_screen.dart';
+import 'package:steady_through/features/tools/feedback/tool_feedback_prompt.dart';
 import 'package:steady_through/features/tools/grounding_screen.dart';
 import 'package:steady_through/game/game_feedback.dart';
 import 'package:steady_through/game/path_game.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/tool_feedback.dart';
+import 'package:steady_through/learning/learning_session.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 class PathGameScreen extends StatefulWidget {
   const PathGameScreen({
     super.key,
     required this.controller,
+    this.safetySession,
     this.onOpenHelp,
     this.onOpenPath,
   });
 
   final AppController controller;
+  final LearningSession? safetySession;
   final VoidCallback? onOpenHelp;
   final VoidCallback? onOpenPath;
 
@@ -31,6 +36,7 @@ class _PathGameScreenState extends State<PathGameScreen> {
   RoundFeeling? _savedFeeling;
   bool _saving = false;
   String? _saveError;
+  int _feedbackAttempt = 0;
 
   bool _canMoveTo(int cell) {
     final board = _game.board;
@@ -51,6 +57,7 @@ class _PathGameScreenState extends State<PathGameScreen> {
   void _newBoard() {
     setState(() {
       _game.startNewBoard();
+      _feedbackAttempt++;
       _savedFeeling = null;
       _saveError = null;
     });
@@ -59,6 +66,7 @@ class _PathGameScreenState extends State<PathGameScreen> {
   void _easierBoard() {
     setState(() {
       _game.startEasierBoard();
+      _feedbackAttempt++;
       _savedFeeling = null;
       _saveError = null;
     });
@@ -70,6 +78,8 @@ class _PathGameScreenState extends State<PathGameScreen> {
         builder: (_) => Scaffold(
           body: GroundingScreen(
             controller: widget.controller,
+            safetySession: widget.safetySession,
+            backLabel: 'Back to game',
             onOpenHelp: widget.onOpenHelp,
           ),
         ),
@@ -217,6 +227,7 @@ class _PathGameScreenState extends State<PathGameScreen> {
                                 _savedFeeling == null
                             ? () => setState(() {
                                 _game.undo();
+                                _feedbackAttempt++;
                                 _saveError = null;
                               })
                             : null,
@@ -230,6 +241,7 @@ class _PathGameScreenState extends State<PathGameScreen> {
                                 _savedFeeling == null
                             ? () => setState(() {
                                 _game.restart();
+                                _feedbackAttempt++;
                                 _saveError = null;
                               })
                             : null,
@@ -602,6 +614,13 @@ class _PathGameScreenState extends State<PathGameScreen> {
             ],
           ),
         ],
+        const SizedBox(height: 20),
+        ToolFeedbackPrompt(
+          key: ValueKey(_feedbackAttempt),
+          controller: widget.controller,
+          tool: SupportTool.pathGame,
+          safetySession: widget.safetySession,
+        ),
       ],
     ),
   );

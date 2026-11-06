@@ -142,6 +142,7 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
                 builder: (_) => Scaffold(
                   body: GroundingScreen(
                     controller: widget.controller,
+                    safetySession: widget.learningSession,
                     onOpenHelp: () => _openHelp(routeContext),
                     backLabel: 'Back to Insights',
                   ),
@@ -212,6 +213,7 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
         builder: (_) => Scaffold(
           body: GroundingScreen(
             controller: widget.controller,
+            safetySession: widget.learningSession,
             onOpenHelp: () => _openHelp(context),
             backLabel: 'Back to Home',
           ),
@@ -254,6 +256,7 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
             ) ??
             ToolsScreen(
               controller: widget.controller,
+              safetySession: widget.learningSession,
               showHelpNow: false,
               onOpenHelp: openHelp,
               onOpenPath: openPathFromGame,

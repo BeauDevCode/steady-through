@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/features/help/help_screen.dart';
+import 'package:steady_through/features/tools/feedback/what_helps_card.dart';
 import 'package:steady_through/features/tools/breathing_screen.dart';
 import 'package:steady_through/features/tools/grounding_screen.dart';
 import 'package:steady_through/features/tools/path_game_screen.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/tool_feedback.dart';
+import 'package:steady_through/learning/learning_session.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 /// Body for the Tools destination. Each tool opens in its own route.
@@ -12,12 +15,14 @@ class ToolsScreen extends StatelessWidget {
   const ToolsScreen({
     super.key,
     required this.controller,
+    this.safetySession,
     this.showHelpNow = true,
     this.onOpenHelp,
     this.onOpenPath,
   });
 
   final AppController controller;
+  final LearningSession? safetySession;
 
   /// Set false when a containing app bar already provides Help now.
   final bool showHelpNow;
@@ -63,7 +68,11 @@ class ToolsScreen extends StatelessWidget {
               buttonLabel: 'Grounding',
               onPressed: () => _open(
                 context,
-                GroundingScreen(controller: controller, onOpenHelp: onOpenHelp),
+                GroundingScreen(
+                  controller: controller,
+                  onOpenHelp: onOpenHelp,
+                  safetySession: safetySession,
+                ),
               ),
             ),
             _toolCard(
@@ -77,7 +86,11 @@ class ToolsScreen extends StatelessWidget {
               buttonLabel: 'Breathing pace',
               onPressed: () => _open(
                 context,
-                BreathingScreen(controller: controller, onOpenHelp: onOpenHelp),
+                BreathingScreen(
+                  controller: controller,
+                  onOpenHelp: onOpenHelp,
+                  safetySession: safetySession,
+                ),
               ),
             ),
             _toolCard(
@@ -93,12 +106,36 @@ class ToolsScreen extends StatelessWidget {
                 context,
                 PathGameScreen(
                   controller: controller,
+                  safetySession: safetySession,
                   onOpenHelp: onOpenHelp,
                   onOpenPath: onOpenPath,
                 ),
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 28),
+        WhatHelpsCard(
+          controller: controller,
+          safetySession: safetySession,
+          onOpenTool: (tool) => _open(context, switch (tool) {
+            SupportTool.grounding => GroundingScreen(
+              controller: controller,
+              onOpenHelp: onOpenHelp,
+              safetySession: safetySession,
+            ),
+            SupportTool.breathing => BreathingScreen(
+              controller: controller,
+              onOpenHelp: onOpenHelp,
+              safetySession: safetySession,
+            ),
+            SupportTool.pathGame => PathGameScreen(
+              controller: controller,
+              onOpenHelp: onOpenHelp,
+              onOpenPath: onOpenPath,
+              safetySession: safetySession,
+            ),
+          }),
         ),
         const SizedBox(height: 28),
         Row(

@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/features/help/help_screen.dart';
+import 'package:steady_through/features/tools/feedback/tool_feedback_prompt.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/tool_feedback.dart';
+import 'package:steady_through/learning/learning_session.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 class GroundingScreen extends StatefulWidget {
   const GroundingScreen({
     super.key,
     required this.controller,
+    this.safetySession,
     this.onOpenHelp,
     this.backLabel = 'Back to Tools',
   });
 
   final AppController controller;
+  final LearningSession? safetySession;
   final VoidCallback? onOpenHelp;
   final String backLabel;
 
@@ -155,6 +160,14 @@ class _GroundingScreenState extends State<GroundingScreen> {
             ],
           ),
         ),
+        if (finished) ...[
+          const SizedBox(height: 20),
+          ToolFeedbackPrompt(
+            controller: widget.controller,
+            tool: SupportTool.grounding,
+            safetySession: widget.safetySession,
+          ),
+        ],
       ],
     );
   }
