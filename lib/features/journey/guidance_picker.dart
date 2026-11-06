@@ -137,13 +137,14 @@ class _StarterStepsPickerDialogState extends State<StarterStepsPickerDialog> {
   bool _saving = false;
   String? _error;
 
+  List<String> get _selectedStepIds => [
+    for (final step in _guide.starterSteps)
+      if (_selected.contains(step.id) && !_existing.contains(step.id)) step.id,
+  ];
+
   Future<void> _save() async {
     if (_saving) return;
-    final ids = [
-      for (final step in _guide.starterSteps)
-        if (_selected.contains(step.id) && !_existing.contains(step.id))
-          step.id,
-    ];
+    final ids = _selectedStepIds;
     setState(() {
       _saving = true;
       _error = null;
@@ -162,70 +163,98 @@ class _StarterStepsPickerDialogState extends State<StarterStepsPickerDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: !_saving,
-    child: AlertDialog(
-      title: const Text('Choose starter steps'),
-      scrollable: true,
-      content: SizedBox(
-        width: 520,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.simpleWords
-                  ? 'Pick any steps you want. You can pick none or add your own later.'
-                  : 'Choose any ideas that fit. Choosing none is fine; you can add your own steps later.',
-            ),
-            const SizedBox(height: 12),
-            for (final step in _guide.starterSteps)
-              CheckboxListTile(
-                value: _selected.contains(step.id),
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-                title: Text(step.text(simpleWords: widget.simpleWords)),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_stageLabels[step.stage]!),
-                    if (_existing.contains(step.id))
-                      const Text('Already in your path'),
-                  ],
-                ),
-                onChanged: _saving || _existing.contains(step.id)
-                    ? null
-                    : (value) => setState(() {
-                        if (value == true) {
-                          _selected.add(step.id);
-                        } else {
-                          _selected.remove(step.id);
-                        }
-                      }),
+  Widget build(BuildContext context) {
+    final selectedCount = _selectedStepIds.length;
+    return PopScope(
+      canPop: !_saving,
+      child: AlertDialog(
+        title: const Text('Choose starter steps'),
+        scrollable: true,
+        content: SizedBox(
+          width: 520,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.simpleWords
+                    ? 'Pick any steps you want. You can pick none or add your own later.'
+                    : 'Choose any ideas that fit. Choosing none is fine; you can add your own steps later.',
               ),
-            if (_error != null)
+              const SizedBox(height: 12),
+              for (final step in _guide.starterSteps)
+                CheckboxListTile(
+                  value: _selected.contains(step.id),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(step.text(simpleWords: widget.simpleWords)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_stageLabels[step.stage]!),
+                      if (_existing.contains(step.id))
+                        const Text('Already in your path'),
+                    ],
+                  ),
+                  onChanged: _saving || _existing.contains(step.id)
+                      ? null
+                      : (value) => setState(() {
+                          if (value == true) {
+                            _selected.add(step.id);
+                          } else {
+                            _selected.remove(step.id);
+                          }
+                        }),
+                ),
+              if (_error != null)
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Semantics(
                 liveRegion: true,
                 child: Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  '$selectedCount ${selectedCount == 1 ? 'step' : 'steps'} selected',
+                  textAlign: TextAlign.end,
                 ),
               ),
-          ],
-        ),
+              const SizedBox(height: 8),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: _saving
+                        ? null
+                        : () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: _saving ? null : _save,
+                    child: Text(_saving ? 'Saving…' : 'Use selected steps'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _saving ? null : _save,
-          child: Text(_saving ? 'Saving…' : 'Use selected steps'),
-        ),
-      ],
-    ),
-  );
+    );
+  }
 }
 
 /// Compact context panel shared by creation and the saved Path. Its copy is

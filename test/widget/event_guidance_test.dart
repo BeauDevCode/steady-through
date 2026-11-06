@@ -74,6 +74,29 @@ Future<void> _chooseGuide(WidgetTester tester, String guide) async {
   await _tap(tester, 'Use guide');
 }
 
+void _expectSelectedCount(WidgetTester tester, int count) {
+  final counter = find.descendant(
+    of: find.byType(AlertDialog),
+    matching: find.text('$count ${count == 1 ? 'step' : 'steps'} selected'),
+  );
+  expect(counter, findsOneWidget);
+  expect(counter.hitTestable(), findsOneWidget);
+  expect(
+    find.ancestor(of: counter, matching: find.byType(Scrollable)),
+    findsNothing,
+    reason: 'The count must stay visible while the starter rows scroll',
+  );
+  expect(
+    tester
+        .widget<Semantics>(
+          find.ancestor(of: counter, matching: find.byType(Semantics)).first,
+        )
+        .properties
+        .liveRegion,
+    isTrue,
+  );
+}
+
 void main() {
   late _Repository repository;
   late AppController controller;
@@ -94,10 +117,12 @@ void main() {
     await _chooseGuide(tester, 'Adult life changes');
     expect(find.text('5 starter steps selected'), findsOneWidget);
     await _tap(tester, 'Choose starter steps');
+    _expectSelectedCount(tester, 5);
     final steps = guideFor(GuidanceContext.adultChanges).starterSteps;
     for (final step in steps.skip(1)) {
       await _tap(tester, step.title);
     }
+    _expectSelectedCount(tester, 1);
     await _tap(tester, 'Use selected steps');
     expect(find.text('1 starter step selected'), findsOneWidget);
     expect(controller.activeEvent, isNull);
@@ -118,6 +143,7 @@ void main() {
     for (final step in guideFor(GuidanceContext.general).starterSteps) {
       await _tap(tester, step.title);
     }
+    _expectSelectedCount(tester, 0);
     await _tap(tester, 'Use selected steps');
     expect(find.text('0 starter steps selected'), findsOneWidget);
     await _tap(tester, 'Save event');
@@ -221,8 +247,14 @@ void main() {
       expect(existing.onChanged, isNull);
       expect(existing.value, isFalse);
       expect(find.text('Already in your path'), findsOneWidget);
+      _expectSelectedCount(tester, 0);
+      await _tap(tester, guide.starterSteps[1].title);
+      _expectSelectedCount(tester, 1);
+      await _tap(tester, guide.starterSteps[1].title);
+      _expectSelectedCount(tester, 0);
       await _tap(tester, guide.starterSteps[1].title);
       await _tap(tester, guide.starterSteps[2].title);
+      _expectSelectedCount(tester, 2);
       final saves = repository.saves;
       await _tap(tester, 'Use selected steps');
       await _settle(tester);
@@ -282,6 +314,7 @@ void main() {
       expect(find.text(guide.simpleDescription), findsOneWidget);
       expect(find.text(guide.simpleHelperNote), findsOneWidget);
       await _tap(tester, 'Choose starter steps');
+      _expectSelectedCount(tester, 5);
       expect(find.text(guide.starterSteps.first.simpleTitle), findsOneWidget);
       expect(find.text(guide.starterSteps.first.title), findsNothing);
       await _tap(tester, 'Use selected steps');
@@ -377,6 +410,7 @@ void main() {
           expect(find.byType(AlertDialog), findsNothing);
           await _chooseGuide(tester, 'School & growing up');
           await _tap(tester, 'Choose starter steps');
+          _expectSelectedCount(tester, 5);
           final first = find.widgetWithText(
             CheckboxListTile,
             'Choose something on your mind',
@@ -411,7 +445,9 @@ void main() {
             reason: 'Starter rows must be reachable with Tab',
           );
           expect(tester.widget<CheckboxListTile>(first).value, isFalse);
+          _expectSelectedCount(tester, 4);
           await _tap(tester, 'Notice what you tried');
+          _expectSelectedCount(tester, 3);
           await _tap(tester, 'Use selected steps');
           expect(find.text('3 starter steps selected'), findsOneWidget);
           await _tap(tester, 'Save event');
