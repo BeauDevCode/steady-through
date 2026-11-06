@@ -15,6 +15,27 @@ SCRIPT = Path(__file__).with_name("prepare_ios_simulator.py")
 PHONE_ID = "A1B2C3D4-1111-2222-3333-123456789ABC"
 BOOTED_ID = "A1B2C3D4-1111-2222-3333-123456789DEF"
 
+# Actual modern schema captured from run 42167296509's
+# native-ios-runtime-matches.json (Xcode 26.6, SDK 26.5.1). The chosen build was
+# not installed in that run; tests must preserve rejection of that situation.
+MODERN_RUNTIME_MATCHES = {
+    "iphoneos26.5": {
+        "chosenRuntimeBuild": "23F81a",
+        "defaultBuild": "23F81a",
+        "platform": "com.apple.platform.iphoneos",
+        "sdkBuild": "23F81a",
+        "sdkDirectory": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk",
+        "sdkVersion": "26.5.1",
+    },
+    "watchos26.5": {
+        "chosenRuntimeBuild": "23T570",
+        "defaultBuild": "23T570",
+        "platform": "com.apple.platform.watchos",
+        "sdkBuild": "23T570",
+        "sdkVersion": "26.5",
+    },
+}
+
 # Captured terminal failure from run 42163816733's native-ios-simulator.log;
 # only the device UUID is replaced with the fixture UUID. A zero process exit
 # did not prevent this failed migration from being exported as "Ready".
@@ -75,6 +96,49 @@ class PreferredRuntimeSelectionTest(unittest.TestCase):
     def matches(self, **values):
         return {"iphoneos26.5": values or {"preferredBuild": "23F73"},
                 "watchos26.5": {"preferredBuild": "watch-only-build"}}
+
+    def modern_matches(self, **values):
+        matches = {key: dict(value) for key, value in MODERN_RUNTIME_MATCHES.items()}
+        matches["iphoneos26.5"].update(values)
+        return matches
+
+    def test_modern_chosen_runtime_build_maps_to_exact_installed_runtime(self):
+        runtimes = {"runtimes": [self.runtime(build="23F81a"), self.runtime(self.other_id, "23C54")]}
+        self.assertEqual(self.helper.preferred_runtime(self.modern_matches(), runtimes), self.preferred_id)
+
+    def test_explicit_legacy_override_precedes_modern_chosen_preferred_and_default(self):
+        matches = self.modern_matches(userOverriddenBuild="23C54", preferredBuild="23F73", defaultBuild="23F77")
+        runtimes = {"runtimes": [self.runtime(build="23F81a"), self.runtime(self.other_id, "23C54")]}
+        self.assertEqual(self.helper.preferred_runtime(matches, runtimes), self.other_id)
+
+    def test_modern_chosen_precedes_legacy_preferred_and_default_build(self):
+        matches = self.modern_matches(preferredBuild="23C54", defaultBuild="23C54")
+        runtimes = {"runtimes": [self.runtime(self.other_id, "23C54"), self.runtime(build="23F81a")]}
+        self.assertEqual(self.helper.preferred_runtime(matches, runtimes), self.preferred_id)
+
+    def test_modern_default_build_is_used_when_chosen_and_preferred_are_absent(self):
+        matches = self.modern_matches()
+        del matches["iphoneos26.5"]["chosenRuntimeBuild"]
+        self.assertEqual(self.helper.preferred_runtime(matches, {"runtimes": [self.runtime(build="23F81a")]}),
+                         self.preferred_id)
+
+    def test_legacy_preferred_precedes_default_when_modern_chosen_is_absent(self):
+        matches = self.matches(preferredBuild="23F73", defaultBuild="23C54")
+        runtimes = {"runtimes": [self.runtime(self.other_id, "23C54"), self.runtime()]}
+        self.assertEqual(self.helper.preferred_runtime(matches, runtimes), self.preferred_id)
+
+    def test_modern_missing_chosen_build_rejects_installed_default_instead_of_falling_back(self):
+        matches = self.modern_matches(defaultBuild="23F77")
+        # The actual run had 23F77 installed, but chose the absent 23F81a.
+        with self.assertRaisesRegex(ValueError, "23F81a"):
+            self.helper.preferred_runtime(matches, {"runtimes": [self.runtime(build="23F77")]})
+
+    def test_malformed_present_modern_chosen_rejects_valid_preferred_and_default(self):
+        for chosen in (None, "", 23, [], " 23F73 "):
+            with self.subTest(chosen=chosen), self.assertRaises(ValueError):
+                self.helper.preferred_runtime(self.modern_matches(chosenRuntimeBuild=chosen,
+                                                                  preferredBuild="23F73", defaultBuild="23F73"),
+                                              {"runtimes": [self.runtime()]})
 
     def test_maps_preferred_build_to_exact_available_ios_runtime(self):
         runtimes = {"runtimes": [self.runtime(self.other_id, "23C54"), self.runtime(),

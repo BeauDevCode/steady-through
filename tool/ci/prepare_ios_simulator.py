@@ -27,8 +27,9 @@ def validated_udid(device):
 def preferred_runtime(runtime_matches, runtime_inventory):
     """Resolve the selected Xcode's exact available iOS runtime build.
 
-    Build precedence follows Flutter's device-lab contract. Missing or ambiguous
-    metadata fails closed instead of selecting an unrelated installed runtime.
+    Preserve explicit overrides and support both current chosen/default keys
+    and Flutter's legacy preferredBuild contract. Missing or ambiguous metadata
+    fails closed instead of selecting an unrelated installed runtime.
     https://github.com/flutter/flutter/blob/3.47.9/dev/devicelab/lib/framework/ios.dart#L43-L113
     """
     if not isinstance(runtime_matches, dict):
@@ -37,7 +38,8 @@ def preferred_runtime(runtime_matches, runtime_inventory):
     if len(ios_matches) != 1 or not isinstance(ios_matches[0], dict):
         raise ValueError("selected Xcode must identify exactly one iPhoneOS runtime match")
     match = ios_matches[0]
-    build_key = "userOverriddenBuild" if "userOverriddenBuild" in match else "preferredBuild"
+    build_key = next((key for key in ("userOverriddenBuild", "chosenRuntimeBuild", "preferredBuild", "defaultBuild")
+                      if key in match), "preferredBuild")
     build = match.get(build_key)
     if not isinstance(build, str) or not build or build.strip() != build:
         raise ValueError(f"selected Xcode has no valid {build_key} runtime build")

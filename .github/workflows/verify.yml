@@ -108,7 +108,12 @@ jobs:
   ios_simulator:
     name: iOS simulator (macOS, no code signing)
     needs: verify
-    runs-on: macos-latest
+    runs-on: macos-26
+    # This image installs the default runtime for Xcode 26.5, while 26.6's
+    # requested patch runtime is absent. Keep compiler/runtime selection aligned.
+    # https://github.com/actions/runner-images/blob/main/images/macos/toolsets/toolset-26.json
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
