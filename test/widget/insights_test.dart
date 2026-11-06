@@ -88,8 +88,13 @@ void main() {
     });
   }
 
-  Future<void> show(WidgetTester tester, {VoidCallback? onOpenHelp}) async {
-    tester.view.physicalSize = const Size(1100, 2200);
+  Future<void> show(
+    WidgetTester tester, {
+    VoidCallback? onOpenHelp,
+    bool reducedMotion = false,
+    double width = 1100,
+  }) async {
+    tester.view.physicalSize = Size(width, 2200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -97,6 +102,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: steadyTheme(Brightness.light),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(disableAnimations: reducedMotion),
+          child: child!,
+        ),
         home: Scaffold(
           body: InsightsScreen(session: session, onOpenHelp: onOpenHelp),
         ),
@@ -144,6 +154,32 @@ void main() {
       'Insights controls remained busy after 50 real/fake event-loop passes.',
     );
   }
+
+  insightsTest(
+    'reduced motion reflection safely pauses, resumes and resizes with sources off',
+    (tester) async {
+      await show(tester, reducedMotion: true, width: 400);
+      expect(session.data.enabledSources, isEmpty);
+      await tester.tap(find.text('Pause learning'));
+      await settleWrite(tester);
+      expect(session.paused, isTrue);
+      expect(find.text('Learning is paused'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.view.physicalSize = const Size(600, 2200);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Resume learning'));
+      await settleWrite(tester);
+      expect(session.paused, isFalse);
+      expect(find.text('Not enough evidence yet'), findsOneWidget);
+      expect(session.data.enabledSources, isEmpty);
+      expect(session.snapshot.features, isEmpty);
+      expect(signals.permissionRequests, 0);
+      expect(signals.settingsRequests, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   insightsTest(
     'sources default off with no permission requests or invented aggregate zeroes',
@@ -374,14 +410,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       await reveal(tester, find.text('Not enough evidence yet'));
-      expect(
-        tester.widget<AnimatedSwitcher>(find.byType(AnimatedSwitcher)).duration,
-        Duration.zero,
-      );
-      expect(
-        tester.widget<AnimatedSize>(find.byType(AnimatedSize)).duration,
-        Duration.zero,
-      );
+      expect(find.byType(AnimatedSwitcher), findsNothing);
+      expect(find.byType(AnimatedSize), findsNothing);
       expect(find.byType(TweenAnimationBuilder<double>), findsNothing);
       expect(tester.takeException(), isNull);
       for (final label in <String>[

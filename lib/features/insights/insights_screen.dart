@@ -68,20 +68,21 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          AnimatedSize(
-            duration: animate
-                ? const Duration(milliseconds: 220)
-                : Duration.zero,
-            alignment: Alignment.topCenter,
-            child: insight.isVehicleContext
-                ? _reflection(context, insight)
-                : AnimatedSwitcher(
-                    duration: animate
-                        ? const Duration(milliseconds: 200)
-                        : Duration.zero,
-                    child: _reflection(context, insight),
-                  ),
-          ),
+          // Reduced motion uses static content: zero-duration AnimatedSize
+          // can re-dirty its own layout when reflection content changes size.
+          if (!animate)
+            _reflection(context, insight)
+          else
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              alignment: Alignment.topCenter,
+              child: insight.isVehicleContext
+                  ? _reflection(context, insight)
+                  : AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: _reflection(context, insight),
+                    ),
+            ),
           if (_feedback != null) ...[
             const SizedBox(height: 16),
             _notice(

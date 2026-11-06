@@ -279,79 +279,81 @@ class GuidanceCard extends StatelessWidget {
     final guide = guideFor(guidanceContext);
     final colors = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final card = SurfaceCard(
+      padding: const EdgeInsets.all(16),
+      color: colors.surfaceContainerLow,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconBadge(
+                icon: Icons.explore_outlined,
+                size: 34,
+                color: colors.primaryContainer,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your guide',
+                      style: text.labelMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      simpleWords ? guide.simpleLabel : guide.label,
+                      style: text.titleMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(simpleWords ? guide.simpleDescription : guide.description),
+          const SizedBox(height: 6),
+          Text(
+            simpleWords ? guide.simpleHelperNote : guide.helperNote,
+            style: text.bodySmall?.copyWith(color: colors.onSurfaceVariant),
+          ),
+          if (selectionNote != null) ...[
+            const SizedBox(height: 8),
+            Text(selectionNote!, style: text.labelLarge),
+          ],
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              if (onChooseGuide != null)
+                TextButton(
+                  onPressed: onChooseGuide,
+                  child: const Text('Choose guide'),
+                ),
+              if (onChooseSteps != null)
+                TextButton.icon(
+                  onPressed: onChooseSteps,
+                  icon: const Icon(Icons.playlist_add_rounded, size: 18),
+                  label: const Text('Choose starter steps'),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+    // A zero-duration AnimatedSize can notify its layout listener from inside
+    // performLayout when this card changes size (for example, while saving).
+    if (MediaQuery.disableAnimationsOf(context)) return card;
     return AnimatedSize(
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 180),
+      duration: const Duration(milliseconds: 180),
       alignment: Alignment.topCenter,
       curve: Curves.easeOutCubic,
-      child: SurfaceCard(
-        padding: const EdgeInsets.all(16),
-        color: colors.surfaceContainerLow,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IconBadge(
-                  icon: Icons.explore_outlined,
-                  size: 34,
-                  color: colors.primaryContainer,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Your guide',
-                        style: text.labelMedium?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        simpleWords ? guide.simpleLabel : guide.label,
-                        style: text.titleMedium,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(simpleWords ? guide.simpleDescription : guide.description),
-            const SizedBox(height: 6),
-            Text(
-              simpleWords ? guide.simpleHelperNote : guide.helperNote,
-              style: text.bodySmall?.copyWith(color: colors.onSurfaceVariant),
-            ),
-            if (selectionNote != null) ...[
-              const SizedBox(height: 8),
-              Text(selectionNote!, style: text.labelLarge),
-            ],
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                if (onChooseGuide != null)
-                  TextButton(
-                    onPressed: onChooseGuide,
-                    child: const Text('Choose guide'),
-                  ),
-                if (onChooseSteps != null)
-                  TextButton.icon(
-                    onPressed: onChooseSteps,
-                    icon: const Icon(Icons.playlist_add_rounded, size: 18),
-                    label: const Text('Choose starter steps'),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: card,
     );
   }
 }
