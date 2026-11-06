@@ -13,8 +13,10 @@ class AppController extends ChangeNotifier {
   AppData _data;
   Future<void> _writeQueue = Future<void>.value();
   final Random _random = Random.secure();
+  String? _cleanupWarning;
 
   AppData get data => _data;
+  String? get cleanupWarning => _cleanupWarning;
 
   Future<void> flush() => _writeQueue;
 
@@ -55,12 +57,19 @@ class AppController extends ChangeNotifier {
 
   Future<void> clearLearning() => _mutate(
     (current) => current.copyWith(learning: LearningData()),
-    afterCommit: _purgeResidual,
+    purgeResidual: true,
   );
 
   Future<void> _purgeResidual() async {
     if (_repository is ResidualDataRepository) {
-      await (_repository as ResidualDataRepository).purgeResidualData();
+      try {
+        await (_repository as ResidualDataRepository).purgeResidualData();
+        _cleanupWarning = null;
+      } catch (_) {
+        // The primary save already committed. A cleanup failure must not
+        // invite a form retry that would save the same record again.
+        _cleanupWarning = 'Your changes are saved in the active vault. Older local copies may remain. Lock and unlock the vault to retry cleanup.';
+      }
     }
   }
 
@@ -89,7 +98,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> _mutate(
     AppData Function(AppData) change, {
-    Future<void> Function()? afterCommit,
+    bool purgeResidual = false,
     bool replacing = false,
   }) {
     final write = _writeQueue.then((_) async {
@@ -109,11 +118,8 @@ class AppController extends ChangeNotifier {
       await _repository.save(next);
       _data = next;
       if (replacing) _replacementRevision++;
+      if (pruned || purgeResidual) await _purgeResidual();
       notifyListeners();
-      if (pruned) await _purgeResidual();
-      if (afterCommit != null) {
-        await afterCommit();
-      }
     });
     // Keep the queue usable after a failed write while still surfacing the
     // failure to the caller of this particular operation.
@@ -376,13 +382,6 @@ class AppController extends ChangeNotifier {
     return _mutate((_) => imported, replacing: true);
   }
 
-  Future<void> clearAll() => _mutate(
-    (_) => AppData.empty(),
-    replacing: true,
-    afterCommit: () async {
-      if (_repository is ResidualDataRepository) {
-        await (_repository as ResidualDataRepository).purgeResidualData();
-      }
-    },
-  );
+  Future<void> clearAll() =>
+      _mutate((_) => AppData.empty(), replacing: true, purgeResidual: true);
 }

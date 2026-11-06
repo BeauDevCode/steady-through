@@ -293,11 +293,18 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
                 ],
               ),
               actions: [
-                TextButton.icon(
-                  onPressed: () => _openHelp(context),
-                  icon: const Icon(Icons.support_agent_rounded, size: 20),
-                  label: const Text('Help now'),
-                ),
+                if (largeText && width < 600)
+                  IconButton(
+                    onPressed: () => _openHelp(context),
+                    tooltip: 'Help now',
+                    icon: const Icon(Icons.support_agent_rounded),
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: () => _openHelp(context),
+                    icon: const Icon(Icons.support_agent_rounded, size: 20),
+                    label: const Text('Help now'),
+                  ),
                 const SizedBox(width: 16),
               ],
             ),
@@ -429,7 +436,37 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
         },
         builder: (context, child) => Listener(
           onPointerDown: (_) => widget.learningSession?.recordTap(),
-          child: child,
+          child: Column(
+            children: [
+              if (widget.controller.cleanupWarning case final warning?)
+                Material(
+                  child: SafeArea(
+                    bottom: false,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.sizeOf(context).height * .4,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Semantics(
+                          liveRegion: true,
+                          child: MaterialBanner(
+                            content: Text(warning),
+                            forceActionsBelow: true,
+                            actions: [
+                              TextButton(
+                                onPressed: widget.onLock,
+                                child: const Text('Lock vault'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              Expanded(child: child ?? const SizedBox.shrink()),
+            ],
+          ),
         ),
         home: Builder(builder: _scaffold),
       );

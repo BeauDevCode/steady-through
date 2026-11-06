@@ -569,7 +569,7 @@ class SettingsScreen extends StatelessWidget {
         },
       );
       if (context.mounted && imported) {
-        _message(context, 'Data imported.');
+        _savedMessage(context, 'Data imported.');
       }
     } on FormatException {
       if (context.mounted) {
@@ -611,6 +611,9 @@ class SettingsScreen extends StatelessWidget {
     if (clear == true) {
       try {
         await controller.clearGameRounds();
+        if (context.mounted) {
+          _savedMessage(context, 'Game history cleared from the active vault.');
+        }
       } catch (_) {
         if (context.mounted) {
           _message(context, 'Could not clear game history. Please try again.');
@@ -625,7 +628,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete all data?'),
         content: const Text(
-          'All events, actions, check-ins, people, game history, learning records, and preferences on this device will be removed.',
+          'This clears all events, actions, check-ins, people, game history, learning records, and preferences from the active vault. Older local recovery copies are removed when cleanup succeeds. Backups you exported remain where you saved them.',
         ),
         actions: [
           TextButton(
@@ -642,11 +645,14 @@ class SettingsScreen extends StatelessWidget {
     if (delete == true) {
       try {
         await controller.clearAll();
+        if (context.mounted) {
+          _savedMessage(context, 'Data cleared from the active vault.');
+        }
       } catch (_) {
         if (context.mounted) {
           _message(
             context,
-            'Deletion could not be fully verified. Some local data may remain. Please try again.',
+            'Deletion could not be fully verified. Your active records are unchanged. Please try again.',
           );
         }
       }
@@ -657,5 +663,10 @@ class SettingsScreen extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _savedMessage(BuildContext context, String message) {
+    final warning = controller.cleanupWarning;
+    _message(context, warning == null ? message : '$message $warning');
   }
 }

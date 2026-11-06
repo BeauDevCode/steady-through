@@ -76,31 +76,35 @@ void main() {
     expect((await FileAppRepository(temp).load()).theme, ThemeChoice.dark);
   });
 
-  test('delete-all reports a backup that could not be removed', () async {
-    final cleanupFails = FileAppRepository(
-      temp,
-      backupCleanup: (file) async {
-        throw FileSystemException('Backup cleanup denied', file.path);
-      },
-    );
-    final controller = AppController(cleanupFails, AppData.empty());
-    addTearDown(controller.dispose);
-    await controller.createEvent('Private event', '');
+  test(
+    'delete-all commits with a warning when its backup cannot be removed',
+    () async {
+      final cleanupFails = FileAppRepository(
+        temp,
+        backupCleanup: (file) async {
+          throw FileSystemException('Backup cleanup denied', file.path);
+        },
+      );
+      final controller = AppController(cleanupFails, AppData.empty());
+      addTearDown(controller.dispose);
+      await controller.createEvent('Private event', '');
 
-    await expectLater(
-      controller.clearAll(),
-      throwsA(isA<FileSystemException>()),
-    );
+      await expectLater(controller.clearAll(), completes);
+      expect(
+        controller.cleanupWarning,
+        contains('Older local copies may remain'),
+      );
 
-    // The committed document and in-memory state agree even when the
-    // deletion cannot be reported as complete.
-    expect(controller.data.events, isEmpty);
-    expect((await FileAppRepository(temp).load()).events, isEmpty);
-    expect(
-      await File('${temp.path}/steady-through.json.bak').readAsString(),
-      contains('Private event'),
-    );
-  });
+      // The active document is cleared, while the warning truthfully reflects
+      // the actual residual backup below.
+      expect(controller.data.events, isEmpty);
+      expect((await FileAppRepository(temp).load()).events, isEmpty);
+      expect(
+        await File('${temp.path}/steady-through.json.bak').readAsString(),
+        contains('Private event'),
+      );
+    },
+  );
 
   test('delete-all removes the active file and its local backup', () async {
     final controller = AppController(repository, AppData.empty());

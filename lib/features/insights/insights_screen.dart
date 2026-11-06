@@ -648,7 +648,8 @@ class _InsightsScreenState extends State<InsightsScreen> {
       await action();
       if (mounted && success != null) {
         setState(() {
-          _feedback = success;
+          final warning = session.controller.cleanupWarning;
+          _feedback = warning == null ? success : '$success $warning';
           _feedbackIsError = false;
         });
       }

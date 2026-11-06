@@ -254,9 +254,9 @@ void main() {
     });
 
     await tester.pumpWidget(SteadyThroughApp(controller: controller));
-    expect(find.text('Help now'), findsOneWidget);
+    expect(find.byTooltip('Help now'), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
-    await tester.tap(find.text('Help now'));
+    await tester.tap(find.byTooltip('Help now'));
     await tester.pumpAndSettle();
     expect(find.textContaining('immediate physical danger'), findsOneWidget);
     await tester.scrollUntilVisible(find.textContaining('U.S. only'), 150);

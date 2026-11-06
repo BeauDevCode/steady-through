@@ -140,15 +140,13 @@ void main() {
     },
   );
   test(
-    'retention also applies to unrelated saves and reports cleanup failure',
+    'retention applies to unrelated saves with a committed cleanup warning',
     () async {
       final repository = _Repository(_data(expired: true))..failCleanup = true;
       final controller = AppController(repository, repository.value);
       addTearDown(controller.dispose);
-      await expectLater(
-        controller.setTheme(ThemeChoice.dark),
-        throwsStateError,
-      );
+      await expectLater(controller.setTheme(ThemeChoice.dark), completes);
+      expect(controller.cleanupWarning, isNotNull);
       expect(controller.data.learning.examples, isEmpty);
       expect(controller.data.theme, ThemeChoice.dark);
       expect(repository.backup!.learning.examples, hasLength(1));
