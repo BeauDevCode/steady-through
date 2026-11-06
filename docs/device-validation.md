@@ -1,14 +1,14 @@
 # Manual device validation guide
 
-## Current 1.4 work in progress — CI and release pending
+## Current 1.4.0 preview — manual checks remain unexecuted
 
-The working build is **1.4.0+8**, with optional tool preferences and **schema 4 / validated read 1/2/3/4**. No 1.4 walkthrough, physical-device result, release package or final CI outcome is asserted here. The earlier published 1.3 evidence is historical. New version 4 vaults/exports cannot be read by an app supporting only up to version 3; keep a usable older backup if a return is needed, and never test downgrade on a real vault. Existing guides/actions/settings/learning must survive migration, while older documents begin with empty ratings/default-on rating settings.
+Published **1.4.0+8** has verified seven-job CI, all original three native cases per runtime, package/source checks, server hashes and anonymous public downloads. [Quality status](quality-status.md#current-140-preview--verified-evidence) records exact source `a0a12ecc7badf359411e520b21a4081dcd06854d` and [the release](https://github.com/BeauDevCode/steady-through/releases/tag/v1.4.0-preview.1). Automated evidence does not execute this human checklist or establish physical-device behavior.
 
-Synthetic rating UI references are planned for `docs/screenshots/what-helps/`; those captures and automated layouts do not execute this manual guide. Record actual observations separately using the result block below. See [1.4 decisions](releases/1.4.0-decisions.md) and [quality status](quality-status.md).
+Schema 4 reads validated 1/2/3/4. Keep a usable earlier backup if returning to an older app may be needed; do not test downgrade on a real vault. The 28 inspected synthetic [feedback captures](screenshots/what-helps/) include mobile light, desktop dark and 320px Simple/200% reduced motion. They are renderings with fictional data, separate from native assistive-technology validation. Record actual observations below.
 
 This is a checklist for a future human walkthrough of Steady Through. **No checks in this guide are claimed as executed or passed.** Record
 results separately for Android, iOS, macOS, Windows, and Linux; a build or automated native smoke test is not a substitute for these
-observations. Use the source commit and build under review, not an older preview. The published preview is **1.3.0+7**; its automated CI/package/publication evidence is in [quality status](quality-status.md#current-130-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
+observations. Use the source commit and build under review, not an older preview. The published preview is **1.4.0+8**; its automated CI/package/publication evidence is in [quality status](quality-status.md#current-140-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
 
 ## Set up a safe test session
 

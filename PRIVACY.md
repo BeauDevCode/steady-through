@@ -2,9 +2,9 @@
 
 _Last updated: November 6, 2026_
 
-## Current 1.4 work in progress — CI and release pending
+## Current 1.4.0 preview
 
-The working **1.4.0+8** adds optional tool-rating preferences in the encrypted vault, writes **schema 4**, and reads strictly validated versions **1, 2, 3 and 4**. Local verification is recorded in quality status; exact-source native CI and publication remain pending. Earlier release evidence remains historical. New version 4 vaults/exports cannot be read by an app that supports only up to version 3. Preserve a usable earlier backup if you may return to an older app. Encryption, export passphrases, the KDF and native source permissions remain unchanged. See the [1.4 decisions](docs/releases/1.4.0-decisions.md) and [quality status](docs/quality-status.md).
+Published **1.4.0+8** adds optional tool-rating preferences in the encrypted vault, writes **schema 4**, and reads strictly validated versions **1, 2, 3 and 4**. Exact-source seven-job CI, package hashes and public access are verified in quality status. Earlier release evidence remains historical. New version 4 vaults/exports cannot be read by an app that supports only up to version 3. Preserve a usable earlier backup if you may return to an older app. Encryption, export passphrases, the KDF and native source permissions remain unchanged. See the [1.4 decisions](docs/releases/1.4.0-decisions.md) and [quality status](docs/quality-status.md).
 
 Steady Through works locally without an account, app-operated backend, analytics, advertising, in-app cloud sync or cloud emotion service. The whole app is free. Device permissions are optional; declining them leaves planning, tools, people, manual check-ins and help available. The app does not request a birth date, location permission, contacts permission or notification permission. People and phone numbers are typed in manually. Its features support personal organization and general self-help; they are not medical care or a validated stress measurement.
 
