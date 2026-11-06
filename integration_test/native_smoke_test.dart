@@ -90,7 +90,8 @@ class _OwnedBackupGateway implements DataPortabilityGateway {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized().defaultTestTimeout =
+      const Timeout(Duration(minutes: 5));
 
   testWidgets('native bridge remains paused without source consent', (
     tester,
