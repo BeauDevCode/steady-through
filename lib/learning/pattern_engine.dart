@@ -56,6 +56,27 @@ class CalibrationReview {
   final CalibrationReport report;
 }
 
+/// Describes the engine's input coverage, never prediction accuracy/readiness.
+class LearningEvidence {
+  const LearningEvidence({
+    required this.savedCount,
+    required this.eligibleCount,
+    required this.observationDays,
+    required this.coveredFeelingCount,
+    required this.hasAggregateHistory,
+    required this.hasComparableHistory,
+    required this.insight,
+  });
+
+  final int savedCount;
+  final int eligibleCount;
+  final int observationDays;
+  final int coveredFeelingCount;
+  final bool hasAggregateHistory;
+  final bool hasComparableHistory;
+  final PatternInsight insight;
+}
+
 /// A conservative personal comparison using only the person's explicit labels.
 /// Dates, class coverage, absent features, distance and contradictions all gate
 /// a reflection. Scores are internal distances, never emotion probabilities.
@@ -68,6 +89,33 @@ class PersonalPatternEngine {
   static const minimumTrainingExamples = 30;
   static const minimumTrainingDays = 14;
   static const minimumHeldOutExamples = 12;
+
+  LearningEvidence evidence(
+    LearningData data,
+    SignalSnapshot snapshot, {
+    DateTime? now,
+  }) {
+    final at = now ?? DateTime.now().toUtc();
+    final bounded = data.bounded(at);
+    final visible = _visibleExamples(bounded);
+    final eligible = visible
+        .where((e) => e.label != FeelingLabel.unsure)
+        .toList();
+    return LearningEvidence(
+      savedCount: bounded.examples.length,
+      eligibleCount: eligible.length,
+      observationDays: eligible
+          .map((e) => _day(e.snapshot.observedAt))
+          .toSet()
+          .length,
+      coveredFeelingCount: _counts(eligible).values
+          .where((count) => count >= minimumExamplesPerLabel)
+          .length,
+      hasAggregateHistory: visible.any((e) => e.snapshot.features.isNotEmpty),
+      hasComparableHistory: _train(eligible).model != null,
+      insight: assess(bounded, snapshot, now: at),
+    );
+  }
 
   PatternInsight assess(
     LearningData data,

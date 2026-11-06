@@ -48,11 +48,11 @@
 
 **Interfaces:** Produces `LearningSummary.fromData(LearningData data, {DateTime? now})` with `recentCounts`, `recentCount` and newest-first `moments`; `PersonalPatternEngine.evidence(LearningData data, SignalSnapshot snapshot, {DateTime? now})` returns `LearningEvidence` with retained/eligible/day/class counts, `hasComparableHistory` from the existing training result, and the actual `PatternInsight` assessment. Source descriptions belong in presentation derived from actual snapshot keys.
 
-- [ ] Write failing tests: rolling seven-day inclusive boundary, future/expired exclusions, Unsure preserved in summary but excluded from model eligibility, deterministic timestamp ties; UTC observation days; twenty same-day entries/one class and mixed incomplete features never imply comparable history; valid complete features do; revocation filters context; stale/future/current missing readings and vehicle keep actual assessment blocker.
-- [ ] Run targeted files and observe expected missing APIs (RED).
-- [ ] Implement bounded immutable summary and engine diagnostics using `_visibleExamples`, `_counts`, `_train`, `_day` and `assess`. Do not change existing thresholds/prediction or review rules.
-- [ ] Run targeted tests, then `flutter test`. Expected all PASS.
-- [ ] Commit task code/tests and ledger evidence.
+- [x] Write failing tests: rolling seven-day inclusive boundary, future/expired exclusions, Unsure preserved in summary but excluded from model eligibility, deterministic timestamp ties; UTC observation days; twenty same-day entries/one class and mixed incomplete features never imply comparable history; valid complete features do; revocation filters context; stale/future/current missing readings and vehicle keep actual assessment blocker.
+- [x] Run targeted files and observe expected missing APIs (RED).
+- [x] Implement bounded immutable summary and engine diagnostics using `_visibleExamples`, `_counts`, `_train`, `_day` and `assess`. Do not change existing thresholds/prediction or review rules.
+- [x] Run targeted tests, then `flutter test`. Expected all PASS.
+- [x] Commit task code/tests and ledger evidence.
 
 ### Task 3: Accessible history, correction dialogs and clearer Insights
 
