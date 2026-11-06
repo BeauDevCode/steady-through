@@ -63,3 +63,7 @@ steady-through.vault
 steady-through.vault.bak
 steady-through.vault.tmp
 *.steady
+
+# Python CI helper caches
+__pycache__/
+*.pyc

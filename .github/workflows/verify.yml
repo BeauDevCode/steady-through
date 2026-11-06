@@ -12,23 +12,36 @@ jobs:
   verify:
     name: Analyze and test (Ubuntu)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Test native CI report and simulator helpers
+        run: python -m unittest discover -s tool/ci -p 'test_*.py'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.9'
           channel: stable
           cache: true
       - run: flutter pub get
+        timeout-minutes: 5
       - run: flutter analyze
+        timeout-minutes: 10
       - run: flutter test
+        timeout-minutes: 15
 
   android:
     name: Android APK (Ubuntu, development signing)
     needs: verify
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -39,8 +52,11 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+        timeout-minutes: 5
       - run: flutter build apk --release
+        timeout-minutes: 20
       - name: Test Android motion classification and session state
+        timeout-minutes: 10
         working-directory: android
         run: ./gradlew :app:testReleaseUnitTest
       - name: Preserve Android unit-test evidence
@@ -54,20 +70,60 @@ jobs:
           name: android-apk-ci-not-play-signed
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+      - name: Enable Android emulator KVM
+        timeout-minutes: 2
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          mkdir -p build
+      - name: Run native Android smoke tests
+        timeout-minutes: 35
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          emulator-port: 5554
+          emulator-boot-timeout: 600
+          disable-animations: true
+          disable-linux-hw-accel: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: bash -o pipefail -c 'flutter test integration_test/native_smoke_test.dart -d emulator-5554 --reporter expanded --file-reporter json:build/native-android-results.json --timeout 5m 2>&1 | tee build/native-android.log'
+      - name: Verify actual Android native test execution
+        if: always()
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          mkdir -p build
+          python tool/ci/verify_native_results.py build/native-android-results.json 2>&1 | tee build/native-android-verification.log
+      - name: Preserve Android native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-native-runtime-results
+          path: build/native-android*
+          if-no-files-found: error
 
   ios_simulator:
     name: iOS simulator (macOS, no code signing)
     needs: verify
     runs-on: macos-latest
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.9'
           channel: stable
           cache: true
       - run: flutter pub get
+        timeout-minutes: 5
       - run: flutter build ios --simulator --debug
+        timeout-minutes: 20
       - name: Archive simulator app
         run: ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app steady-through-ios-simulator-ci.zip
       - uses: actions/upload-artifact@v4
@@ -75,20 +131,50 @@ jobs:
           name: ios-simulator-debug-no-signing
           path: steady-through-ios-simulator-ci.zip
           if-no-files-found: error
+      - name: Select and boot an available iPhone simulator
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          mkdir -p build
+          python tool/ci/prepare_ios_simulator.py 2>&1 | tee build/native-ios-simulator.log
+      - name: Run native iOS smoke tests
+        shell: bash
+        timeout-minutes: 20
+        run: flutter test integration_test/native_smoke_test.dart -d "$STEADY_IOS_SIMULATOR_ID" --reporter expanded --file-reporter json:build/native-ios-results.json --timeout 5m 2>&1 | tee build/native-ios.log
+      - name: Verify actual iOS native test execution
+        if: always()
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          mkdir -p build
+          python tool/ci/verify_native_results.py build/native-ios-results.json 2>&1 | tee build/native-ios-verification.log
+      - name: Preserve iOS native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-native-runtime-results
+          path: build/native-ios*
+          if-no-files-found: error
 
   macos:
     name: macOS app (no distribution signing)
     needs: verify
     runs-on: macos-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.9'
           channel: stable
           cache: true
       - run: flutter pub get
+        timeout-minutes: 5
       - run: flutter build macos --release
+        timeout-minutes: 20
       - name: Archive macOS app
         run: |
           APP_PATH=$(find build/macos/Build/Products/Release -maxdepth 1 -type d -name '*.app' -print -quit)
@@ -99,20 +185,46 @@ jobs:
           name: macos-app-ci-not-notarized
           path: steady-through-macos-ci.zip
           if-no-files-found: error
+      - name: Run native macOS smoke tests
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          mkdir -p build
+          flutter test integration_test/native_smoke_test.dart -d macos --reporter expanded --file-reporter json:build/native-macos-results.json --timeout 5m 2>&1 | tee build/native-macos.log
+      - name: Verify actual macOS native test execution
+        if: always()
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          mkdir -p build
+          python tool/ci/verify_native_results.py build/native-macos-results.json 2>&1 | tee build/native-macos-verification.log
+      - name: Preserve macOS native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-native-runtime-results
+          path: build/native-macos*
+          if-no-files-found: error
 
   windows:
     name: Windows app (Windows, unsigned)
     needs: verify
     runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.9'
           channel: stable
           cache: true
       - run: flutter pub get
+        timeout-minutes: 5
       - run: flutter build windows --release
+        timeout-minutes: 20
       - name: Archive Windows bundle
         shell: pwsh
         run: Compress-Archive -Path 'build/windows/x64/runner/Release/*' -DestinationPath 'steady-through-windows-ci.zip'
@@ -121,28 +233,75 @@ jobs:
           name: windows-app-ci-unsigned
           path: steady-through-windows-ci.zip
           if-no-files-found: error
+      - name: Run native Windows smoke tests
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          mkdir -p build
+          flutter test integration_test/native_smoke_test.dart -d windows --reporter expanded --file-reporter json:build/native-windows-results.json --timeout 5m 2>&1 | tee build/native-windows.log
+      - name: Verify actual Windows native test execution
+        if: always()
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          mkdir -p build
+          python tool/ci/verify_native_results.py build/native-windows-results.json 2>&1 | tee build/native-windows-verification.log
+      - name: Preserve Windows native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-runtime-results
+          path: build/native-windows*
+          if-no-files-found: error
 
   linux:
     name: Linux app (Ubuntu, unsigned)
     needs: verify
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Install Linux desktop build tools
+        timeout-minutes: 10
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev xvfb xauth
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.9'
           channel: stable
           cache: true
       - run: flutter pub get
+        timeout-minutes: 5
       - run: flutter build linux --release
+        timeout-minutes: 20
       - name: Archive Linux bundle
         run: tar -czf steady-through-linux-ci.tar.gz -C build/linux/x64/release/bundle .
       - uses: actions/upload-artifact@v4
         with:
           name: linux-app-ci-unsigned
           path: steady-through-linux-ci.tar.gz
+          if-no-files-found: error
+      - name: Run native Linux smoke tests under Xvfb
+        shell: bash
+        timeout-minutes: 20
+        run: |
+          mkdir -p build
+          xvfb-run -a flutter test integration_test/native_smoke_test.dart -d linux --reporter expanded --file-reporter json:build/native-linux-results.json --timeout 5m 2>&1 | tee build/native-linux.log
+      - name: Verify actual Linux native test execution
+        if: always()
+        shell: bash
+        timeout-minutes: 2
+        run: |
+          mkdir -p build
+          python tool/ci/verify_native_results.py build/native-linux-results.json 2>&1 | tee build/native-linux-verification.log
+      - name: Preserve Linux native runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-native-runtime-results
+          path: build/native-linux*
           if-no-files-found: error
