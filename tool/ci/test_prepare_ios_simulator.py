@@ -61,6 +61,13 @@ BOOTSTATUS_FINISHED = f"""Monitoring boot status for iPhone Air ({PHONE_ID}).
 \tFinished
 """
 
+# Captured from run 42267035811's native-ios-bootstatus.log; only the
+# requested device UUID is replaced with the existing fixture UUID.
+BOOTSTATUS_ALREADY_BOOTED = f"""Monitoring boot status for iPhone 17 ({PHONE_ID}).
+Device already booted, nothing to do.
+
+"""
+
 
 def device(udid=PHONE_ID, state="Shutdown", available=True, kind="iPhone-Future"):
     return {"udid": udid, "isAvailable": available, "state": state,
@@ -451,6 +458,63 @@ class SimulatorBootTest(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         self.helper.boot_and_export(device(state="Booted"), env)
                 self.assertFalse(any(call.args[0][0] == "open" for call in run.call_args_list))
+                self.assertFalse(env.exists())
+
+    def test_monitoring_header_already_booted_confirms_fresh_uuid_before_gui_and_export(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = Path(directory) / "environment"
+            simctl, gui = self.toolchain(directory)
+            with patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs: self.command_result(
+                    simctl, command, boot_output=BOOTSTATUS_ALREADY_BOOTED)) as run:
+                self.helper.boot_and_export(device(state="Booted"), env)
+            commands = [call.args[0] for call in run.call_args_list]
+            self.assertEqual(commands, self.expected_commands(simctl, gui, state="Booted")[:2] + [
+                ["xcrun", "simctl", "list", "devices", "available", "--json"],
+            ] + self.expected_commands(simctl, gui, state="Booted")[2:])
+            self.assertEqual(env.read_text(), f"STEADY_IOS_SIMULATOR_ID={PHONE_ID}\n")
+            self.assertEqual((Path(directory) / "native-ios-bootstatus.log").read_text(), BOOTSTATUS_ALREADY_BOOTED)
+            self.assertEqual(json.loads((Path(directory) / "native-ios-ready-devices.json").read_text()),
+                             inventory(device(state="Booted")))
+
+    def test_monitoring_header_already_booted_rejects_mismatched_uuid_or_extra_lines(self):
+        for output in (
+                BOOTSTATUS_ALREADY_BOOTED.replace(PHONE_ID, BOOTED_ID),
+                "Unknown prefix\n" + BOOTSTATUS_ALREADY_BOOTED,
+                BOOTSTATUS_ALREADY_BOOTED + "Unknown suffix\n",
+                BOOTSTATUS_ALREADY_BOOTED.splitlines()[0] + "\n" + BOOTSTATUS_ALREADY_BOOTED,
+        ):
+            with self.subTest(output=output), tempfile.TemporaryDirectory() as directory:
+                env = Path(directory) / "environment"
+                simctl, gui = self.toolchain(directory)
+                with patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs: self.command_result(
+                        simctl, command, boot_output=output)) as run:
+                    with self.assertRaises(ValueError):
+                        self.helper.boot_and_export(device(state="Booted"), env)
+                self.assertEqual([call.args[0] for call in run.call_args_list],
+                                 self.expected_commands(simctl, gui, state="Booted")[:2])
+                self.assertFalse(env.exists())
+
+    def test_monitoring_header_already_booted_rejects_invalid_fresh_state(self):
+        for snapshot in (
+                inventory(device(state="Shutdown")),
+                inventory(device(state="Booted", available=False)),
+                inventory(device(BOOTED_ID, state="Booted")),
+                inventory(device(state="Booted"), device(state="Booted")),
+                {"devices": {}},
+                {"devices": []},
+        ):
+            with self.subTest(snapshot=snapshot), tempfile.TemporaryDirectory() as directory:
+                env = Path(directory) / "environment"
+                simctl, gui = self.toolchain(directory)
+                with patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs: self.command_result(
+                        simctl, command, boot_output=BOOTSTATUS_ALREADY_BOOTED, fresh_inventory=snapshot)) as run:
+                    with self.assertRaises(ValueError):
+                        self.helper.boot_and_export(device(state="Booted"), env)
+                self.assertEqual([call.args[0] for call in run.call_args_list],
+                                 self.expected_commands(simctl, gui, state="Booted")[:2] + [
+                                     ["xcrun", "simctl", "list", "devices", "available", "--json"],
+                                 ])
+                self.assertEqual(json.loads((Path(directory) / "native-ios-ready-devices.json").read_text()), snapshot)
                 self.assertFalse(env.exists())
 
     def test_unknown_or_incomplete_boot_output_never_exports_readiness(self):

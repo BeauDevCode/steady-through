@@ -165,7 +165,11 @@ def wait_for_successful_boot(udid, evidence_directory):
         if statuses[-1] == ("4294967295", "YES") and re.search(r"^\s*Finished\s*$", output, re.MULTILINE):
             return
         raise ValueError("bootstatus did not report a successful terminal Finished state")
-    if output.strip() == "Device already booted, nothing to do.":
+    already_booted = "Device already booted, nothing to do."
+    response_lines = output.strip().splitlines()
+    if (response_lines == [already_booted]
+            or (len(response_lines) == 2 and response_lines[1] == already_booted
+                and re.fullmatch(rf"Monitoring boot status for [^\r\n]+ \({re.escape(udid)}\)\.", response_lines[0]))):
         confirm_already_booted(udid, evidence_directory)
         return
     raise ValueError("bootstatus returned no recognized successful readiness response")
