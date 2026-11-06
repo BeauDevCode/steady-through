@@ -15,6 +15,31 @@ SCRIPT = Path(__file__).with_name("prepare_ios_simulator.py")
 PHONE_ID = "A1B2C3D4-1111-2222-3333-123456789ABC"
 BOOTED_ID = "A1B2C3D4-1111-2222-3333-123456789DEF"
 
+# Captured terminal failure from run 42163816733's native-ios-simulator.log;
+# only the device UUID is replaced with the fixture UUID. A zero process exit
+# did not prevent this failed migration from being exported as "Ready".
+# CoreSimulator enum distinguishes DataMigrationFailed=3 from Finished=4294967295:
+# https://github.com/meta/idb/blob/main/PrivateHeaders/CoreSimulator/SimDeviceBootInfo.h#L8-L15
+BOOTSTATUS_MIGRATION_FAILED = f"""Monitoring boot status for iPhone Air ({PHONE_ID}).
+[2026-11-06 04:48:58 +0000] Status=2, isTerminal=NO, Elapsed=01:19.
+\tWaiting on Data Migration
+\t\tReason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+\t\tMigration Elapsed:01:06 seconds
+
+[2026-11-06 04:49:01 +0000] Status=3, isTerminal=YES, Elapsed=01:22.
+\tData Migration Failed
+"""
+
+# Positive protocol fixture: Finished is a different terminal state, rather
+# than assuming that every isTerminal=YES or zero process exit means success.
+BOOTSTATUS_FINISHED = f"""Monitoring boot status for iPhone Air ({PHONE_ID}).
+[2026-11-06 04:48:58 +0000] Status=4, isTerminal=NO, Elapsed=01:19.
+\tWaiting on System App
+
+[2026-11-06 04:49:01 +0000] Status=4294967295, isTerminal=YES, Elapsed=01:22.
+\tFinished
+"""
+
 
 def device(udid=PHONE_ID, state="Shutdown", available=True, kind="iPhone-Future"):
     return {"udid": udid, "isAvailable": available, "state": state,
@@ -100,12 +125,22 @@ class SimulatorBootTest(unittest.TestCase):
         ])
         return commands
 
+    def command_result(self, simctl, command, boot_output=BOOTSTATUS_FINISHED, fresh_inventory=None):
+        output = ""
+        if command == ["xcrun", "--find", "simctl"]:
+            output = str(simctl) + "\n"
+        elif command == ["xcrun", "simctl", "bootstatus", PHONE_ID, "-b"]:
+            output = boot_output
+        elif command == ["xcrun", "simctl", "list", "devices", "available", "--json"]:
+            output = json.dumps(fresh_inventory if fresh_inventory is not None else inventory(device(state="Booted")))
+        return subprocess.CompletedProcess(command, 0, stdout=output, stderr="")
+
     def test_boots_shutdown_device_waits_and_exports_only_validated_udid(self):
         with tempfile.TemporaryDirectory() as directory:
             env = Path(directory) / "environment"
             simctl, gui = self.toolchain(directory)
             with patch.object(self.helper.subprocess, "run") as run:
-                run.return_value.stdout = str(simctl) + "\n"
+                run.side_effect = lambda command, **kwargs: self.command_result(simctl, command)
                 self.helper.boot_and_export(device(), env)
             self.assertEqual([call.args[0] for call in run.call_args_list], self.expected_commands(simctl, gui))
             self.assertTrue(all(call.kwargs["check"] for call in run.call_args_list))
@@ -113,12 +148,115 @@ class SimulatorBootTest(unittest.TestCase):
             self.assertTrue(all(not call.kwargs.get("shell", False) for call in run.call_args_list))
             self.assertEqual(env.read_text(), f"STEADY_IOS_SIMULATOR_ID={PHONE_ID}\n")
 
+    def test_zero_exit_data_migration_failed_stops_before_gui_or_readiness_export(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = Path(directory) / "environment"
+            simctl, gui = self.toolchain(directory)
+
+            def fixture_run(command, **kwargs):
+                output = ""
+                if command == ["xcrun", "--find", "simctl"]:
+                    output = str(simctl) + "\n"
+                elif command == ["xcrun", "simctl", "bootstatus", PHONE_ID, "-b"]:
+                    output = BOOTSTATUS_MIGRATION_FAILED
+                return subprocess.CompletedProcess(command, 0, stdout=output, stderr="")
+
+            with patch.object(self.helper.subprocess, "run", side_effect=fixture_run) as run:
+                with self.assertRaises(ValueError):
+                    self.helper.boot_and_export(device(), env)
+            self.assertEqual([call.args[0] for call in run.call_args_list], self.expected_commands(simctl, gui)[:3])
+            self.assertFalse(env.exists(), "A failed native migration must never export readiness")
+            self.assertEqual((Path(directory) / "native-ios-bootstatus.log").read_text(), BOOTSTATUS_MIGRATION_FAILED)
+            self.assertEqual(run.call_args_list[2].kwargs["stderr"], subprocess.STDOUT)
+            self.assertEqual(run.call_args_list[2].kwargs["stdout"], subprocess.PIPE)
+
+    def test_zero_exit_finished_allows_gui_and_readiness_export(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = Path(directory) / "environment"
+            simctl, gui = self.toolchain(directory)
+
+            def fixture_run(command, **kwargs):
+                output = ""
+                if command == ["xcrun", "--find", "simctl"]:
+                    output = str(simctl) + "\n"
+                elif command == ["xcrun", "simctl", "bootstatus", PHONE_ID, "-b"]:
+                    output = BOOTSTATUS_FINISHED
+                return subprocess.CompletedProcess(command, 0, stdout=output, stderr="")
+
+            with patch.object(self.helper.subprocess, "run", side_effect=fixture_run) as run:
+                self.helper.boot_and_export(device(), env)
+            self.assertEqual([call.args[0] for call in run.call_args_list], self.expected_commands(simctl, gui))
+            self.assertEqual(env.read_text(), f"STEADY_IOS_SIMULATOR_ID={PHONE_ID}\n")
+            self.assertEqual((Path(directory) / "native-ios-bootstatus.log").read_text(), BOOTSTATUS_FINISHED)
+
+    def test_already_booted_response_requires_fresh_available_booted_matching_uuid(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = Path(directory) / "environment"
+            simctl, gui = self.toolchain(directory)
+            with patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs: self.command_result(
+                    simctl, command, boot_output="Device already booted, nothing to do.\n")) as run:
+                self.helper.boot_and_export(device(state="Booted"), env)
+            commands = [call.args[0] for call in run.call_args_list]
+            self.assertEqual(commands, self.expected_commands(simctl, gui, state="Booted")[:2] + [
+                ["xcrun", "simctl", "list", "devices", "available", "--json"],
+            ] + self.expected_commands(simctl, gui, state="Booted")[2:])
+            self.assertEqual(env.read_text(), f"STEADY_IOS_SIMULATOR_ID={PHONE_ID}\n")
+            self.assertEqual(json.loads((Path(directory) / "native-ios-ready-devices.json").read_text()), inventory(device(state="Booted")))
+
+    def test_already_booted_response_rejects_stale_missing_unavailable_or_other_uuid(self):
+        snapshots = (
+            inventory(device(state="Shutdown")),
+            inventory(device(state="Booted", available=False)),
+            inventory(device(BOOTED_ID, state="Booted")),
+            {"devices": {}},
+            {"devices": []},
+        )
+        for snapshot in snapshots:
+            with self.subTest(snapshot=snapshot), tempfile.TemporaryDirectory() as directory:
+                env = Path(directory) / "environment"
+                simctl, gui = self.toolchain(directory)
+                with patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs: self.command_result(
+                        simctl, command, boot_output="Device already booted, nothing to do.\n", fresh_inventory=snapshot)) as run:
+                    with self.assertRaises(ValueError):
+                        self.helper.boot_and_export(device(state="Booted"), env)
+                self.assertFalse(any(call.args[0][0] == "open" for call in run.call_args_list))
+                self.assertFalse(env.exists())
+
+    def test_unknown_or_incomplete_boot_output_never_exports_readiness(self):
+        for output in ("", "Unknown boot response\n", "Status=2, isTerminal=NO\nWaiting on Data Migration\n",
+                       "Status=7, isTerminal=YES\nUnknown terminal result\n", "Status=3, isTerminal=YES\n",
+                       "Status=4294967295, isTerminal=YES\nData Migration Failed\n"):
+            with self.subTest(output=output), tempfile.TemporaryDirectory() as directory:
+                env = Path(directory) / "environment"
+                simctl, gui = self.toolchain(directory)
+                with patch.object(self.helper.subprocess, "run", side_effect=lambda command, **kwargs: self.command_result(
+                        simctl, command, boot_output=output)) as run:
+                    with self.assertRaises(ValueError):
+                        self.helper.boot_and_export(device(), env)
+                self.assertFalse(any(call.args[0][0] == "open" for call in run.call_args_list))
+                self.assertFalse(env.exists())
+
+    def test_bootstatus_subprocess_failure_retains_partial_combined_output(self):
+        partial = "Status=2, isTerminal=NO\nWaiting on Data Migration\n"
+        for error in (subprocess.CalledProcessError(1, "fixture bootstatus", output=partial),
+                      subprocess.TimeoutExpired("fixture bootstatus", 600, output=partial.encode("utf-8"))):
+            with self.subTest(error=error), tempfile.TemporaryDirectory() as directory:
+                env = Path(directory) / "environment"
+                simctl, gui = self.toolchain(directory)
+                completed = [self.command_result(simctl, command) for command in self.expected_commands(simctl, gui)[:2]]
+                with patch.object(self.helper.subprocess, "run", side_effect=completed + [error]) as run:
+                    with self.assertRaises(type(error)):
+                        self.helper.boot_and_export(device(), env)
+                self.assertEqual((Path(directory) / "native-ios-bootstatus.log").read_text(), partial)
+                self.assertEqual(run.call_count, 3)
+                self.assertFalse(env.exists())
+
     def test_booted_device_still_waits_for_ready(self):
         with tempfile.TemporaryDirectory() as directory:
             env = Path(directory) / "environment"
             simctl, gui = self.toolchain(directory)
             with patch.object(self.helper.subprocess, "run") as run:
-                run.return_value.stdout = str(simctl) + "\n"
+                run.side_effect = lambda command, **kwargs: self.command_result(simctl, command)
                 self.helper.boot_and_export(device(state="Booted"), env)
             self.assertEqual([call.args[0] for call in run.call_args_list], self.expected_commands(simctl, gui, state="Booted"))
 
@@ -129,7 +267,7 @@ class SimulatorBootTest(unittest.TestCase):
             # Flutter prefers DeviceHub when both are present.
             self.toolchain(directory)
             with patch.object(self.helper.subprocess, "run") as run:
-                run.return_value.stdout = str(simctl) + "\n"
+                run.side_effect = lambda command, **kwargs: self.command_result(simctl, command)
                 self.helper.boot_and_export(device(), env)
             self.assertEqual([call.args[0] for call in run.call_args_list], self.expected_commands(simctl, gui))
 
@@ -138,7 +276,7 @@ class SimulatorBootTest(unittest.TestCase):
             env = Path(directory) / "environment"
             simctl = Path(directory) / "Selected Xcode.app/Contents/Developer/usr/bin/simctl"
             with patch.object(self.helper.subprocess, "run") as run:
-                run.return_value.stdout = str(simctl) + "\n"
+                run.side_effect = lambda command, **kwargs: self.command_result(simctl, command)
                 with self.assertRaisesRegex(ValueError, "Simulator|DeviceHub"):
                     self.helper.boot_and_export(device(), env)
             self.assertEqual([call.args[0] for call in run.call_args_list], [["xcrun", "--find", "simctl"]])
@@ -160,7 +298,7 @@ class SimulatorBootTest(unittest.TestCase):
             simctl, gui = self.toolchain(directory)
             selected = str(simctl.parents[2])
             with patch.dict(os.environ, {"DEVELOPER_DIR": selected}), patch.object(self.helper.subprocess, "run") as run:
-                run.return_value.stdout = str(simctl) + "\n"
+                run.side_effect = lambda command, **kwargs: self.command_result(simctl, command)
                 self.helper.boot_and_export(device(), Path(directory) / "environment")
                 self.assertEqual(os.environ["DEVELOPER_DIR"], selected)
             self.assertNotIn("env", run.call_args_list[0].kwargs)
@@ -172,8 +310,8 @@ class SimulatorBootTest(unittest.TestCase):
                 with self.subTest(command_index=command_index, error=error), tempfile.TemporaryDirectory() as directory:
                     env = Path(directory) / "environment"
                     simctl, gui = self.toolchain(directory)
-                    completed = subprocess.CompletedProcess(["fixture"], 0, stdout=str(simctl) + "\n")
-                    with patch.object(self.helper.subprocess, "run", side_effect=[completed] * command_index + [error]) as run:
+                    completed = [self.command_result(simctl, command) for command in self.expected_commands(simctl, gui)]
+                    with patch.object(self.helper.subprocess, "run", side_effect=completed[:command_index] + [error]) as run:
                         with self.assertRaises(type(error)):
                             self.helper.boot_and_export(device(), env)
                     self.assertEqual(run.call_count, command_index + 1)
@@ -192,7 +330,7 @@ class SimulatorBootTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             simctl, gui = self.toolchain(directory)
             with patch.object(self.helper.subprocess, "run") as run:
-                run.return_value.stdout = str(simctl) + "\n"
+                run.side_effect = lambda command, **kwargs: self.command_result(simctl, command)
                 self.helper.boot_and_export(device(), Path(directory) / "environment")
             commands = [call.args[0] for call in run.call_args_list]
             self.assertEqual(commands[-2:], self.expected_commands(simctl, gui)[-2:])
@@ -204,8 +342,8 @@ class SimulatorBootTest(unittest.TestCase):
                 with self.subTest(command_index=command_index, error=error), tempfile.TemporaryDirectory() as directory:
                     env = Path(directory) / "environment"
                     simctl, gui = self.toolchain(directory)
-                    completed = subprocess.CompletedProcess(["fixture"], 0, stdout=str(simctl) + "\n")
-                    with patch.object(self.helper.subprocess, "run", side_effect=[completed] * command_index + [error]) as run:
+                    completed = [self.command_result(simctl, command) for command in self.expected_commands(simctl, gui)]
+                    with patch.object(self.helper.subprocess, "run", side_effect=completed[:command_index] + [error]) as run:
                         with self.assertRaises(type(error)):
                             self.helper.boot_and_export(device(), env)
                     self.assertEqual(run.call_count, command_index + 1)

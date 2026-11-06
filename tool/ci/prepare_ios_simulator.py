@@ -71,12 +71,71 @@ def selected_simulator_app():
     raise ValueError("selected Xcode has no Simulator.app or DeviceHub.app")
 
 
-def boot_and_export(device, environment_file):
+def confirm_already_booted(udid, evidence_directory):
+    result = subprocess.run(["xcrun", "simctl", "list", "devices", "available", "--json"],
+                            capture_output=True, text=True, check=True, timeout=60)
+    (evidence_directory / "native-ios-ready-devices.json").write_text(result.stdout, encoding="utf-8")
+    inventory = json.loads(result.stdout)
+    if not isinstance(inventory, dict) or not isinstance(inventory.get("devices"), dict):
+        raise ValueError("fresh simctl inventory has no devices map")
+    matches = []
+    for runtime, devices in inventory["devices"].items():
+        if not runtime.startswith("com.apple.CoreSimulator.SimRuntime.iOS-"):
+            continue
+        if not isinstance(devices, list):
+            raise ValueError("fresh simctl runtime devices must be an array")
+        for device in devices:
+            if not isinstance(device, dict):
+                raise ValueError("fresh simctl device must be an object")
+            if device.get("udid") == udid:
+                validated_udid(device)
+                matches.append(device)
+    if (len(matches) != 1 or matches[0].get("isAvailable") is not True
+            or matches[0].get("state") != "Booted"):
+        raise ValueError("already-booted response was not confirmed by a fresh available Booted UUID")
+
+
+def wait_for_successful_boot(udid, evidence_directory):
+    output = ""
+    try:
+        result = subprocess.run(["xcrun", "simctl", "bootstatus", udid, "-b"],
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                text=True, check=True, timeout=600)
+        output = result.stdout or ""
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        output = error.output or ""
+        raise
+    finally:
+        # TimeoutExpired may carry bytes even with text=True. Preserve evidence
+        # before reporting either a subprocess error or a semantic boot failure.
+        if isinstance(output, bytes):
+            output = output.decode("utf-8", errors="replace")
+        (evidence_directory / "native-ios-bootstatus.log").write_text(output, encoding="utf-8")
+        print(output, end="" if output.endswith("\n") else "\n", flush=True)
+    statuses = re.findall(r"\bStatus=(\d+),\s*isTerminal=(YES|NO)\b", output)
+    # CoreSimulator's terminal status 3 means DataMigrationFailed; simctl can
+    # nevertheless exit zero. Finished is the distinct terminal value below.
+    # https://github.com/meta/idb/blob/main/PrivateHeaders/CoreSimulator/SimDeviceBootInfo.h
+    if any(status == "3" for status, _ in statuses) or "Data Migration Failed" in output:
+        raise ValueError("simulator data migration failed despite bootstatus process completion")
+    if statuses:
+        if statuses[-1] == ("4294967295", "YES") and re.search(r"^\s*Finished\s*$", output, re.MULTILINE):
+            return
+        raise ValueError("bootstatus did not report a successful terminal Finished state")
+    if output.strip() == "Device already booted, nothing to do.":
+        confirm_already_booted(udid, evidence_directory)
+        return
+    raise ValueError("bootstatus returned no recognized successful readiness response")
+
+
+def boot_and_export(device, environment_file, evidence_directory=None):
     udid = validated_udid(device)
+    evidence_directory = Path(evidence_directory) if evidence_directory is not None else Path(environment_file).parent
+    evidence_directory.mkdir(parents=True, exist_ok=True)
     simulator_app = selected_simulator_app()
     if device.get("state") != "Booted":
         subprocess.run(["xcrun", "simctl", "boot", udid], check=True, timeout=120)
-    subprocess.run(["xcrun", "simctl", "bootstatus", udid, "-b"], check=True, timeout=600)
+    wait_for_successful_boot(udid, evidence_directory)
     # Match Flutter IOSEmulator.launch: -n starts the GUI, then a second open
     # without -n brings it to the foreground. Keep the selected device explicit.
     # A headless CoreSimulator boot does not establish foreground UI readiness.
@@ -107,7 +166,7 @@ def main():
                                 capture_output=True, text=True, check=True, timeout=60)
         arguments.evidence_directory.mkdir(parents=True, exist_ok=True)
         (arguments.evidence_directory / "native-ios-devices.json").write_text(result.stdout, encoding="utf-8")
-        boot_and_export(select_device(json.loads(result.stdout)), environment_file)
+        boot_and_export(select_device(json.loads(result.stdout)), environment_file, arguments.evidence_directory)
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(f"Simulator preparation failed: {error}", file=sys.stderr)
         if isinstance(error, subprocess.CalledProcessError) and error.stderr:
