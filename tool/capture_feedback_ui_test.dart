@@ -256,10 +256,13 @@ void main() {
       await _capture(tester, file('history-records'));
       await _tapVisible(tester, find.text('Change'));
       expect(find.text('Change your rating'), findsOneWidget);
-      await tester.tap(find.byType(DropdownButtonFormField<ToolRating>));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Not this time').last);
-      await tester.pumpAndSettle();
+      await _tapVisible(
+        tester,
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.text('Not this time'),
+        ),
+      );
       await _capture(tester, file('dialog-change'));
       await _tapVisible(tester, find.text('Cancel'));
 

@@ -10,7 +10,7 @@ The working app version is **1.4.0+8**. **What helps you** adds optional persona
 
 This source writes **schema 4** and reads strictly validated **versions 1, 2, 3 and 4**. Schema 4 adds encrypted tool ratings/settings; older documents start with no ratings and both rating settings on. Apps that read only up to version 3 cannot read newly written version 4 vaults or exports. Keep a usable earlier backup under your control if you may return to an older app; a new export also uses version 4. There is no silent downgrade or plaintext fallback.
 
-Fresh whole-branch review, final local verification, exact-source seven-job CI, package checks and public release/hash/access verification are **pending for 1.4**. Historical counts and downloads below validate their named older release only. Synthetic feedback captures are planned for `docs/screenshots/what-helps/`; their existence or inspection will be recorded separately in [quality status](docs/quality-status.md).
+Local verification passed **354 Flutter tests, 88 CI-helper tests, analyzer checks and formatting for 98 Dart files**. Fresh whole-branch review found two issues; both have failing-before/passing-after regressions and the full green suite. All 28 synthetic feedback captures were inspected, including wrapping choices at 320px/200% text. Exact-source seven-job CI, native runtime/package checks and public release verification are still pending for 1.4. Historical downloads below validate their named older release only. See [quality status](docs/quality-status.md).
 
 ## Previous published previews
 

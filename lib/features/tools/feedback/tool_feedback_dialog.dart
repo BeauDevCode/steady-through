@@ -160,6 +160,19 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
     super.dispose();
   }
 
+  Widget _choice(String label, bool selected, VoidCallback choose) => Semantics(
+    selected: selected,
+    child: OutlinedButton.icon(
+      onPressed: _busy || _invalidated || !_activity.active || _vehicle
+          ? null
+          : choose,
+      icon: Icon(
+        selected ? Icons.radio_button_checked : Icons.radio_button_off,
+      ),
+      label: Text(label),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final title = switch (widget.action) {
@@ -183,41 +196,42 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.action == _Action.rate) ...[
-              if (widget.expected == null)
-                DropdownButtonFormField<SupportTool>(
-                  initialValue: _tool,
-                  isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Tool'),
-                  items: [
+              if (widget.expected == null) ...[
+                Text('Tool', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
                     for (final tool in SupportTool.values)
-                      DropdownMenuItem(
-                        value: tool,
-                        child: Text(toolName(tool)),
+                      _choice(
+                        toolName(tool),
+                        _tool == tool,
+                        () => setState(() => _tool = tool),
                       ),
                   ],
-                  onChanged: _busy
-                      ? null
-                      : (value) => setState(() => _tool = value!),
-                )
-              else
+                ),
+              ] else
                 Text(
                   '${toolName(_tool)} · ${feedbackDate(context, widget.expected!.createdAt)}',
                 ),
               const SizedBox(height: 20),
-              DropdownButtonFormField<ToolRating>(
-                initialValue: _rating,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Your answer'),
-                items: [
+              Text(
+                'Your answer',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
                   for (final rating in ToolRating.values)
-                    DropdownMenuItem(
-                      value: rating,
-                      child: Text(ratingName(rating)),
+                    _choice(
+                      ratingName(rating),
+                      _rating == rating,
+                      () => setState(() => _rating = rating),
                     ),
                 ],
-                onChanged: _busy
-                    ? null
-                    : (value) => setState(() => _rating = value!),
               ),
               const SizedBox(height: 16),
               const Text(

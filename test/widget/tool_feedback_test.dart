@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/app_repository.dart';
@@ -396,4 +397,125 @@ void main() {
     await tap(t, 'Rate this tool (optional)');
     expect(t.takeException(), isNull);
   });
+  for (final started in [false, true]) {
+    testWidgets(
+      'Help stays immediate and a ${started ? 'started' : 'queued'} prompt save settles on its original attempt',
+      (t) async {
+        await open(t, prompt());
+        await tap(t, 'Rate this tool (optional)');
+        repo.barrier = Completer<void>();
+        if (!started) controller.setTheme(ThemeChoice.dark);
+        await t.tap(find.text('Helpful'));
+        await t.pump();
+        await t.runAsync(() async => Future<void>.delayed(Duration.zero));
+        await t.pump();
+        unawaited(
+          Navigator.of(t.element(find.byType(ToolFeedbackPrompt))).push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  Scaffold(appBar: AppBar(title: const Text('Help page'))),
+            ),
+          ),
+        );
+        await t.pumpAndSettle();
+        expect(find.text('Help page'), findsOneWidget);
+        repo.barrier!.complete();
+        await t.pumpAndSettle();
+        await t.runAsync(() async => Future<void>.delayed(Duration.zero));
+        await t.pumpAndSettle();
+        await t.pageBack();
+        await t.pumpAndSettle();
+        expect(find.text('Saving rating…'), findsNothing);
+        if (started) {
+          expect(controller.data.toolFeedback.ratings, hasLength(1));
+          expect(find.text('Rating saved'), findsOneWidget);
+          await tap(t, 'Not this time');
+          expect(controller.data.toolFeedback.ratings, hasLength(1));
+        } else {
+          expect(controller.data.toolFeedback.ratings, isEmpty);
+          await tap(t, 'Helpful');
+          expect(controller.data.toolFeedback.ratings, hasLength(1));
+        }
+      },
+    );
+  }
+  testWidgets(
+    'large text dialog paints every selected label glyph inside its bounds',
+    (t) async {
+      t.view.physicalSize = const Size(320, 1100);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      await t.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(2)),
+            child: child!,
+          ),
+          home: ToolFeedbackHistory(controller: controller),
+        ),
+      );
+      await t.pumpAndSettle();
+      await tap(t, 'Add a rating');
+      Future<void> checkLabels(List<String> labels) async {
+        for (final label in labels) {
+          final target = find
+              .descendant(
+                of: find.byType(AlertDialog),
+                matching: find.text(label),
+              )
+              .first;
+          await t.ensureVisible(target);
+          await t.pumpAndSettle();
+          final paragraph = t.renderObject<RenderParagraph>(target);
+          final boxes = paragraph.getBoxesForSelection(
+            TextSelection(baseOffset: 0, extentOffset: label.length),
+          );
+          expect(boxes, isNotEmpty, reason: label);
+          for (final box in boxes) {
+            expect(
+              box.right,
+              lessThanOrEqualTo(paragraph.size.width + 1),
+              reason: label,
+            );
+            expect(
+              box.bottom,
+              lessThanOrEqualTo(paragraph.size.height + 1),
+              reason: label,
+            );
+          }
+        }
+      }
+
+      await checkLabels([
+        'Grounding',
+        'Breathing pace',
+        'Path game',
+        'Helpful',
+        'Not this time',
+      ]);
+      await tap(t, 'Path game');
+      await tap(t, 'Not this time');
+      await tap(t, 'Save rating');
+      final receipt = controller.data.toolFeedback.ratings.single;
+      expect(receipt.tool, SupportTool.pathGame);
+      expect(receipt.rating, ToolRating.notThisTime);
+      await t.scrollUntilVisible(
+        find.text('Change'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tap(t, 'Change');
+      await checkLabels(['Helpful', 'Not this time']);
+      await tap(t, 'Helpful');
+      await tap(t, 'Save rating');
+      expect(controller.data.toolFeedback.ratings.single.id, receipt.id);
+      expect(
+        controller.data.toolFeedback.ratings.single.rating,
+        ToolRating.helpful,
+      );
+      expect(t.takeException(), isNull);
+    },
+  );
 }

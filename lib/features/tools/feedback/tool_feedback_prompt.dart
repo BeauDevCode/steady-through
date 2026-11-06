@@ -81,12 +81,14 @@ class _ToolFeedbackPromptState extends State<ToolFeedbackPrompt> {
     if (mounted) setState(_reset);
   }
 
-  bool _valid(int generation, int epoch, int revision) =>
+  bool _sameAttempt(int generation, int epoch, int revision) =>
       mounted &&
       generation == _generation &&
       _activity.accepts(epoch) &&
       revision == widget.controller.replacementRevision &&
-      !_vehicle &&
+      !_vehicle;
+  bool _valid(int generation, int epoch, int revision) =>
+      _sameAttempt(generation, epoch, revision) &&
       (ModalRoute.of(context)?.isCurrent ?? true);
   Future<void> _save(ToolRating? rating) async {
     if (_busy || !_activity.active || _vehicle) return;
@@ -128,21 +130,31 @@ class _ToolFeedbackPromptState extends State<ToolFeedbackPrompt> {
           if (r.id == previous.id) saved = r;
         }
       }
-      if (guard()) {
+      // Help can cover this same attempt while an atomic save finishes. Keep
+      // its receipt here so returning cannot accidentally create a duplicate.
+      // A replacement route/board, background epoch or document still fails.
+      if (_sameAttempt(generation, epoch, revision)) {
         setState(() {
-          _receipt = saved;
+          _receipt =
+              widget.controller.data.toolFeedback.ratings.any(
+                (record) => identical(record, saved),
+              )
+              ? saved
+              : null;
           _expanded = true;
         });
       }
     } catch (_) {
-      if (guard()) {
+      if (_sameAttempt(generation, epoch, revision)) {
         setState(
           () => _error =
               'Could not save this change. Try again or leave this tool.',
         );
       }
     } finally {
-      if (guard()) setState(() => _busy = false);
+      if (_sameAttempt(generation, epoch, revision)) {
+        setState(() => _busy = false);
+      }
     }
   }
 
