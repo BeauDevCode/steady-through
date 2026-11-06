@@ -5,7 +5,7 @@ _Recovery and unsigned iPhone preview verification: November 6, 2026 (UTC)_
 ## Current 1.2.1 preview — verified evidence
 
 <!-- BEGIN 1.2.1 VERIFIED EVIDENCE -->
-Steady Through **1.2.1+6** is published as **[v1.2.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.1-preview.1)**. Its tag and all six app packages use exact tested source `0f62db5ee2ba0e0769273de5872b1214ea6bafc5`, under [CI run 42270965635](https://github.com/BeauDevCode/steady-through/actions/runs/42270965635). All seven jobs passed in this run without a job retry. Publication asset/tag and anonymous-access checks have completed; public-main integration verification is pending.
+Steady Through **1.2.1+6** is published as **[v1.2.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.1-preview.1)**. Its tag and all six app packages use exact tested source `0f62db5ee2ba0e0769273de5872b1214ea6bafc5`, under [CI run 42270965635](https://github.com/BeauDevCode/steady-through/actions/runs/42270965635). All seven jobs passed in this run without a job retry. The public tag, ten assets and anonymous downloads were verified. Public main at `bf3fbe795df8b2eb1321c5faf6b74264e254f2e7` was also checked; its delta from tested source affects documentation only. Further publication records keep the software/test/workflow source unchanged.
 
 | Area | Observed evidence and limits |
 | --- | --- |

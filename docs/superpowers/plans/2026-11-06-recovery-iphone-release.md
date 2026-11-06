@@ -57,7 +57,7 @@
 
 - [x] Update version/docs with current source and accurate pending gates. Root formatter/analyzer/full Flutter/helpers and scoped task review, then one whole-branch review; resolve material findings with evidence.
 - [x] Run all seven jobs at final intended source; inspect three actual native cases on each original target, Android12JUnit, new device parser/report/archive/platform metadata and all versions/hashes. Signing and physical execution remain separate.
-- [ ] Publish v1.2.1-preview.1 under existing authorization; verify publicmain/tag/tenasset serverhashes and anonymous access. Update evidence only after observation. Finish clean checkout and preserve physical/signing prerequisites concretely.
+- [x] Publish v1.2.1-preview.1 under existing authorization; verify publicmain/tag/tenasset serverhashes and anonymous access. Update evidence only after observation. Finish clean checkout and preserve physical/signing prerequisites concretely.
 
 ### Task 4: Recognize the observed Simulator boot banner before publication
 
@@ -69,4 +69,4 @@
 
 - [x] Add semantic regression using the observed two-line format with the existing test UUID, plus mismatched header/unknown prefix and invalid fresh state cases. Root confirms actual RED before the minimal parser fix.
 - [x] Implement only known-format recognition; preserve every existing failed-migration/unknown/timeout test and native test name/assertion. Root focused/full helpers and actual recorded-output replay; scoped review/commit.
-- [ ] Root rebuilds all seven CI jobs on the new exact final source; includes fresh already-booted UUID evidence in public report allowlist when used. Update pending counts/evidence only after observation, then complete Task3 publication gates.
+- [x] Root rebuilds all seven CI jobs on the new exact final source; includes fresh already-booted UUID evidence in public report allowlist when used. Update pending counts/evidence only after observation, then complete Task3 publication gates.
