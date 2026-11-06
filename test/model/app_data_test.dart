@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/learning/learning_data.dart';
 
 Map<String, dynamic> validDocument() => {
   'version': 1,
@@ -50,6 +51,36 @@ Map<String, dynamic> validDocument() => {
 };
 
 void main() {
+  test('version one migrates to an off-by-default learning document', () {
+    final data = AppData.fromJson(validDocument());
+    expect(data.learning.enabledSources, isEmpty);
+    expect(data.learning.examples, isEmpty);
+    expect(data.toJson()['version'], 2);
+    expect(data.toJson()['learning'], isA<Map<String, dynamic>>());
+  });
+
+  test('version two strictly requires and validates learning', () {
+    final json = validDocument()..['version'] = 2;
+    expect(() => AppData.fromJson(json), throwsFormatException);
+    json['learning'] = LearningData().toJson();
+    expect(AppData.fromJson(json).learning.examples, isEmpty);
+    (json['learning'] as Map)['deviceOwnerConfirmed'] = 'yes';
+    expect(() => AppData.fromJson(json), throwsFormatException);
+  });
+
+  test(
+    'learning survives unrelated data copies and rejects v1 learning injection',
+    () {
+      final learning = LearningData(enabledSources: {SignalSource.checkIns});
+      final data = AppData.empty()
+          .copyWith(learning: learning)
+          .copyWith(theme: ThemeChoice.dark);
+      expect(data.learning.enabledSources, {SignalSource.checkIns});
+      final legacy = validDocument()..['learning'] = learning.toJson();
+      expect(() => AppData.fromJson(legacy), throwsFormatException);
+    },
+  );
+
   test('reads an event, check-in, person, round, and preferences', () {
     final data = AppData.fromJson(validDocument());
 
@@ -68,14 +99,14 @@ void main() {
     final encoded = original.toJson();
     final decoded = AppData.fromJson(encoded);
 
-    expect(encoded['version'], 1);
+    expect(encoded['version'], 2);
     expect((encoded['events'] as List).single['title'], 'Starting a new job');
     expect(decoded.gameRounds.single.moves, 8);
     expect(decoded.checkIns.single.eventId, 'event-1');
   });
 
   test('rejects unsupported versions instead of guessing', () {
-    final document = validDocument()..['version'] = 2;
+    final document = validDocument()..['version'] = 3;
     expect(() => AppData.fromJson(document), throwsFormatException);
   });
 

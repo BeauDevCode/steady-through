@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:steady_through/app/app_controller.dart';
-import 'package:steady_through/app/steady_through_app.dart';
-import 'package:steady_through/data/file_app_repository.dart';
-import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/app/vault_gate.dart';
+import 'package:steady_through/data/vault_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,28 +11,7 @@ Future<void> main() async {
 Future<void> _launch() async {
   try {
     final directory = await getApplicationSupportDirectory();
-    final repository = FileAppRepository(directory);
-    try {
-      final data = await repository.load();
-      runApp(SteadyThroughApp(controller: AppController(repository, data)));
-    } on FormatException {
-      // Keep the unreadable document untouched until the person confirms a reset.
-      runApp(
-        MaterialApp(
-          title: 'Steady Through',
-          home: StartupRecoveryScreen(
-            onRetry: _launch,
-            onReset: () async {
-              final empty = AppData.empty();
-              await repository.save(empty);
-              runApp(
-                SteadyThroughApp(controller: AppController(repository, empty)),
-              );
-            },
-          ),
-        ),
-      );
-    }
+    runApp(VaultGate(store: VaultStore(directory)));
   } catch (_) {
     // Storage or OS access can fail independently of the saved document. A
     // retry leaves the document intact and avoids offering a destructive reset.

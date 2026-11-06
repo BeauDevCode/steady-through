@@ -1,3 +1,5 @@
+import '../learning/learning_data.dart';
+
 /// The versioned, offline data document used by Steady Through.
 ///
 /// JSON parsing rejects malformed values so an import can be validated in full
@@ -318,7 +320,9 @@ class AppData {
     List<GameRound> gameRounds = const [],
     this.theme = ThemeChoice.system,
     this.readingStyle = ReadingStyle.standard,
-  }) : events = List<SupportEvent>.unmodifiable(events),
+    LearningData? learning,
+  }) : learning = learning ?? LearningData(),
+       events = List<SupportEvent>.unmodifiable(events),
        people = List<TrustedPerson>.unmodifiable(people),
        checkIns = List<CheckIn>.unmodifiable(checkIns),
        gameRounds = List<GameRound>.unmodifiable(gameRounds) {
@@ -346,10 +350,15 @@ class AppData {
   final List<GameRound> gameRounds;
   final ThemeChoice theme;
   final ReadingStyle readingStyle;
+  final LearningData learning;
 
   factory AppData.empty() => AppData();
 
   factory AppData.fromJson(Map<String, dynamic> json) {
+    final version = json['version'];
+    if (version is! int || (version != 1 && version != 2)) {
+      throw const FormatException('Unsupported data version');
+    }
     _checkKeys(json, 'appData', {
       'version',
       'events',
@@ -359,11 +368,16 @@ class AppData {
       'gameRounds',
       'theme',
       'readingStyle',
+      if (version == 2) 'learning',
     });
-    if (json['version'] != 1 || json['version'] is! int) {
-      throw const FormatException('Unsupported data version');
+    final learningJson = json['learning'];
+    if (version == 2 && learningJson is! Map<String, dynamic>) {
+      throw const FormatException('learning must be an object');
     }
     return AppData(
+      learning: version == 1
+          ? LearningData()
+          : LearningData.fromJson(learningJson as Map<String, dynamic>),
       events: _objects(json['events'], 'events', SupportEvent.fromJson),
       activeEventId: _optionalString(json['activeEventId'], 'activeEventId'),
       people: _objects(json['people'], 'people', TrustedPerson.fromJson),
@@ -383,7 +397,8 @@ class AppData {
   }
 
   Map<String, dynamic> toJson() => {
-    'version': 1,
+    'version': 2,
+    'learning': learning.toJson(),
     'events': events.map((event) => event.toJson()).toList(),
     'activeEventId': activeEventId,
     'people': people.map((person) => person.toJson()).toList(),
@@ -402,7 +417,9 @@ class AppData {
     List<GameRound>? gameRounds,
     ThemeChoice? theme,
     ReadingStyle? readingStyle,
+    LearningData? learning,
   }) => AppData(
+    learning: learning ?? this.learning,
     events: events ?? this.events,
     activeEventId: clearActiveEventId
         ? null

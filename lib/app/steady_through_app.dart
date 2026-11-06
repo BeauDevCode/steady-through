@@ -10,6 +10,8 @@ import 'package:steady_through/features/tools/grounding_screen.dart';
 import 'package:steady_through/features/tools/tools_screen.dart';
 import 'package:steady_through/model/app_data.dart';
 import 'package:steady_through/ui/steady_theme.dart';
+import 'package:steady_through/features/insights/insights_screen.dart';
+import 'package:steady_through/learning/learning_session.dart';
 
 /// Callback seam for feature destinations that are implemented separately.
 typedef SteadyDestinationBuilder = Widget Function(
@@ -31,6 +33,9 @@ class SteadyThroughApp extends StatefulWidget {
     this.checkInsBuilder,
     this.moreBuilder,
     this.helpBuilder,
+    this.learningSession,
+    this.onLock,
+    this.storageWarning,
   });
 
   final AppController controller;
@@ -38,6 +43,9 @@ class SteadyThroughApp extends StatefulWidget {
   final SteadyDestinationBuilder? checkInsBuilder;
   final SteadyDestinationBuilder? moreBuilder;
   final SteadyHelpBuilder? helpBuilder;
+  final LearningSession? learningSession;
+  final Future<void> Function()? onLock;
+  final String? storageWarning;
 
   @override
   State<SteadyThroughApp> createState() => _SteadyThroughAppState();
@@ -102,7 +110,49 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
     ),
   ];
 
-  void _selectDestination(int index) => setState(() => _destination = index);
+  void _selectDestination(int index) {
+    if (_destination != index) widget.learningSession?.recordNavigation();
+    setState(() => _destination = index);
+  }
+
+  void _openInsights(BuildContext context) {
+    final learning = widget.learningSession;
+    if (learning == null) return;
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (routeContext) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Insights'),
+            actions: [
+              TextButton(
+                onPressed: () => _openHelp(routeContext),
+                child: const Text('Help now'),
+              ),
+            ],
+          ),
+          body: InsightsScreen(
+            session: learning,
+            onOpenHelp: () => _openHelp(routeContext),
+            onOpenPath: () {
+              Navigator.of(routeContext).pop();
+              _selectDestination(1);
+            },
+            onGrounding: () => Navigator.of(routeContext).push<void>(
+              MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  body: GroundingScreen(
+                    controller: widget.controller,
+                    onOpenHelp: () => _openHelp(routeContext),
+                    backLabel: 'Back to Insights',
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _openCreateEvent(BuildContext context) async {
     final saved = await Navigator.of(context).push<bool>(
@@ -176,6 +226,9 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
           onOpenPath: () => _selectDestination(1),
           onOpenGrounding: () => _openGrounding(context),
           onOpenCheckIns: () => _selectDestination(3),
+          onOpenInsights: widget.learningSession == null
+              ? null
+              : () => _openInsights(context),
         );
       case 1:
         return JourneyScreen(
@@ -205,7 +258,13 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
             CheckInsScreen(controller: widget.controller);
       default:
         return widget.moreBuilder?.call(context, widget.controller, openHelp) ??
-            MoreScreen(controller: widget.controller);
+            MoreScreen(
+              controller: widget.controller,
+              onOpenInsights: widget.learningSession == null
+                  ? null
+                  : () => _openInsights(context),
+              onLock: widget.onLock,
+            );
     }
   }
 
@@ -242,86 +301,104 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
                 const SizedBox(width: 16),
               ],
             ),
-      body: wide
-          ? Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: _destination,
-                  extended: expanded,
-                  labelType: expanded
-                      ? NavigationRailLabelType.none
-                      : NavigationRailLabelType.all,
-                  minWidth: 88,
-                  minExtendedWidth: 220,
-                  groupAlignment: -1,
-                  leading: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      expanded ? 20 : 8,
-                      24,
-                      expanded ? 20 : 8,
-                      30,
-                    ),
-                    child: expanded
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: colors.primaryContainer,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Icon(
-                                  Icons.route_rounded,
-                                  color: colors.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Steady\nThrough',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(height: 1.2),
-                              ),
-                            ],
-                          )
-                        : Icon(
-                            Icons.route_rounded,
-                            color: colors.primary,
-                            size: 30,
-                          ),
-                  ),
-                  destinations: _railDestinations,
-                  onDestinationSelected: _selectDestination,
-                ),
-                VerticalDivider(width: 1, color: colors.outlineVariant),
-                Expanded(
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 76,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 24),
-                            child: TextButton.icon(
-                              onPressed: () => _openHelp(context),
-                              icon: const Icon(
-                                Icons.support_agent_rounded,
-                                size: 20,
-                              ),
-                              label: const Text('Help now'),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(child: body),
-                    ],
-                  ),
+      body: Column(
+        children: [
+          if (widget.storageWarning != null)
+            MaterialBanner(
+              content: Text(widget.storageWarning!),
+              actions: [
+                TextButton(
+                  onPressed: widget.onLock,
+                  child: const Text('Lock vault'),
                 ),
               ],
-            )
-          : body,
+            ),
+          Expanded(
+            child: wide
+                ? Row(
+                    children: [
+                      NavigationRail(
+                        selectedIndex: _destination,
+                        extended: expanded,
+                        labelType: expanded
+                            ? NavigationRailLabelType.none
+                            : NavigationRailLabelType.all,
+                        minWidth: 88,
+                        minExtendedWidth: 220,
+                        groupAlignment: -1,
+                        leading: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            expanded ? 20 : 8,
+                            24,
+                            expanded ? 20 : 8,
+                            30,
+                          ),
+                          child: expanded
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: colors.primaryContainer,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Icon(
+                                        Icons.route_rounded,
+                                        color: colors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'Steady\nThrough',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(height: 1.2),
+                                    ),
+                                  ],
+                                )
+                              : Icon(
+                                  Icons.route_rounded,
+                                  color: colors.primary,
+                                  size: 30,
+                                ),
+                        ),
+                        destinations: _railDestinations,
+                        onDestinationSelected: _selectDestination,
+                      ),
+                      VerticalDivider(width: 1, color: colors.outlineVariant),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: 76,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 24),
+                                  child: TextButton.icon(
+                                    onPressed: () => _openHelp(context),
+                                    icon: const Icon(
+                                      Icons.support_agent_rounded,
+                                      size: 20,
+                                    ),
+                                    label: const Text('Help now'),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Expanded(child: body),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : body,
+          ),
+        ],
+      ),
       bottomNavigationBar: wide
           ? null
           : NavigationBar(
@@ -350,6 +427,10 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
           ThemeChoice.light => ThemeMode.light,
           ThemeChoice.dark => ThemeMode.dark,
         },
+        builder: (context, child) => Listener(
+          onPointerDown: (_) => widget.learningSession?.recordTap(),
+          child: child,
+        ),
         home: Builder(builder: _scaffold),
       );
     },

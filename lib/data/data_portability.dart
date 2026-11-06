@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:steady_through/app/app_controller.dart';
+import 'package:steady_through/data/vault_codec.dart';
 import 'package:steady_through/model/app_data.dart';
 
 /// The small native-file boundary. The selected file is read before any data
@@ -23,13 +24,25 @@ class FilePickerDataPortabilityGateway implements DataPortabilityGateway {
   @override
   Future<Uint8List?> pickJsonBytes() async {
     final file = await FilePicker.pickFile(
-      dialogTitle: 'Choose a Steady Through JSON file',
+      dialogTitle: 'Choose a Steady Through data file',
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      allowedExtensions: ['steady', 'json'],
     );
     if (file == null) return null;
     try {
-      return await file.readAsBytes();
+      final reportedLength = file.lengthSync();
+      if (reportedLength != null &&
+          reportedLength > VaultCodec.maxEnvelopeBytes) {
+        throw const FormatException('The selected document is too large.');
+      }
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in file.readAsByteStream()) {
+        if (builder.length + chunk.length > VaultCodec.maxEnvelopeBytes) {
+          throw const FormatException('The selected document is too large.');
+        }
+        builder.add(chunk);
+      }
+      return builder.takeBytes();
     } finally {
       // On iOS the picker gives us an app-owned copy. Clear that temporary
       // copy only after it has been read. Other platforms may make this a no-op.
@@ -77,31 +90,41 @@ class DataPortability {
   /// or read error is surfaced so the UI can explain that nothing was changed.
   Future<bool> importData({
     required Future<bool> Function(AppData replacement) confirm,
+    Future<String?> Function()? requestPassphrase,
   }) async {
     final bytes = await _gateway.pickJsonBytes();
     if (bytes == null) return false;
 
+    if (bytes.length > VaultCodec.maxEnvelopeBytes) {
+      throw const FormatException('The selected document is too large.');
+    }
     final decoded = jsonDecode(utf8.decode(bytes));
     if (decoded is! Map<String, dynamic>) {
       throw const FormatException('The selected file is not a data document.');
     }
-    final replacement = AppData.fromJson(decoded);
+    final AppData replacement;
+    if (decoded['format'] == 'steady-through-vault') {
+      // Bound metadata before requesting a password or starting its KDF.
+      VaultCodec.parseEnvelope(bytes);
+      final passphrase = await requestPassphrase?.call();
+      if (passphrase == null) return false;
+      replacement = await VaultCodec.decryptDocument(bytes, passphrase);
+    } else {
+      replacement = AppData.fromJson(decoded);
+    }
     if (!await confirm(replacement)) return false;
 
     await controller.replaceData(replacement);
     return true;
   }
 
-  Future<Uri?> exportData() {
-    final bytes = Uint8List.fromList(
-      utf8.encode(
-        const JsonEncoder.withIndent('  ').convert(controller.data.toJson()),
-      ),
-    );
+  Future<Uri?> exportData({required String passphrase}) async {
+    await controller.pruneLearning();
+    final bytes = await VaultCodec.encryptDocument(controller.data, passphrase);
     return _gateway.saveJsonFile(
-      fileName: 'steady-through-data.json',
+      fileName: 'steady-through-data.steady',
       bytes: bytes,
-      mimeType: 'application/json',
+      mimeType: 'application/octet-stream',
     );
   }
 }

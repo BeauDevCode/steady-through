@@ -2,7 +2,7 @@
 
 <img src="assets/brand/steady-through-icon.png" alt="Steady Through path and sun icon" width="96" />
 
-Steady Through is an offline-first Flutter app for getting through a difficult life event one manageable action at a time. It runs from one codebase on Android, iOS, macOS, Windows, and Linux. There is no account or app-operated server.
+Steady Through is a free, offline-first Flutter app for getting through a difficult life event one manageable action at a time. One codebase targets Android, iOS, macOS, Windows, and Linux. There is no account, subscription, app-operated server, or cloud emotion service.
 
 The app is for personal organization and general self-help. It does not diagnose, measure stress, provide treatment, or replace emergency or professional support. In immediate physical danger, contact local emergency services. In the United States, call or text **988** for crisis support; elsewhere, use your local crisis service. See [Help from NIMH](https://www.nimh.nih.gov/health/publications/my-mental-health-do-i-need-help) and the [988 Lifeline](https://988lifeline.org/get-help/).
 
@@ -13,19 +13,52 @@ The app is for personal organization and general self-help. It does not diagnose
 - Play an optional, untimed path game with Undo and Restart. The app can describe moves such as backtracks and offer a break. After a round, **you** choose whether it felt calm, tense, or neither. Moves alone are not a validated stress measure, diagnosis, or score. Only round summaries and your answer are kept, not a raw tap trace.
 - Write event-specific check-ins in your own words, with an optional 1–5 intensity and note. Save trusted people and manually entered phone numbers; open the phone/SMS handler after a tap, or copy a number if no handler is available.
 - Choose light or dark appearance and a Simple words reading style. No birth date is required. A trusted adult or helper can read along.
-- Export a JSON copy, import a validated JSON file with confirmation before it replaces all app data, clear game history, or delete all local app data with confirmation.
+- Keep records and settings in a passphrase-protected encrypted local vault. Lock it when you choose; a privacy cover hides the app when it is inactive, and returning after five minutes away requires an unlock.
+- Choose optional Insights sources: your feeling labels, aggregate activity inside this app, and supported device usage or motion summaries. Every source starts off. Planning, tools, people and help remain available with every source off or every OS permission declined.
+- Export an encrypted `.steady` copy with its own passphrase. Import an encrypted copy or validated legacy JSON with confirmation before it replaces all app data. Clear learning or game history independently, or delete all local app data with confirmation.
 
 Event check-ins are deleted with their event. Game history belongs to the person and remains until cleared separately or removed by Delete all. [Privacy and data details](PRIVACY.md) explain local storage, exports, backups, and deletion.
 
+## Private learning
+
+Insights compares aggregate observations with feelings you explicitly choose: Calm, Tense, Low, Energized or Unsure. A click, app activation or movement flag does not establish how you feel. With manual check-ins alone, Insights can describe your self-reported trend. A personal pattern comparison needs at least 20 examples across seven observation days, at least five examples of each of two concrete feelings, and at least two comparable aggregate features. Unsure is saved as your answer but does not count as a concrete training class. Sparse, conflicting or missing evidence produces an insufficient-evidence or uncertain result; any match remains tentative, and you can add a correction.
+
+After about 60 days, a local review can train a candidate on earlier examples and evaluate it on later held-out examples and a simple majority-label baseline. An update is adopted only when coverage and improvement checks pass, including improvement over an existing calibrated model. Time alone does not guarantee an update or establish real-world accuracy. Learning keeps at most 180 days or 1,000 labelled examples, whichever limit is reached first. Clear learning resets its examples, calibration and source choices without deleting events or other non-learning records.
+
+Source access runs only during an unlocked, active app session. System sources require device-owner confirmation and a separate native grant where the platform requires one. No app names, window titles, typed content, screenshots, raw tap traces, GPS locations or routes are returned to the learning model or saved by these sources.
+
+| Platform | Manual and in-app sources | Implemented system sources and limits |
+| --- | --- | --- |
+| macOS | Available without device permissions | NSWorkspace activation counts only while Steady Through is in the foreground, plus screen-awake collector-session duration within the last 60 minutes. It does not observe switching among other apps; the activation count may stay zero. Session duration does not measure attention. Motion is unavailable. |
+| Android | Available without device permissions | Permission-gated UsageStats events aggregated over the last 60 minutes; incomplete event history can undercount. Optional uncertain vehicle/walking context uses Google Play services Activity Recognition while the session runs and needs a separate motion grant. |
+| iOS | Available without device permissions | Optional Core Motion summaries, where the device supports them. History may be delayed or incomplete. Cross-app usage is unavailable in this preview: no Family Controls entitlement or Screen Time extensions are configured. |
+| Windows and Linux | Available without device permissions | System usage and motion adapters are not implemented. Missing readings stay unavailable. |
+
+Vehicle context is uncertain and cannot identify a driver or distinguish a passenger. When current motion indicates possible vehicle movement, Insights suppresses interactive reflection prompts and asks you to return when safely stopped. Help remains reachable. There are no driving-time notifications, route maps, driving scores or emotion diagnoses.
+
+The platform design follows [Android UsageStatsManager](https://developer.android.com/reference/android/app/usage/UsageStatsManager), [Google ActivityRecognitionClient](https://developers.google.com/android/reference/com/google/android/gms/location/ActivityRecognitionClient), [Apple NSWorkspace](https://developer.apple.com/documentation/appkit/nsworkspace), [Core Motion](https://developer.apple.com/documentation/coremotion/cmmotionactivitymanager), and [Family Controls entitlement requirements](https://developer.apple.com/documentation/familycontrols/requesting-the-family-controls-entitlement). Implemented availability is separate from device verification; see the [current quality status](docs/quality-status.md).
+
+## The local vault
+
+On first use, create a passphrase of at least 12 characters. All app records, settings, learning examples and labels are encrypted with AES-256-GCM. PBKDF2-HMAC-SHA256 derives the key with 600,000 iterations and a random salt; every save uses a fresh nonce. Exports are independently encrypted `.steady` files with the passphrase you choose for that copy. The passphrase is not saved, and there is no recovery service. If you forget its passphrase, that vault or export cannot be unlocked; recovery requires another copy whose passphrase you still know.
+
+An older local JSON document is migrated only after the encrypted vault is written, authenticated and read back. The app then removes its known legacy primary, backup and temporary files. If removal fails, it displays a cleanup warning and retries on unlock; older plaintext copies may remain until cleanup succeeds. System usage and motion sources are switched off on import and require fresh device-owner confirmation before re-enabling them on this device. Historical learning examples and calibration are preserved. Legacy JSON selected for import remains where you selected it. A wrong passphrase or damaged vault does not silently create a new empty vault.
+
+Encryption protects saved files, not an already compromised unlocked device. An unlocked session necessarily holds readable records and a derived key in memory. Locking closes the key object and removes the app's reference; the app does not promise to erase every copy held by the runtime or operating system. Device backups and exported copies are outside the app's deletion controls. Read [PRIVACY.md](PRIVACY.md) before storing sensitive information or sharing an export.
+
 ## App preview
 
-The redesigned interface uses bundled typography and original route artwork. These captures use synthetic sample entries.
+The redesigned interface uses bundled typography and original route artwork. These captures use synthetic sample entries. The vault and Insights screens below show the new private-learning flow; the Home and game captures show the existing support tools.
 
 ![Desktop Home with current event, next step, and support actions](docs/screenshots/home-desktop.png)
 
 <img src="docs/screenshots/home-mobile.png" alt="Mobile Home" width="240" /> <img src="docs/screenshots/game-mobile.png" alt="Mobile path game" width="240" /> <img src="docs/screenshots/checkins-mobile.png" alt="Mobile check-ins" width="240" />
 
-Regenerate visual review captures with `flutter test --update-goldens tool/capture_ui_test.dart`. The normal test suite checks navigation, persistence, errors, and layouts with long entries at 320 and 1200 pixels with 200% text.
+<img src="docs/screenshots/private-vault-mobile.png" alt="Create a private encrypted vault" width="240" /> <img src="docs/screenshots/private-insights-mobile.png" alt="Optional personal Insights with fictional sample data" width="240" /> <img src="docs/screenshots/private-sources-mobile.png" alt="Individual learning source controls" width="240" />
+
+![Insights in dark appearance with fictional sample data](docs/screenshots/private-insights-dark.png)
+
+Regenerate visual review captures with `flutter test --update-goldens tool/capture_ui_test.dart` and `flutter test --update-goldens tool/capture_learning_ui_test.dart`. The normal test suite checks navigation, persistence, errors, and layouts with long entries at 320 and 1200 pixels with 200% text.
 
 ## Set up locally
 
@@ -52,7 +85,7 @@ Run these commands from the repository root after `flutter pub get`, on a host w
 | Windows | `flutter build windows --release` | Bundle in `build/windows/x64/runner/Release/`; keep the executable, DLLs, and data together. |
 | Linux | `flutter build linux --release` | Bundle in `build/linux/x64/release/bundle/`; keep the executable and data together. |
 
-GitHub Actions runs analysis and tests on Ubuntu, then builds the Android APK on Ubuntu, the iOS simulator and macOS apps on macOS, the Windows app on Windows, and the Linux app on Ubuntu. It uploads clearly labeled CI artifacts. A successful build is a compilation check, not a device usability test, medical validation, store approval, or signed release. App Store/TestFlight distribution needs an Apple developer setup and signing; Play distribution needs a release signing key and a store-ready bundle. Review Flutter's [Android release](https://docs.flutter.dev/deployment/android) and [iOS release](https://docs.flutter.dev/deployment/ios) guides before distribution.
+The GitHub Actions workflow is configured to run analysis and tests on Ubuntu, then build the Android APK on Ubuntu, the iOS simulator and macOS apps on macOS, the Windows app on Windows, and the Linux app on Ubuntu. It uploads clearly labelled CI artifacts. Check the current run and [quality status](docs/quality-status.md) for this revision; previous successful builds do not validate newly added native sources. A successful build is a compilation check, not a device usability test, medical validation, store approval, or signed release. App Store/TestFlight distribution needs an Apple developer setup and signing; Play distribution needs a release signing key and a store-ready bundle. Review Flutter's [Android release](https://docs.flutter.dev/deployment/android) and [iOS release](https://docs.flutter.dev/deployment/ios) guides before distribution.
 
 ## Source basis and limits
 

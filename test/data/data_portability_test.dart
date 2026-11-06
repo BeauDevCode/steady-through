@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/data/data_portability.dart';
+import 'package:steady_through/data/vault_codec.dart';
 import 'package:steady_through/model/app_data.dart';
 
 class _MemoryRepository implements AppRepository {
@@ -65,6 +66,47 @@ class _NativeSaveProbe extends FilePickerPlatform {
     calls.add('clear');
     throw UnsupportedError('Cleanup is unavailable on this platform');
   }
+}
+
+final class _LargePickedFile extends PlatformFile {
+  @override
+  String get name => 'oversized.steady';
+  @override
+  Uri get uri => Uri.file('/picked/oversized.steady');
+  @override
+  Never get xFile => throw UnsupportedError('This file is a stream');
+  @override
+  int? lengthSync() => null;
+  @override
+  Future<int?> length() async => null;
+  @override
+  Future<Uint8List> readAsBytes() async => Uint8List(12 * 1024 * 1024 + 1);
+  @override
+  Stream<Uint8List> readAsByteStream() async* {
+    yield Uint8List(12 * 1024 * 1024);
+    yield Uint8List(1);
+    throw StateError('The oversized stream should have been cancelled.');
+  }
+}
+
+class _NativePickProbe extends FilePickerPlatform {
+  @override
+  Future<PlatformFile?> pickFile({
+    String? dialogTitle,
+    String? initialDirectory,
+    FileType type = FileType.any,
+    List<String>? allowedExtensions,
+    Function(FilePickerStatus)? onFileLoading,
+    int compressionQuality = 0,
+    AndroidOptions androidOptions = const AndroidOptions(),
+    DarwinOptions darwinOptions = const DarwinOptions(),
+    WindowsOptions windowsOptions = const WindowsOptions(),
+    LinuxOptions linuxOptions = const LinuxOptions(),
+    WebOptions webOptions = const WebOptions(),
+  }) async => _LargePickedFile();
+
+  @override
+  Future<void> clearTemporaryFiles() async {}
 }
 
 Uint8List _jsonFile(Object json) =>
@@ -201,23 +243,93 @@ void main() {
   });
 
   test(
-    'export sends a complete versioned JSON document to chosen file',
+    'export sends complete encrypted records to the chosen steady file',
     () async {
       await controller.createEvent('Important event', '');
       await controller.addPerson('Alex', '555-0100');
 
-      final location = await portability.exportData();
+      final location = await portability.exportData(
+        passphrase: 'a separate export passphrase',
+      );
 
       expect(location, Uri.file('/chosen/steady-through-data.json'));
-      expect(gateway.savedName, 'steady-through-data.json');
-      expect(gateway.savedMimeType, 'application/json');
-      final exported = AppData.fromJson(
-        jsonDecode(utf8.decode(gateway.savedBytes!)) as Map<String, dynamic>,
+      expect(gateway.savedName, 'steady-through-data.steady');
+      expect(gateway.savedMimeType, 'application/octet-stream');
+      expect(
+        utf8.decode(gateway.savedBytes!),
+        isNot(contains('Important event')),
+      );
+      final exported = await VaultCodec.decryptDocument(
+        gateway.savedBytes!,
+        'a separate export passphrase',
       );
       expect(exported.events.single.title, 'Important event');
       expect(exported.people.single.phone, '555-0100');
     },
   );
+
+  test(
+    'encrypted import decrypts before asking to replace local records',
+    () async {
+      gateway.picked = await VaultCodec.encryptDocument(
+        AppData(
+          people: [TrustedPerson(id: 'p1', name: 'Private Alex')],
+        ),
+        'a separate export passphrase',
+      );
+      expect(
+        await portability.importData(
+          requestPassphrase: () async => 'a separate export passphrase',
+          confirm: (replacement) async {
+            expect(replacement.people.single.name, 'Private Alex');
+            return true;
+          },
+        ),
+        isTrue,
+      );
+      expect(controller.data.people.single.name, 'Private Alex');
+    },
+  );
+
+  test(
+    'wrong import passphrase preserves current data without confirmation',
+    () async {
+      await controller.createEvent('Keep this', '');
+      gateway.picked = await VaultCodec.encryptDocument(
+        AppData.empty(),
+        'a separate export passphrase',
+      );
+      var confirmations = 0;
+      await expectLater(
+        portability.importData(
+          requestPassphrase: () async => 'another long passphrase',
+          confirm: (_) async {
+            confirmations++;
+            return true;
+          },
+        ),
+        throwsA(isA<VaultUnlockException>()),
+      );
+      expect(confirmations, 0);
+      expect(controller.activeEvent?.title, 'Keep this');
+    },
+  );
+
+  test('cancelled encrypted import passphrase leaves records intact', () async {
+    await controller.createEvent('Keep this', '');
+    gateway.picked = await VaultCodec.encryptDocument(
+      AppData.empty(),
+      'a separate export passphrase',
+    );
+    expect(
+      await portability.importData(
+        requestPassphrase: () async => null,
+        confirm: (_) async => throw StateError('Must not confirm'),
+      ),
+      isFalse,
+    );
+    expect(controller.activeEvent?.title, 'Keep this');
+  });
 
   test('native export clears temporary data after a cancelled save', () async {
     final previous = FilePickerPlatform.instance;
@@ -234,4 +346,17 @@ void main() {
     expect(result, isNull);
     expect(probe.calls, ['save', 'clear']);
   });
+
+  test(
+    'native import stops an oversized stream before reading the whole file',
+    () async {
+      final previous = FilePickerPlatform.instance;
+      FilePickerPlatform.instance = _NativePickProbe();
+      addTearDown(() => FilePickerPlatform.instance = previous);
+      await expectLater(
+        const FilePickerDataPortabilityGateway().pickJsonBytes(),
+        throwsFormatException,
+      );
+    },
+  );
 }

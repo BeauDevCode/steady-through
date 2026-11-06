@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,21 +34,43 @@ class _NoPhoneHandler implements PhoneActions {
   Future<bool> openSms(String number) async => false;
 }
 
-class _Gateway implements DataPortabilityGateway {
-  Uint8List? selected;
-  Uint8List? exported;
+// Keep these UI tests at the portability boundary. Real encrypted-file and
+// passphrase authentication behavior is exercised by test/data.
+class _FakePortability extends DataPortability {
+  _FakePortability(super.controller);
+
+  AppData replacement = AppData(
+    people: [TrustedPerson(id: 'p1', name: 'Alex')],
+  );
+  final exportedPassphrases = <String>[];
+  final importPassphrases = <String>[];
+  bool encryptedImport = true;
+  bool failExport = false;
+  bool failImport = false;
 
   @override
-  Future<Uint8List?> pickJsonBytes() async => selected;
+  Future<Uri?> exportData({required String passphrase}) async {
+    if (failExport) throw StateError('private implementation detail');
+    exportedPassphrases.add(passphrase);
+    return Uri.file('/chosen/steady-through-data.steady');
+  }
 
   @override
-  Future<Uri?> saveJsonFile({
-    required String fileName,
-    required Uint8List bytes,
-    required String mimeType,
+  Future<bool> importData({
+    required Future<bool> Function(AppData replacement) confirm,
+    Future<String?> Function()? requestPassphrase,
   }) async {
-    exported = bytes;
-    return Uri.file('/chosen/$fileName');
+    if (encryptedImport) {
+      final passphrase = await requestPassphrase?.call();
+      if (passphrase == null) return false;
+      importPassphrases.add(passphrase);
+      if (failImport) {
+        throw const FormatException('private authentication detail');
+      }
+    }
+    if (!await confirm(replacement)) return false;
+    await controller.replaceData(replacement);
+    return true;
   }
 }
 
@@ -364,49 +384,236 @@ void main() {
   );
 
   testWidgets(
-    'settings import requires confirmation and export includes saved data',
+    'encrypted import asks for a passphrase before replacement confirmation',
     (tester) async {
       await tester.runAsync(() => controller.createEvent('Keep this', ''));
-      final gateway = _Gateway();
-      gateway.selected = Uint8List.fromList(
-        utf8.encode(
-          jsonEncode(
-            AppData(
-              people: [TrustedPerson(id: 'p1', name: 'Alex')],
-            ).toJson(),
-          ),
-        ),
-      );
+      final portability = _FakePortability(controller);
       await showScreen(
         tester,
-        SettingsScreen(
-          controller: controller,
-          portability: DataPortability(controller, gateway: gateway),
-        ),
+        SettingsScreen(controller: controller, portability: portability),
       );
 
       await showSettingsControl(tester, 'Import data');
       await tester.tap(find.text('Import data'));
       await tester.pumpAndSettle();
+      expect(find.text('Replace all local data?'), findsNothing);
       expect(controller.activeEvent?.title, 'Keep this');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'my backup passphrase',
+      );
+      await tester.tap(find.text('Unlock backup'));
+      await tester.pumpAndSettle();
+      expect(find.text('Replace all local data?'), findsOneWidget);
       await tester.tap(find.text('Keep current data'));
       await tester.pumpAndSettle();
       expect(controller.activeEvent?.title, 'Keep this');
 
       await tester.tap(find.text('Import data'));
       await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'my backup passphrase',
+      );
+      await tester.tap(find.text('Unlock backup'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Replace all data'));
       await settleAsyncWork(tester);
       expect(controller.data.events, isEmpty);
       expect(controller.data.people.single.name, 'Alex');
+      expect(find.text('Data imported.'), findsOneWidget);
+    },
+  );
 
+  testWidgets(
+    'export requires a long matching hidden passphrase and cancel saves nothing',
+    (tester) async {
+      final portability = _FakePortability(controller);
+      await showScreen(
+        tester,
+        SettingsScreen(controller: controller, portability: portability),
+      );
       await showSettingsControl(tester, 'Export data');
       await tester.tap(find.text('Export data'));
       await tester.pumpAndSettle();
-      final exported = AppData.fromJson(
-        jsonDecode(utf8.decode(gateway.exported!)) as Map<String, dynamic>,
+      expect(find.textContaining('cannot recover'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.widgetWithText(TextFormField, 'Passphrase'),
+                matching: find.byType(TextField),
+              ),
+            )
+            .obscureText,
+        isTrue,
       );
-      expect(exported.people.single.name, 'Alex');
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.widgetWithText(TextFormField, 'Confirm passphrase'),
+                matching: find.byType(TextField),
+              ),
+            )
+            .obscureText,
+        isTrue,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'short',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        'short',
+      );
+      await tester.tap(find.text('Create encrypted backup'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('at least 12'), findsOneWidget);
+      expect(portability.exportedPassphrases, isEmpty);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'a much longer passphrase',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        'does not match',
+      );
+      await tester.tap(find.text('Create encrypted backup'));
+      await tester.pumpAndSettle();
+      expect(find.text('The passphrases do not match.'), findsOneWidget);
+      expect(portability.exportedPassphrases, isEmpty);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(portability.exportedPassphrases, isEmpty);
+
+      await tester.tap(find.text('Export data'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'a much longer passphrase',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        'a much longer passphrase',
+      );
+      await tester.tap(find.text('Create encrypted backup'));
+      await tester.pumpAndSettle();
+      expect(portability.exportedPassphrases, ['a much longer passphrase']);
+      expect(
+        find.text('Encrypted backup saved to the chosen file.'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'cancelled and failed encrypted imports preserve current data with generic errors',
+    (tester) async {
+      await tester.runAsync(() => controller.createEvent('Keep this', ''));
+      final portability = _FakePortability(controller);
+      await showScreen(
+        tester,
+        SettingsScreen(controller: controller, portability: portability),
+      );
+      await showSettingsControl(tester, 'Import data');
+      await tester.tap(find.text('Import data'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(portability.importPassphrases, isEmpty);
+      expect(controller.activeEvent?.title, 'Keep this');
+      expect(find.text('Replace all local data?'), findsNothing);
+
+      portability.failImport = true;
+      await tester.tap(find.text('Import data'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'wrong passphrase',
+      );
+      await tester.tap(find.text('Unlock backup'));
+      await tester.pumpAndSettle();
+      expect(controller.activeEvent?.title, 'Keep this');
+      expect(
+        find.textContaining('Your current data was kept.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('private authentication detail'),
+        findsNothing,
+      );
+      expect(find.text('Replace all local data?'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'passphrase dialog supports a narrow screen with large text and reduced motion',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 780);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final portability = _FakePortability(controller);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(2),
+              disableAnimations: true,
+            ),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: SettingsScreen(
+              controller: controller,
+              portability: portability,
+            ),
+          ),
+        ),
+      );
+      await showSettingsControl(tester, 'Export data');
+      await tester.tap(find.text('Export data'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Cancel'));
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(portability.exportedPassphrases, isEmpty);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'failed exports show a generic error without exposing implementation details',
+    (tester) async {
+      final portability = _FakePortability(controller)..failExport = true;
+      await showScreen(
+        tester,
+        SettingsScreen(controller: controller, portability: portability),
+      );
+      await showSettingsControl(tester, 'Export data');
+      await tester.tap(find.text('Export data'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Passphrase'),
+        'my backup passphrase',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        'my backup passphrase',
+      );
+      await tester.tap(find.text('Create encrypted backup'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Could not export data. Please try again.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('private implementation detail'),
+        findsNothing,
+      );
     },
   );
 

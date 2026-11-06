@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/learning/learning_data.dart';
+import 'package:steady_through/learning/pattern_engine.dart';
 
 class AppController extends ChangeNotifier {
   AppController(this._repository, AppData initial) : _data = initial;
@@ -13,6 +15,62 @@ class AppController extends ChangeNotifier {
   final Random _random = Random.secure();
 
   AppData get data => _data;
+
+  Future<void> flush() => _writeQueue;
+
+  Future<void> updateLearning(LearningData learning) => _mutate(
+    (current) =>
+        current.copyWith(learning: learning.bounded(DateTime.now().toUtc())),
+  );
+
+  Future<void> recordLearning(FeelingLabel label, SignalSnapshot snapshot) =>
+      _mutate((current) {
+        final now = DateTime.now().toUtc();
+        final next = current.learning.record(
+          LearningExample(
+            id: _newId(),
+            createdAt: now,
+            label: label,
+            snapshot: snapshot,
+          ),
+          now: now,
+        );
+        return current.copyWith(
+          learning: PersonalPatternEngine().review(next, now: now).data,
+        );
+      });
+
+  Future<CalibrationReport> reviewLearning() async {
+    late CalibrationReport report;
+    await _mutate((current) {
+      final review = PersonalPatternEngine().review(
+        current.learning,
+        now: DateTime.now().toUtc(),
+      );
+      report = review.report;
+      return current.copyWith(learning: review.data);
+    });
+    return report;
+  }
+
+  Future<void> clearLearning() => _mutate(
+    (current) => current.copyWith(learning: LearningData()),
+    afterCommit: _purgeResidual,
+  );
+
+  Future<void> _purgeResidual() async {
+    if (_repository is ResidualDataRepository) {
+      await (_repository as ResidualDataRepository).purgeResidualData();
+    }
+  }
+
+  Future<void> pruneLearning() {
+    final bounded = _data.learning.bounded(DateTime.now().toUtc());
+    if (bounded.examples.length == _data.learning.examples.length) {
+      return Future.value();
+    }
+    return _mutate((current) => current);
+  }
 
   SupportEvent? get activeEvent {
     for (final event in _data.events) {
@@ -26,16 +84,33 @@ class AppController extends ChangeNotifier {
     return bytes.map((value) => value.toRadixString(16).padLeft(2, '0')).join();
   }
 
+  int _replacementRevision = 0;
+  int get replacementRevision => _replacementRevision;
+
   Future<void> _mutate(
     AppData Function(AppData) change, {
     Future<void> Function()? afterCommit,
+    bool replacing = false,
   }) {
     final write = _writeQueue.then((_) async {
-      final next = change(_data);
+      final changed = change(_data);
+      final now = DateTime.now().toUtc();
+      final retained = changed.learning.bounded(now);
+      final retainedIds = retained.examples
+          .map((example) => example.id)
+          .toSet();
+      final pruned =
+          retained.examples.length < changed.learning.examples.length ||
+          _data.learning.examples.any(
+            (example) => !retainedIds.contains(example.id),
+          );
+      final next = changed.copyWith(learning: retained);
       AppData.fromJson(next.toJson());
       await _repository.save(next);
       _data = next;
+      if (replacing) _replacementRevision++;
       notifyListeners();
+      if (pruned) await _purgeResidual();
       if (afterCommit != null) {
         await afterCommit();
       }
@@ -287,11 +362,23 @@ class AppController extends ChangeNotifier {
 
   Future<void> replaceData(AppData replacement) {
     final validated = AppData.fromJson(replacement.toJson());
-    return _mutate((_) => validated);
+    // Archive ownership is not confirmation for the current device. Keep
+    // historical observations, but require a fresh opt-in for native sources.
+    final imported = validated.copyWith(
+      learning: validated.learning.copyWith(
+        enabledSources: validated.learning.enabledSources.difference({
+          SignalSource.deviceUsage,
+          SignalSource.motion,
+        }),
+        deviceOwnerConfirmed: false,
+      ),
+    );
+    return _mutate((_) => imported, replacing: true);
   }
 
   Future<void> clearAll() => _mutate(
     (_) => AppData.empty(),
+    replacing: true,
     afterCommit: () async {
       if (_repository is ResidualDataRepository) {
         await (_repository as ResidualDataRepository).purgeResidualData();

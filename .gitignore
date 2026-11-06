@@ -59,3 +59,7 @@ steady-through-data*.json
 steady-through.json
 steady-through.json.bak
 steady-through.json.tmp
+steady-through.vault
+steady-through.vault.bak
+steady-through.vault.tmp
+*.steady

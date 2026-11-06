@@ -11,6 +11,7 @@ class HomeScreen extends StatelessWidget {
     required this.onOpenPath,
     required this.onOpenGrounding,
     required this.onOpenCheckIns,
+    this.onOpenInsights,
   });
 
   final AppController controller;
@@ -18,8 +19,36 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onOpenPath;
   final VoidCallback onOpenGrounding;
   final VoidCallback onOpenCheckIns;
+  final VoidCallback? onOpenInsights;
 
   bool get _simpleWords => controller.data.readingStyle == ReadingStyle.simple;
+
+  Widget _insightsCard(BuildContext context) => SurfaceCard(
+    color: Theme.of(context).colorScheme.secondaryContainer,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const IconBadge(icon: Icons.insights_rounded),
+        const SizedBox(height: 14),
+        Text(
+          'Understand your own patterns',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _simpleWords
+              ? 'Choose what the app can learn. You can tell it how you feel.'
+              : 'Choose your sources, reflect on a possible pattern, and teach your private model what fits. Every permission is optional.',
+        ),
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: onOpenInsights,
+          icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+          label: const Text('Open Insights'),
+        ),
+      ],
+    ),
+  );
 
   Future<void> _switchEvent(BuildContext context) async {
     final selectedId = await showModalBottomSheet<String>(
@@ -121,6 +150,10 @@ class HomeScreen extends StatelessWidget {
       const SizedBox(height: 14),
       _quickActions(context),
       const SizedBox(height: 32),
+      if (onOpenInsights != null) ...[
+        _insightsCard(context),
+        const SizedBox(height: 28),
+      ],
       SectionHeading(
         title: _simpleWords
             ? 'What is an event?'
@@ -281,6 +314,10 @@ class HomeScreen extends StatelessWidget {
       _supportHeading(context),
       const SizedBox(height: 14),
       _quickActions(context),
+      if (onOpenInsights != null) ...[
+        const SizedBox(height: 24),
+        _insightsCard(context),
+      ],
     ];
   }
 

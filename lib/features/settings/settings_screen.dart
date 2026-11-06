@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/data_portability.dart';
 import 'package:steady_through/features/people/people_screen.dart';
+import 'package:steady_through/features/vault/passphrase_dialog.dart';
 import 'package:steady_through/model/app_data.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 class MoreScreen extends StatefulWidget {
-  const MoreScreen({super.key, required this.controller});
+  const MoreScreen({
+    super.key,
+    required this.controller,
+    this.onOpenInsights,
+    this.onLock,
+  });
 
   final AppController controller;
+  final VoidCallback? onOpenInsights;
+  final Future<void> Function()? onLock;
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
@@ -51,6 +59,15 @@ class _MoreScreenState extends State<MoreScreen> {
         ResponsiveColumns(
           minWidth: 300,
           children: [
+            if (widget.onOpenInsights != null)
+              _MoreCard(
+                title: 'Insights',
+                subtitle: 'Your patterns and learning sources',
+                description: 'Reflect on your own labels and choose what the app can learn from.',
+                icon: Icons.auto_awesome_outlined,
+                color: colors.primaryContainer,
+                onTap: widget.onOpenInsights!,
+              ),
             _MoreCard(
               title: 'People',
               subtitle: 'Saved names and phone numbers',
@@ -69,6 +86,31 @@ class _MoreScreenState extends State<MoreScreen> {
             ),
           ],
         ),
+        if (widget.onLock != null) ...[
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () async {
+                try {
+                  await widget.onLock!();
+                } catch (_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Could not lock the vault. Please try again.',
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.lock_outline),
+              label: const Text('Lock vault'),
+            ),
+          ),
+        ],
         const SizedBox(height: 28),
         SurfaceCard(
           color: colors.surfaceContainerLow,
@@ -83,7 +125,7 @@ class _MoreScreenState extends State<MoreScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Your entries stay on this device. You can save a copy or remove your data in Settings.',
+                'Your entries are encrypted on this device. Save a protected backup or remove your data in Settings.',
               ),
             ],
           ),
@@ -319,7 +361,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Your entries are stored on this device, without an account or analytics. Exported files are outside app storage. Uninstalling the app can remove local data.',
+                      'Your notes, events, people, settings, and learning records are encrypted in a passphrase-protected vault on this device, without an account or analytics. Exported backups are encrypted too. Uninstalling the app can remove local data.',
                     ),
                     const SizedBox(height: 16),
                     const Text(
@@ -341,7 +383,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'You choose where an exported JSON file is saved. Anyone with that file may be able to read it.',
+                  'Save an encrypted .steady backup with its own passphrase. Keep the passphrase somewhere safe; there is no recovery service.',
                 ),
                 const SizedBox(height: 20),
                 ResponsiveColumns(
@@ -349,14 +391,14 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     _SettingAction(
                       title: 'Export data',
-                      subtitle: 'Save a copy of events, check-ins, people, game history, and settings',
+                      subtitle: 'Protect events, check-ins, people, game history, settings, and learning in an encrypted backup',
                       icon: Icons.file_download_outlined,
                       onTap: () => _export(context),
                       filled: true,
                     ),
                     _SettingAction(
                       title: 'Import data',
-                      subtitle: 'Choose a JSON file; review before replacing current data',
+                      subtitle: 'Choose a .steady backup or a legacy JSON file; review before replacing current data',
                       icon: Icons.file_upload_outlined,
                       onTap: () => _import(context),
                       filled: true,
@@ -463,13 +505,19 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _export(BuildContext context) async {
     try {
-      final savedAt = await _portability.exportData();
+      final passphrase = await showVaultPassphraseDialog(
+        context,
+        creating: true,
+        title: 'Protect your backup',
+      );
+      if (passphrase == null || !context.mounted) return;
+      final savedAt = await _portability.exportData(passphrase: passphrase);
       if (context.mounted) {
         _message(
           context,
           savedAt == null
               ? 'Export cancelled.'
-              : 'Data saved to the chosen file.',
+              : 'Encrypted backup saved to the chosen file.',
         );
       }
     } catch (_) {
@@ -482,17 +530,28 @@ class SettingsScreen extends StatelessWidget {
   Future<void> _import(BuildContext context) async {
     try {
       final imported = await _portability.importData(
+        requestPassphrase: () async {
+          if (!context.mounted) return null;
+          return showVaultPassphraseDialog(
+            context,
+            creating: false,
+            title: 'Unlock your backup',
+          );
+        },
         confirm: (replacement) async {
           if (!context.mounted) return false;
           return await showDialog<bool>(
                 context: context,
                 builder: (dialogContext) => AlertDialog(
+                  scrollable: true,
                   title: const Text('Replace all local data?'),
                   content: Text(
                     'This file has ${replacement.events.length} events, '
                     '${replacement.people.length} people, and '
-                    '${replacement.checkIns.length} check-ins. '
-                    'Importing it will replace everything currently saved on this device.',
+                    '${replacement.checkIns.length} check-ins, and '
+                    '${replacement.learning.examples.length} learning examples. '
+                    'Importing it will replace everything currently saved on this device. '
+                    'Device usage and motion sources stay off until you enable them on this device.',
                   ),
                   actions: [
                     TextButton(
@@ -566,7 +625,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete all data?'),
         content: const Text(
-          'All events, actions, check-ins, people, game history, and preferences on this device will be removed.',
+          'All events, actions, check-ins, people, game history, learning records, and preferences on this device will be removed.',
         ),
         actions: [
           TextButton(
