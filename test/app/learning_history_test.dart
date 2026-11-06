@@ -239,4 +239,16 @@ void main() {
       expect(controller.data.learning.examples, isEmpty);
     },
   );
+
+  test('conditional undo cannot target a different saved moment', () async {
+    final receipt = await controller.recordLearning(
+      FeelingLabel.calm,
+      SignalSnapshot(observedAt: DateTime.now().toUtc()),
+    );
+    await expectLater(
+      controller.deleteLearningExample('older', expected: receipt),
+      throwsStateError,
+    );
+    expect(controller.data.learning.examples, hasLength(2));
+  });
 }

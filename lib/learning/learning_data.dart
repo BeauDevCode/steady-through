@@ -441,8 +441,9 @@ class LearningData {
   /// Correct a report, without manufacturing a new observation or timestamp.
   LearningData relabel(String id, FeelingLabel label) {
     final index = examples.indexWhere((example) => example.id == id);
-    if (index < 0)
+    if (index < 0) {
       throw StateError('This saved moment is no longer available.');
+    }
     final original = examples[index];
     if (original.label == label) return this;
     final changed = [...examples];

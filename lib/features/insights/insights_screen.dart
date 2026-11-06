@@ -4,6 +4,9 @@ import 'package:steady_through/learning/learning_session.dart';
 import 'package:steady_through/learning/pattern_engine.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
+import 'learning_details.dart';
+import 'saved_moments.dart';
+
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({
     super.key,
@@ -27,7 +30,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
   FeelingLabel? _selectedFeeling;
   String? _feedback;
   bool _feedbackIsError = false;
-  CalibrationReport? _lastReview;
 
   LearningSession get session => widget.session;
 
@@ -37,7 +39,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
     if (oldWidget.session != widget.session) {
       _selectedFeeling = null;
       _feedback = null;
-      _lastReview = null;
     }
   }
 
@@ -92,6 +93,24 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ? Icons.error_outline_rounded
                   : Icons.check_circle_outline_rounded,
               isError: _feedbackIsError,
+              live: true,
+            ),
+          ],
+          if (!insight.isVehicleContext && session.undoableMoment != null) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: _working
+                    ? null
+                    : () => _run(
+                        session.undoSavedFeeling,
+                        error: 'Could not undo this save. Your saved moments are unchanged. Please try again.',
+                        success: 'Undid the saved feeling.',
+                      ),
+                icon: const Icon(Icons.undo_rounded),
+                label: const Text('Undo saved feeling'),
+              ),
             ),
           ],
           if (session.sourceError != null) ...[
@@ -101,6 +120,22 @@ class _InsightsScreenState extends State<InsightsScreen> {
               session.sourceError!,
               icon: Icons.sensors_off_rounded,
               isError: true,
+            ),
+          ],
+          if (!insight.isVehicleContext) ...[
+            const SizedBox(height: 32),
+            SavedMomentsCard(
+              session: session,
+              disabled: _working,
+              onChanged: () {
+                if (mounted) {
+                  setState(() {
+                    _selectedFeeling = null;
+                    _feedback = null;
+                  });
+                }
+              },
+              onOpenHelp: widget.onOpenHelp,
             ),
           ],
           const SizedBox(height: 32),
@@ -147,7 +182,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ],
           const SizedBox(height: 32),
-          _calibrationCard(context),
+          LearningDetails(
+            session: session,
+            working: _working || insight.isVehicleContext,
+            onReview: _review,
+          ),
           const SizedBox(height: 24),
           SurfaceCard(
             color: colors.surfaceContainerLow,
@@ -239,7 +278,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ? 'Resume when you want to save a feeling.'
                   : session.data.enabledSources.isEmpty
                   ? 'Choose Feeling check-ins below to begin with just your own words. No device permission is needed.'
-                  : 'Choose a feeling to save one example. A different choice adds your correction as a new example.',
+                  : 'Each choice saves a new moment. To correct an earlier feeling, use Edit feeling in your saved moments.',
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -509,107 +548,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
     ),
   );
 
-  Widget _calibrationCard(BuildContext context) {
-    final data = session.data;
-    final calibration = data.calibration;
-    final since =
-        calibration.lastReviewedAt ??
-        calibration.startedAt ??
-        data.firstExampleAt;
-    final days = since == null
-        ? 0
-        : DateTime.now().toUtc().difference(since).inDays.clamp(0, 60);
-    final report = _lastReview;
-    final reviewedReason = report?.reason ?? calibration.lastReviewReason;
-    return SurfaceCard(
-      color: Theme.of(context).colorScheme.secondaryContainer
-          .withValues(alpha: .5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Eyebrow('Room to learn over time'),
-          const SizedBox(height: 12),
-          Text(
-            'A thoughtful 60-day review',
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Time alone does not make a pattern reliable. A local review compares earlier examples with later ones and a simple baseline. It adopts an update only when evidence and improvement checks pass.',
-          ),
-          const SizedBox(height: 20),
-          Semantics(
-            label: 'Calibration window',
-            value: '$days of 60 days',
-            child: LinearProgressIndicator(
-              value: days / 60,
-              minHeight: 8,
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            since == null
-                ? 'Your first saved feeling starts the review window.'
-                : days >= 60
-                ? 'The 60-day window is ready for an evidence check.'
-                : 'Day $days of 60 in this review window',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 20,
-            runSpacing: 8,
-            children: [
-              Text('${data.examples.length} saved examples'),
-              Text('Personal model revision ${calibration.revision}'),
-              if (calibration.lastAdoptedAt != null)
-                Text('Last update ${_date(calibration.lastAdoptedAt!)}'),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Personal comparisons need at least 20 labelled moments over 7 days, with at least 5 examples of two feelings and comparable readings. A manual-only source can show your self-reported trend.',
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Learning keeps at most 180 days or 1,000 examples, whichever limit is reached first.',
-          ),
-          if (reviewedReason.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              report?.adopted == true
-                  ? 'A local update was adopted'
-                  : 'Review evidence',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(reviewedReason),
-            const SizedBox(height: 8),
-            Text(
-              '${report?.trainingCount ?? calibration.trainingCount} earlier examples · ${report?.heldOutCount ?? calibration.heldOutCount} later examples',
-            ),
-          ],
-          const SizedBox(height: 20),
-          OutlinedButton.icon(
-            onPressed: _working ? null : _review,
-            icon: const Icon(Icons.auto_graph_rounded),
-            label: const Text('Review learning'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _notice(
     BuildContext context,
     String text, {
     required IconData icon,
     bool isError = false,
+    bool live = false,
   }) {
     final colors = Theme.of(context).colorScheme;
     return Semantics(
-      liveRegion: isError,
+      liveRegion: live || isError,
       child: SurfaceCard(
         padding: const EdgeInsets.all(18),
         color: isError ? colors.errorContainer : colors.surfaceContainerLow,
@@ -673,7 +621,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     },
     error: 'Could not save this feeling. Your saved learning is unchanged. Please try again when you are safely stopped.',
     success:
-        'Saved ${_feeling(label)}. You can choose another feeling if that fits better.',
+        'Saved ${_feeling(label)}. Undo this save or use Edit feeling in your saved moments to make a correction.',
   );
 
   Future<void> _togglePause() => _run(
@@ -736,7 +684,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Future<void> _review() => _run(
     () async {
       final report = await session.review();
-      if (mounted) setState(() => _lastReview = report);
+      if (mounted) {
+        setState(() {
+          _feedback = report.reason;
+          _feedbackIsError = false;
+        });
+      }
     },
     error: 'Could not save the learning review. Your personal model is unchanged. Please try again.',
   );
@@ -768,7 +721,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
         if (mounted) {
           setState(() {
             _selectedFeeling = null;
-            _lastReview = null;
           });
         }
       },
@@ -825,6 +777,4 @@ class _InsightsScreenState extends State<InsightsScreen> {
   };
 
   static String? _minutes(double? value) => value?.toStringAsFixed(1);
-  static String _date(DateTime value) =>
-      '${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
 }

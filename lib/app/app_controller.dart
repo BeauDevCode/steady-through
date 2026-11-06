@@ -60,7 +60,7 @@ class AppController extends ChangeNotifier {
       _mutate((current) {
         if (expected != null &&
             !current.learning.examples.any(
-              (example) => identical(example, expected),
+              (example) => example.id == id && identical(example, expected),
             )) {
           throw StateError(
             'This saved moment changed. Review it before deleting.',

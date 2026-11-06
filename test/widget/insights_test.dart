@@ -145,9 +145,24 @@ void main() {
       final sourceReady = tester
           .widgetList<SwitchListTile>(find.byType(SwitchListTile))
           .any((control) => control.onChanged != null);
-      final actionReady = tester
-          .widgetList<OutlinedButton>(find.byType(OutlinedButton))
-          .any((control) => control.onPressed != null);
+      // Wait for an action governed by Insights' write boundary. Expanding
+      // read-only learning details is independently available while writing.
+      final actionReady =
+          [
+            'Pause learning',
+            'Resume learning',
+            'Calm',
+            'Tense',
+            'Allow motion access',
+            'Undo saved feeling',
+            'Clear learning',
+          ].any(
+            (label) => tester
+                .widgetList<OutlinedButton>(
+                  find.widgetWithText(OutlinedButton, label),
+                )
+                .any((control) => control.onPressed != null),
+          );
       if (sourceReady || actionReady) return;
     }
     fail(
@@ -420,7 +435,7 @@ void main() {
         'Device usage',
         'Motion context',
         'App activations',
-        'A thoughtful 60-day review',
+        'How learning works',
         'Clear learning',
       ]) {
         try {
@@ -438,6 +453,121 @@ void main() {
       expect(session.data.enabledSources, isEmpty);
       expect(signals.permissionRequests, 0);
       expect(signals.settingsRequests, 0);
+    },
+  );
+
+  insightsTest('saved feeling has persistent undo and announces success', (
+    tester,
+  ) async {
+    await tester.runAsync(() => session.setSources({SignalSource.checkIns}));
+    await show(tester);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Calm'));
+    await settleWrite(tester);
+    final undo = find.text('Undo saved feeling');
+    await reveal(tester, undo);
+    final feedback = find.textContaining('Saved Calm');
+    expect(feedback, findsOneWidget);
+    expect(
+      tester
+          .widgetList<Semantics>(
+            find.ancestor(of: feedback, matching: find.byType(Semantics)),
+          )
+          .any((s) => s.properties.liveRegion == true),
+      isTrue,
+    );
+    repository.failNextSave = true;
+    await tester.tap(undo);
+    await settleWrite(tester);
+    expect(session.data.examples, hasLength(1));
+    expect(find.text('Undo saved feeling'), findsOneWidget);
+    await tester.tap(undo);
+    await settleWrite(tester);
+    expect(session.data.examples, isEmpty);
+    expect(find.text('Undo saved feeling'), findsNothing);
+  });
+  insightsTest(
+    'learning details are optional and explain self-reports with sources off',
+    (tester) async {
+      await tester.runAsync(() async {
+        await session.setSources({SignalSource.checkIns});
+        await session.saveFeeling(FeelingLabel.calm);
+        await session.saveFeeling(FeelingLabel.tense);
+        await session.saveFeeling(FeelingLabel.unsure);
+        await session.setSources({});
+      });
+      await show(tester);
+      expect(find.text('Review learning'), findsNothing);
+      await reveal(tester, find.text('How learning works'));
+      await tester.tap(find.text('Show details'));
+      await tester.pumpAndSettle();
+      await reveal(tester, find.text('3 saved moments'));
+      expect(
+        find.textContaining('2 moments with a named feeling'),
+        findsOneWidget,
+      );
+      await reveal(
+        tester,
+        find.textContaining('No device permission is needed for that history.'),
+      );
+      expect(
+        find.textContaining('not research-established guarantees'),
+        findsOneWidget,
+      );
+      expect(signals.permissionRequests, 0);
+      expect(signals.settingsRequests, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  insightsTest(
+    'learning details use the current comparison rather than a future-snapshot error',
+    (tester) async {
+      final now = DateTime.now().toUtc();
+      await tester.runAsync(
+        () => controller.updateLearning(
+          LearningData(
+            enabledSources: {SignalSource.inApp},
+            examples: [
+              for (var day = 1; day <= 10; day++) ...[
+                LearningExample(
+                  id: 'calm-$day',
+                  createdAt: now.subtract(Duration(days: day)),
+                  label: FeelingLabel.calm,
+                  snapshot: SignalSnapshot(
+                    observedAt: now.subtract(Duration(days: day)),
+                    features: const {'tapCount': 4, 'navigationChanges': 1},
+                  ),
+                ),
+                LearningExample(
+                  id: 'tense-$day',
+                  createdAt: now.subtract(Duration(days: day)),
+                  label: FeelingLabel.tense,
+                  snapshot: SignalSnapshot(
+                    observedAt: now.subtract(Duration(days: day)),
+                    features: const {'tapCount': 60, 'navigationChanges': 15},
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+      for (var i = 0; i < 4; i++) {
+        session.recordTap();
+      }
+      session.recordNavigation();
+      await show(tester);
+      await reveal(tester, find.text('How learning works'));
+      await tester.tap(find.text('Show details'));
+      await tester.pumpAndSettle();
+      await reveal(tester, find.text('Current comparison'));
+      expect(
+        find.textContaining('This signal snapshot is not current'),
+        findsNothing,
+      );
+      expect(
+        find.textContaining('This resembles aggregate patterns'),
+        findsOneWidget,
+      );
     },
   );
 }

@@ -7,6 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/features/insights/insights_screen.dart';
+import 'package:steady_through/features/insights/saved_moments.dart';
+import 'package:steady_through/features/insights/learning_details.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 import 'package:steady_through/features/vault/vault_unlock_screen.dart';
 import 'package:steady_through/learning/device_signals.dart';
 import 'package:steady_through/learning/learning_data.dart';
@@ -200,6 +203,99 @@ void main() {
         await Scrollable.ensureVisible(tester.element(source), alignment: .25);
         await tester.pumpAndSettle();
       }
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byType(MaterialApp),
+        matchesGoldenFile('../docs/screenshots/${capture.$1}.png'),
+      );
+    });
+  }
+  for (final capture in [
+    ('saved-moments-mobile', const Size(430, 1100), false, 1.0, 'preview'),
+    ('saved-moments-desktop', const Size(1440, 1000), false, 1.0, 'preview'),
+    ('saved-moments-dark', const Size(1440, 1000), true, 1.0, 'preview'),
+    ('saved-moment-detail', const Size(430, 1100), false, 1.0, 'View moment'),
+    ('saved-moment-edit', const Size(430, 1100), false, 1.0, 'Edit feeling'),
+    ('saved-moment-delete', const Size(430, 1100), false, 1.0, 'Delete'),
+    (
+      'saved-moment-large-text',
+      const Size(320, 1000),
+      false,
+      2.0,
+      'Edit feeling',
+    ),
+    ('saved-learning-details', const Size(430, 1200), false, 1.0, 'details'),
+  ]) {
+    testWidgets(capture.$1, (tester) async {
+      tester.view.physicalSize = capture.$2;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final sample = _sampleLearning(dark: capture.$3);
+      final controller = AppController(_CaptureRepository(sample), sample);
+      late LearningSession session;
+      addTearDown(() async {
+        await session.close();
+        controller.dispose();
+      });
+      await tester.runAsync(() async {
+        session = LearningSession(controller, signals: _NoDeviceSources());
+        await session.initialize();
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: steadyTheme(capture.$3 ? Brightness.dark : Brightness.light),
+          debugShowCheckedModeBanner: false,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(capture.$4),
+              disableAnimations: true,
+            ),
+            child: child!,
+          ),
+          home: Scaffold(
+            appBar: AppBar(title: const Text('Insights · sample data')),
+            body: SteadyPage(
+              children: [
+                if (capture.$5 == 'details')
+                  LearningDetails(
+                    session: session,
+                    working: false,
+                    onReview: () {},
+                  )
+                else
+                  SavedMomentsCard(
+                    session: session,
+                    disabled: false,
+                    onChanged: () {},
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      if (capture.$5 != 'preview') {
+        final target = find
+            .text(capture.$5 == 'details' ? 'Show details' : capture.$5)
+            .first;
+        await tester.scrollUntilVisible(
+          target,
+          250,
+          maxScrolls: 100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await Scrollable.ensureVisible(tester.element(target), alignment: .5);
+        await tester.pumpAndSettle();
+        expect(target.hitTestable(), findsOneWidget);
+        await tester.tap(target);
+        await tester.pumpAndSettle();
+      }
+      if (capture.$5 != 'preview' && capture.$5 != 'details') {
+        expect(find.byType(AlertDialog), findsOneWidget);
+      }
+      expect(session.capabilities.usageSupported, isFalse);
+      expect(session.capabilities.motionSupported, isFalse);
       expect(tester.takeException(), isNull);
       await expectLater(
         find.byType(MaterialApp),

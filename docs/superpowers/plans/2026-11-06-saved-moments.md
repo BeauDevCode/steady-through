@@ -60,12 +60,12 @@
 
 **Interfaces:** Consumes Tasks 1/2. `SavedMomentsCard(session: LearningSession, disabled: bool, onChanged: VoidCallback)` owns preview/full-history/detail/edit/delete flows with action feedback. `LearningDetails(session: LearningSession, working: bool, onReview: VoidCallback)` renders collapsed technical details and separate existing review behavior. Parent Insights owns save/Undo feedback and clears stale cached review results when history changes.
 
-- [ ] Write failing widget tests for preview/latest3/full lazy list, exact source-summary/metric detail, local timestamps, explicit edit Save/Cancel, delete Cancel/Confirm, source-off/paused access, currently detected vehicle suppression, failure with intact data, one-record undo/retry, live-region success semantics and reduced-motion/narrow 320px/200% text dialog usability. Keep existing source/vehicle tests.
-- [ ] Run targeted widget tests and observe missing feature behavior (RED).
-- [ ] Implement focused widgets, recent self-report summary, preview/all-history, details with literal copy, edit/delete confirmations and persistent Undo. Keep errors in context, no timed undo, no red/green-only meaning. Move machinery into collapsed details, display actual diagnostics plus safeguard limits, keep 60-day review separate and preserve accessible result feedback. New label selection means new moment; explicitly direct corrections to history.
-- [ ] Run targeted widgets, analyzer and full Flutter suite. Expected all PASS without overflow/timer errors.
-- [ ] Generate synthetic captures for light/dark mobile/desktop, 320px/200% reduced-motion and edit/delete/detail dialogs; inspect images and correct layout issues with a regression if behavioral.
-- [ ] Commit task code/tests/captures and ledger evidence.
+- [x] Write failing widget tests for preview/latest3/full lazy list, exact source-summary/metric detail, local timestamps, explicit edit Save/Cancel, delete Cancel/Confirm, source-off/paused access, currently detected vehicle suppression, failure with intact data, one-record undo/retry, live-region success semantics and reduced-motion/narrow 320px/200% text dialog usability. Keep existing source/vehicle tests.
+- [x] Run targeted widget tests and observe missing feature behavior (RED).
+- [x] Implement focused widgets, recent self-report summary, preview/all-history, details with literal copy, edit/delete confirmations and persistent Undo. Keep errors in context, no timed undo, no red/green-only meaning. Move machinery into collapsed details, display actual diagnostics plus safeguard limits, keep 60-day review separate and preserve accessible result feedback. New label selection means new moment; explicitly direct corrections to history.
+- [x] Run targeted widgets, analyzer and full Flutter suite. Expected all PASS without overflow/timer errors.
+- [x] Generate synthetic captures for light/dark mobile/desktop, 320px/200% reduced-motion and edit/delete/detail dialogs; inspect images and correct layout issues with a regression if behavioral.
+- [x] Commit task code/tests/captures and ledger evidence.
 
 ### Task 4: Review, public source and cross-platform verification
 
