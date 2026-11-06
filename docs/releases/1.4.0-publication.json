@@ -1,0 +1,390 @@
+{
+  "version": "1.4.0+8",
+  "observedAt": "2026-11-06T23:17:52.988315+00:00",
+  "snapshotScope": "Public state verified at the recorded main commit before this documentation-only snapshot was committed. Later documentation-only successors do not change the tested application source.",
+  "releaseVerification": {
+    "publicMainCommit": "865c4949c49d4097921f26182ca153947ae25119",
+    "mainEquivalence": {
+      "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+      "releaseCommit": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+      "mainCommit": "865c4949c49d4097921f26182ca153947ae25119",
+      "ancestorVerified": true,
+      "nonDocumentationChanges": [],
+      "changedPaths": [
+        "PRIVACY.md",
+        "README.md",
+        "docs/device-validation.md",
+        "docs/ios-distribution.md",
+        "docs/quality-status.md",
+        "docs/releases/1.4.0-decisions.md",
+        "docs/superpowers/plans/2026-11-06-what-helps.md"
+      ],
+      "method": "git merge-base --is-ancestor; git diff --no-renames --name-only -z"
+    },
+    "url": "https://github.com/BeauDevCode/steady-through/releases/tag/v1.4.0-preview.1",
+    "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+    "releaseCommit": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+    "draft": false,
+    "prerelease": true,
+    "publishedAt": "2026-11-06T23:15:06Z",
+    "assetsVerified": 10,
+    "serverHashes": "all matched",
+    "assets": [
+      {
+        "name": "android-motion-unit-results.xml",
+        "size": 2195,
+        "digest": "sha256:73e6f5b1087a81bd4615ff9b13759bab6003116f8790b7d73491f831d3805249",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/android-motion-unit-results.xml"
+      },
+      {
+        "name": "BUILD-INFO.txt",
+        "size": 8073,
+        "digest": "sha256:bb59e85a5e6fce609cc4083e71b13d845ec97d826807871140cf9aa087a95d5f",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/BUILD-INFO.txt"
+      },
+      {
+        "name": "native-runtime-reports.zip",
+        "size": 187093,
+        "digest": "sha256:ec2dc9bbedb9f5f45584bf3de8464438301291445bd21ebbc475936f50d78f55",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/native-runtime-reports.zip"
+      },
+      {
+        "name": "SHA256SUMS.txt",
+        "size": 994,
+        "digest": "sha256:e34f60a985194acf89d2febf883b642a5bf7883373e52bd164df6733062a84d9",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/SHA256SUMS.txt"
+      },
+      {
+        "name": "steady-through-1.4.0-preview.1-android-dev-signed.apk",
+        "size": 53880795,
+        "digest": "sha256:651750db0dbf3074883ebabea52bcf1ba0ec3321bfbcb3c23df7a258c7ffacf3",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/steady-through-1.4.0-preview.1-android-dev-signed.apk"
+      },
+      {
+        "name": "steady-through-1.4.0-preview.1-ios-device-release-unsigned.zip",
+        "size": 7783969,
+        "digest": "sha256:7a61bf6a38f11a06823a9a794b01bb437acfc4ad1a2e279ca257c9518d3e12cd",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/steady-through-1.4.0-preview.1-ios-device-release-unsigned.zip"
+      },
+      {
+        "name": "steady-through-1.4.0-preview.1-ios-simulator.zip",
+        "size": 54783010,
+        "digest": "sha256:42d5938e863a2a096430958f30c04d0a53e41ee66c760c6ae2e0cecba948879b",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/steady-through-1.4.0-preview.1-ios-simulator.zip"
+      },
+      {
+        "name": "steady-through-1.4.0-preview.1-linux-unsigned.tar.gz",
+        "size": 10420031,
+        "digest": "sha256:7d93ac3fd60b529bd25cf4824ddcc8cd64516b176b70d1424732646d9148a393",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/steady-through-1.4.0-preview.1-linux-unsigned.tar.gz"
+      },
+      {
+        "name": "steady-through-1.4.0-preview.1-macos-not-notarized.zip",
+        "size": 18697737,
+        "digest": "sha256:3a0376852c1e8d993ec9c77f15e221484204f63d8b167b8ba757cd06f3717b49",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/steady-through-1.4.0-preview.1-macos-not-notarized.zip"
+      },
+      {
+        "name": "steady-through-1.4.0-preview.1-windows-unsigned.zip",
+        "size": 12795655,
+        "digest": "sha256:cebb97987994b3f8cdd0f24aa6bcb66ac1c3a0843bb323902ccb59c460997fcd",
+        "state": "uploaded",
+        "browser_download_url": "https://github.com/BeauDevCode/steady-through/releases/download/v1.4.0-preview.1/steady-through-1.4.0-preview.1-windows-unsigned.zip"
+      }
+    ]
+  },
+  "anonymousAccess": {
+    "release": "https://github.com/BeauDevCode/steady-through/releases/tag/v1.4.0-preview.1",
+    "assetsVerified": 10,
+    "requestMode": "Anonymous curl -q HEAD, no auth/cookies/netrc; HTTPS redirects only",
+    "httpStatuses": {
+      "repository": 200,
+      "release": 200,
+      "android-motion-unit-results.xml": 200,
+      "BUILD-INFO.txt": 200,
+      "native-runtime-reports.zip": 200,
+      "SHA256SUMS.txt": 200,
+      "steady-through-1.4.0-preview.1-android-dev-signed.apk": 200,
+      "steady-through-1.4.0-preview.1-ios-device-release-unsigned.zip": 200,
+      "steady-through-1.4.0-preview.1-ios-simulator.zip": 200,
+      "steady-through-1.4.0-preview.1-linux-unsigned.tar.gz": 200,
+      "steady-through-1.4.0-preview.1-macos-not-notarized.zip": 200,
+      "steady-through-1.4.0-preview.1-windows-unsigned.zip": 200
+    }
+  },
+  "ci": {
+    "runId": 42308127205,
+    "runAttempt": 1,
+    "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+    "jobsSucceeded": 7,
+    "flutterTests": 354,
+    "pythonHelperTests": 88,
+    "androidJUnitTests": 12,
+    "nativeCasesPerPlatform": 3,
+    "nativePlatforms": [
+      "android",
+      "iosSimulator",
+      "macos",
+      "windows",
+      "linux"
+    ],
+    "analyzer": "No issues found!"
+  },
+  "localChecks": {
+    "flutterTests": 354,
+    "pythonHelperTests": 88,
+    "dartFilesFormatChecked": 98,
+    "syntheticCapturesInspected": 28
+  },
+  "sourceReview": {
+    "base": "458a4f438449d843d58b22eb4f655dd249c26eca",
+    "reviewHead": "719e2569f1fd700e58807fc71aa1a591b9e58452",
+    "verifiedFixSource": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+    "materialFindings": 2,
+    "redThenGreenRegressions": 3,
+    "remainingMaterialFindings": 0
+  },
+  "independentArtifactAudit": {
+    "result": "pass",
+    "assets": 10,
+    "checksums": 9,
+    "ciArtifactZips": 13,
+    "reportMembers": 34,
+    "applicationPackages": 6,
+    "deviceMachOImages": 4,
+    "scope": "engineering artifact consistency; not security certification"
+  },
+  "nativeValidation": {
+    "android": {
+      "expandedLogSha256": "a71e1cb3517022679248624fe57f6c07bb8822c1607ec72f37bd6580877f2fa9",
+      "reportSha256": "69015a675f3d27dd53e7cb00939e8def363a9d16d8d983cc805b0bedeeae5ddd",
+      "requiredCases": [
+        "native bridge remains paused without source consent",
+        "native vault keeps an event through lock and authenticated unlock",
+        "native encrypted backup restores only after its own passphrase"
+      ],
+      "verifier": "3 required native tests passed; run completed successfully without failures or skips."
+    },
+    "ios": {
+      "expandedLogSha256": "01c9f9a736e629e83c9fe8a2f42572a886ebb5dd1f751ff2cfc96b1684c53652",
+      "reportSha256": "250a080504abbb89c2cb7c2e56ad6448792935d493dfd7fb23e2e23c7980c788",
+      "requiredCases": [
+        "native bridge remains paused without source consent",
+        "native vault keeps an event through lock and authenticated unlock",
+        "native encrypted backup restores only after its own passphrase"
+      ],
+      "verifier": "3 required native tests passed; run completed successfully without failures or skips."
+    },
+    "linux": {
+      "expandedLogSha256": "03809238e5d07e6925d6a591bc4e138d9d1302a745a4bf13e701055df59f18d6",
+      "reportSha256": "148d6cf1a1bdb71de3e39d25638b7492dcf7d2d5257d35ffa5f6a2d9ff9168dd",
+      "requiredCases": [
+        "native bridge remains paused without source consent",
+        "native vault keeps an event through lock and authenticated unlock",
+        "native encrypted backup restores only after its own passphrase"
+      ],
+      "verifier": "3 required native tests passed; run completed successfully without failures or skips."
+    },
+    "macos": {
+      "expandedLogSha256": "eac0fd8a096c99c972aca2c298c3706ddf768e2f4d8e7d991e654d2a791b461e",
+      "reportSha256": "e9daeb17b3a182438e7a669312c7b223438c80c42fd1c822fd02029829fd01fb",
+      "requiredCases": [
+        "native bridge remains paused without source consent",
+        "native vault keeps an event through lock and authenticated unlock",
+        "native encrypted backup restores only after its own passphrase"
+      ],
+      "verifier": "3 required native tests passed; run completed successfully without failures or skips."
+    },
+    "windows": {
+      "expandedLogSha256": "f990353fa11f8bd421dc395981c09471121fcce6d3767d9d022e4240b6cd775a",
+      "reportSha256": "0f23219d384a3bc2b7c3e5137476de6fa0997c9ef1acd7c6c1d0a9cb9f699d50",
+      "requiredCases": [
+        "native bridge remains paused without source consent",
+        "native vault keeps an event through lock and authenticated unlock",
+        "native encrypted backup restores only after its own passphrase"
+      ],
+      "verifier": "3 required native tests passed; run completed successfully without failures or skips."
+    }
+  },
+  "packageMetadata": {
+    "expectedBuild": "8",
+    "expectedVersion": "1.4.0",
+    "platforms": {
+      "android": {
+        "bytes": 53880795,
+        "integrity": {
+          "members": 83,
+          "nativeFixtureLiteralHits": 0,
+          "payloadIntegrity": "read all payloads"
+        },
+        "manifestMember": "AndroidManifest.xml",
+        "package": "com.beaudevcode.steady_through",
+        "path": "steady-through-1.4.0-preview.1-android-dev-signed.apk",
+        "sha256": "651750db0dbf3074883ebabea52bcf1ba0ec3321bfbcb3c23df7a258c7ffacf3",
+        "versionCode": "8",
+        "versionName": "1.4.0"
+      },
+      "ios": {
+        "CFBundleIdentifier": "com.beaudevcode.steadyThrough",
+        "CFBundleShortVersionString": "1.4.0",
+        "CFBundleSupportedPlatforms": [
+          "iPhoneSimulator"
+        ],
+        "CFBundleVersion": "8",
+        "DTPlatformName": "iphonesimulator",
+        "DTSDKName": "iphonesimulator26.5",
+        "MinimumOSVersion": "15.0",
+        "bytes": 54783010,
+        "executableMember": "Runner.app/Runner",
+        "integrity": {
+          "members": 99,
+          "nativeFixtureLiteralHits": 0,
+          "payloadIntegrity": "read all payloads"
+        },
+        "path": "steady-through-1.4.0-preview.1-ios-simulator.zip",
+        "plistMember": "Runner.app/Info.plist",
+        "sha256": "42d5938e863a2a096430958f30c04d0a53e41ee66c760c6ae2e0cecba948879b"
+      },
+      "ios_device": {
+        "CFBundleIdentifier": "com.beaudevcode.steadyThrough",
+        "CFBundleShortVersionString": "1.4.0",
+        "CFBundleSupportedPlatforms": [
+          "iPhoneOS"
+        ],
+        "CFBundleVersion": "8",
+        "DTPlatformName": "iphoneos",
+        "DTSDKName": "iphoneos26.5",
+        "MinimumOSVersion": "15.0",
+        "bytes": 7783969,
+        "executableMember": "Runner.app/Runner",
+        "integrity": {
+          "members": 82,
+          "nativeFixtureLiteralHits": 0,
+          "payloadIntegrity": "read all payloads"
+        },
+        "path": "steady-through-1.4.0-preview.1-ios-device-release-unsigned.zip",
+        "plistMember": "Runner.app/Info.plist",
+        "sha256": "7a61bf6a38f11a06823a9a794b01bb437acfc4ad1a2e279ca257c9518d3e12cd"
+      },
+      "linux": {
+        "bytes": 10420031,
+        "executableMember": "./steady_through",
+        "integrity": {
+          "members": 29,
+          "nativeFixtureLiteralHits": 0,
+          "payloadIntegrity": "read all payloads"
+        },
+        "path": "steady-through-1.4.0-preview.1-linux-unsigned.tar.gz",
+        "sha256": "7d93ac3fd60b529bd25cf4824ddcc8cd64516b176b70d1424732646d9148a393",
+        "versionMetadata": "No embedded version asserted; establish source/run provenance separately"
+      },
+      "macos": {
+        "CFBundleIdentifier": "com.beaudevcode.steadyThrough",
+        "CFBundleShortVersionString": "1.4.0",
+        "CFBundleSupportedPlatforms": [
+          "MacOSX"
+        ],
+        "CFBundleVersion": "8",
+        "DTPlatformName": "macosx",
+        "DTSDKName": "macosx26.5",
+        "MinimumOSVersion": null,
+        "bytes": 18697737,
+        "executableMember": "steady_through.app/Contents/MacOS/steady_through",
+        "integrity": {
+          "members": 78,
+          "nativeFixtureLiteralHits": 0,
+          "payloadIntegrity": "read all payloads"
+        },
+        "path": "steady-through-1.4.0-preview.1-macos-not-notarized.zip",
+        "plistMember": "steady_through.app/Contents/Info.plist",
+        "sha256": "3a0376852c1e8d993ec9c77f15e221484204f63d8b167b8ba757cd06f3717b49"
+      },
+      "windows": {
+        "bytes": 12795655,
+        "executableMember": "steady_through.exe",
+        "fixedFileVersion": [
+          1,
+          4,
+          0,
+          8
+        ],
+        "fixedProductVersion": [
+          1,
+          4,
+          0,
+          8
+        ],
+        "integrity": {
+          "members": 19,
+          "nativeFixtureLiteralHits": 0,
+          "payloadIntegrity": "read all payloads"
+        },
+        "path": "steady-through-1.4.0-preview.1-windows-unsigned.zip",
+        "sha256": "cebb97987994b3f8cdd0f24aa6bcb66ac1c3a0843bb323902ccb59c460997fcd",
+        "stringResources": [
+          {
+            "CompanyName": "com.beaudevcode",
+            "FileDescription": "Steady Through",
+            "FileVersion": "1.4.0+8",
+            "InternalName": "steady_through",
+            "LegalCopyright": "Copyright (C) 2026 BeauDevCode",
+            "OriginalFilename": "steady_through.exe",
+            "ProductName": "Steady Through",
+            "ProductVersion": "1.4.0+8"
+          }
+        ]
+      }
+    }
+  },
+  "sourceHelpers": [
+    {
+      "path": "tool/ci/verify_native_results.py",
+      "file": "verify_native_results.py",
+      "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+      "gitBlob": "bdb5ca4b64ef7e15b781c11699c3eea0ad9da4f3",
+      "sha256": "dd6979995dec53b0330cb7cc9d001b12e58adcbb15de7e58fc24f47dd6c10528"
+    },
+    {
+      "path": "tool/ci/verify_ios_device_bundle.py",
+      "file": "verify_ios_device_bundle.py",
+      "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+      "gitBlob": "f5656008ac77f6b34c3abbac388c20505297885c",
+      "sha256": "729abe531cb767a9d6546f579023858f4b4c12070e2332ac4466d5895c98748e"
+    },
+    {
+      "path": "tool/ci/apple_macho.py",
+      "file": "apple_macho.py",
+      "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+      "gitBlob": "d82819981f1e69c3dfa3c6c0e660fbb586eec6cb",
+      "sha256": "4801621308b26a1a5e8052f7493b4283945c36b21a12561f4183de11c42232f8"
+    },
+    {
+      "path": "pubspec.yaml",
+      "file": "pubspec.yaml",
+      "source": "a0a12ecc7badf359411e520b21a4081dcd06854d",
+      "gitBlob": "0c6baff4b386e45a182af239edd84ce91cae86ad",
+      "sha256": "9b2ab0fa8ec9cb1940fe6a12c6ba87b2c9cd246d45cab3c6b6785d5a8119b2c7"
+    }
+  ],
+  "remainingManualWork": [
+    "physical devices and granted sensor sources",
+    "real OS permission and backup dialogs",
+    "native assistive technology",
+    "distribution signing and notarization",
+    "clinical or human effectiveness"
+  ],
+  "devicePackageLimits": {
+    "unsigned": true,
+    "installable": false,
+    "physicalDeviceExecution": "not-run"
+  }
+}
