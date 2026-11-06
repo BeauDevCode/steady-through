@@ -49,10 +49,10 @@ class _ControlledStore extends VaultStore {
 }
 
 Future<void> _confirmReset(WidgetTester tester) async {
-  await tester.ensureVisible(
-    find.text('Forgot passphrase or need a fresh start?'),
-  );
-  await tester.tap(find.text('Forgot passphrase or need a fresh start?'));
+  await tester.ensureVisible(find.text('Forgot your passphrase?'));
+  await tester.tap(find.text('Forgot your passphrase?'));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Start over…'));
   await tester.pumpAndSettle();
   final delete = find.widgetWithText(FilledButton, 'Delete vault');
   expect(tester.widget<FilledButton>(delete).onPressed, isNull);
@@ -100,6 +100,43 @@ class _InterruptedCreation extends VaultStore {
 }
 
 void main() {
+  testWidgets('help keeps the locked vault until typed DELETE is confirmed', (
+    tester,
+  ) async {
+    final store = _ControlledStore();
+    await _mountGate(tester, store);
+    await tester.enterText(find.byType(TextFormField), 'fictional typed words');
+    await tester.ensureVisible(find.text('Forgot your passphrase?'));
+    await tester.tap(find.text('Forgot your passphrase?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Help with your passphrase'), findsOneWidget);
+    expect(find.text('Permanently delete this vault?'), findsNothing);
+    expect(store.resetCalls, 0);
+    expect(store.unlockCalls, 0);
+    expect(store.exists, isTrue);
+    await tester.tap(find.text('Start over…'));
+    await tester.pumpAndSettle();
+    expect(find.text('Help with your passphrase'), findsNothing);
+    expect(find.text('Permanently delete this vault?'), findsOneWidget);
+    expect(store.resetCalls, 0);
+    final delete = find.widgetWithText(FilledButton, 'Delete vault');
+    expect(tester.widget<FilledButton>(delete).onPressed, isNull);
+    await tester.enterText(find.byType(TextField).last, 'delete');
+    await tester.pump();
+    expect(tester.widget<FilledButton>(delete).onPressed, isNull);
+    expect(store.resetCalls, 0);
+    await tester.tap(find.text('Keep vault'));
+    await tester.pumpAndSettle();
+    expect(store.resetCalls, 0);
+    expect(store.unlockCalls, 0);
+    expect(store.exists, isTrue);
+    expect(
+      tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text,
+      'fictional typed words',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('inactive unlocked vault displays its privacy cover safely', (
     tester,
   ) async {
@@ -272,7 +309,10 @@ void main() {
         isNotNull,
       );
       if (remains) {
-        await tester.tap(find.text('Forgot passphrase or need a fresh start?'));
+        await tester.tap(find.text('Forgot your passphrase?'));
+        await tester.pumpAndSettle();
+        expect(find.text('Help with your passphrase'), findsOneWidget);
+        await tester.tap(find.text('Start over…'));
         await tester.pumpAndSettle();
         expect(find.byType(AlertDialog), findsOneWidget);
         await tester.tap(find.text('Keep vault'));
@@ -300,10 +340,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Unlock vault'), findsOneWidget);
     expect(find.text('Create private vault'), findsNothing);
-    expect(
-      find.text('Forgot passphrase or need a fresh start?'),
-      findsOneWidget,
-    );
+    expect(find.text('Forgot your passphrase?'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

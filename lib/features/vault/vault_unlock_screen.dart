@@ -20,6 +20,7 @@ class _VaultUnlockScreenState extends State<VaultUnlockScreen> {
   final _passphrase = TextEditingController();
   final _confirmation = TextEditingController();
   bool _busy = false;
+  bool _showingHelp = false;
   bool _visible = false;
   String? _error;
 
@@ -53,6 +54,71 @@ class _VaultUnlockScreenState extends State<VaultUnlockScreen> {
       }
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _showPassphraseHelp() async {
+    if (_busy || _showingHelp || widget.onReset == null) return;
+    _showingHelp = true;
+    try {
+      final startOver = await showDialog<bool>(
+        context: context,
+        requestFocus: true,
+        builder: (dialogContext) => AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 560),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          scrollable: true,
+          title: Text(
+            'Help with your passphrase',
+            style: Theme.of(dialogContext).textTheme.headlineSmall
+                ?.copyWith(fontSize: 22),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'There is no account or server recovery. Check whether you kept a safe copy of your vault passphrase.',
+              ),
+              SizedBox(height: 16),
+              Text(
+                'An exported .steady backup uses the separate export passphrase you chose for it. That passphrase does not unlock this vault.',
+              ),
+              SizedBox(height: 16),
+              Text(
+                'If you can open a vault, go to More → Settings → Import data to restore a backup. You will be asked before replacing its records.',
+              ),
+              SizedBox(height: 16),
+              Text(
+                'If this vault stays locked, check any backup you already have and its export passphrase on another installation first. Keep this vault until you know the backup opens.',
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Without your vault passphrase or a usable backup, its records cannot be recovered.',
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Start over…'),
+            ),
+            FilledButton(
+              autofocus: true,
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Back to unlock'),
+            ),
+          ],
+        ),
+      );
+      if (startOver == true && mounted && !_busy) {
+        await widget.onReset?.call();
+      }
+    } finally {
+      _showingHelp = false;
     }
   }
 
@@ -195,10 +261,8 @@ class _VaultUnlockScreenState extends State<VaultUnlockScreen> {
                   if (!widget.creating && widget.onReset != null) ...[
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: _busy ? null : widget.onReset,
-                      child: const Text(
-                        'Forgot passphrase or need a fresh start?',
-                      ),
+                      onPressed: _busy ? null : _showPassphraseHelp,
+                      child: const Text('Forgot your passphrase?'),
                     ),
                   ],
                 ],
