@@ -51,6 +51,113 @@ Map<String, dynamic> validDocument() => {
 };
 
 void main() {
+  group('guidance document migration', () {
+    Map<String, dynamic> versionThree(String context) {
+      final json = validDocument()
+        ..['version'] = 3
+        ..['learning'] = LearningData().toJson();
+      (json['events'] as List).single['guidanceContext'] = context;
+      return json;
+    }
+
+    test('reads and round-trips each explicit version-three context', () {
+      for (final context in [
+        'general',
+        'schoolAndGrowing',
+        'adultChanges',
+        'caregiving',
+        'laterLife',
+      ]) {
+        final decoded = AppData.fromJson(versionThree(context));
+        final encoded = decoded.toJson();
+        expect(encoded['version'], 3);
+        expect((encoded['events'] as List).single['guidanceContext'], context);
+        expect(AppData.fromJson(encoded).toJson(), encoded);
+      }
+    });
+
+    test('legacy versions acquire General without changing stored actions', () {
+      for (final version in [1, 2]) {
+        final json = validDocument()..['version'] = version;
+        if (version == 2) json['learning'] = LearningData().toJson();
+        final originalActions = (json['events'] as List).single['actions'];
+        final encoded = AppData.fromJson(json).toJson();
+        expect(encoded['version'], 3);
+        expect(
+          (encoded['events'] as List).single['guidanceContext'],
+          'general',
+        );
+        expect((encoded['events'] as List).single['actions'], originalActions);
+        (json['events'] as List).single['guidanceContext'] = 'general';
+        expect(() => AppData.fromJson(json), throwsFormatException);
+      }
+    });
+
+    test('version three requires a valid context and valid learning', () {
+      final missing = versionThree('general');
+      (missing['events'] as List).single.remove('guidanceContext');
+      expect(() => AppData.fromJson(missing), throwsFormatException);
+      for (final value in [null, 1, true, 'General', 'unknown', '']) {
+        final json = versionThree('general');
+        (json['events'] as List).single['guidanceContext'] = value;
+        expect(() => AppData.fromJson(json), throwsFormatException);
+      }
+      for (final value in [null, [], 'invalid']) {
+        final json = versionThree('general')..['learning'] = value;
+        expect(() => AppData.fromJson(json), throwsFormatException);
+      }
+      final invalidLearning = versionThree('general');
+      (invalidLearning['learning'] as Map)['deviceOwnerConfirmed'] = 'yes';
+      expect(() => AppData.fromJson(invalidLearning), throwsFormatException);
+    });
+
+    test('standalone event JSON accepts a context or defaults to General', () {
+      final legacy = Map<String, dynamic>.from(
+        (validDocument()['events'] as List).single as Map,
+      );
+      expect(
+        SupportEvent.fromJson(legacy).toJson()['guidanceContext'],
+        'general',
+      );
+      legacy['guidanceContext'] = 'caregiving';
+      final event = SupportEvent.fromJson(legacy);
+      expect(
+        event
+            .copyWith(title: 'Fictional revised event')
+            .toJson()['guidanceContext'],
+        'caregiving',
+      );
+    });
+  });
+
+  test('event context constructor and copies preserve or explicitly replace selection', () {
+    final event = SupportEvent(
+      id: 'fictional-context-event',
+      title: 'Fictional event',
+      createdAt: DateTime.utc(2026, 11, 6),
+      guidanceContext: GuidanceContext.laterLife,
+    );
+    expect(
+      event.copyWith(description: 'Fictional edit').guidanceContext,
+      GuidanceContext.laterLife,
+    );
+    expect(
+      event
+          .copyWith(guidanceContext: GuidanceContext.adultChanges)
+          .guidanceContext,
+      GuidanceContext.adultChanges,
+    );
+    expect(
+      () => SupportEvent.fromJson(event.toJson(), allowGuidance: false),
+      throwsFormatException,
+    );
+    final legacy = event.toJson()..remove('guidanceContext');
+    expect(
+      SupportEvent.fromJson(legacy, allowGuidance: false).guidanceContext,
+      GuidanceContext.general,
+    );
+  });
+
   group('SupportEvent.nextPendingAction', () {
     SupportEvent eventWith(List<PlanAction> actions) => SupportEvent(
       id: 'ordered-event',
@@ -188,7 +295,7 @@ void main() {
     final data = AppData.fromJson(validDocument());
     expect(data.learning.enabledSources, isEmpty);
     expect(data.learning.examples, isEmpty);
-    expect(data.toJson()['version'], 2);
+    expect(data.toJson()['version'], 3);
     expect(data.toJson()['learning'], isA<Map<String, dynamic>>());
   });
 
@@ -232,14 +339,14 @@ void main() {
     final encoded = original.toJson();
     final decoded = AppData.fromJson(encoded);
 
-    expect(encoded['version'], 2);
+    expect(encoded['version'], 3);
     expect((encoded['events'] as List).single['title'], 'Starting a new job');
     expect(decoded.gameRounds.single.moves, 8);
     expect(decoded.checkIns.single.eventId, 'event-1');
   });
 
   test('rejects unsupported versions instead of guessing', () {
-    final document = validDocument()..['version'] = 3;
+    final document = validDocument()..['version'] = 4;
     expect(() => AppData.fromJson(document), throwsFormatException);
   });
 

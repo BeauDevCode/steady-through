@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/event_guidance.dart';
 import 'package:steady_through/learning/learning_data.dart';
 import 'package:steady_through/learning/pattern_engine.dart';
 
@@ -127,34 +128,42 @@ class AppController extends ChangeNotifier {
     return write;
   }
 
-  Future<void> createEvent(String title, String description) {
+  Future<void> createEvent(
+    String title,
+    String description, {
+    GuidanceContext guidanceContext = GuidanceContext.general,
+    List<String>? starterStepIds,
+  }) {
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) {
       return Future.error(ArgumentError('Give this event a title.'));
     }
+    final requestedIds = starterStepIds == null
+        ? null
+        : List<String>.of(starterStepIds);
     return _mutate((current) {
+      final steps = resolveStarterSteps(
+        guidanceContext,
+        requestedIds ??
+            guideFor(guidanceContext).starterSteps
+                .map((step) => step.id)
+                .toList(),
+      );
       final eventId = _newId();
-      final titles = <JourneyStage, String>{
-        JourneyStage.orient: 'Notice what needs attention first',
-        JourneyStage.settle: 'Take a short pause',
-        JourneyStage.support: 'Choose someone to reach out to',
-        JourneyStage.plan: 'Write one next step',
-        JourneyStage.reflect: 'Notice what helped',
-      };
-      final actions = JourneyStage.values
-          .map(
-            (stage) => PlanAction(
-              id: _newId(),
-              stage: stage,
-              title: titles[stage]!,
-              done: false,
-            ),
-          )
-          .toList();
+      final simpleWords = current.readingStyle == ReadingStyle.simple;
+      final actions = [
+        for (final step in steps)
+          PlanAction(
+            id: _newId(),
+            stage: step.stage,
+            title: step.text(simpleWords: simpleWords),
+          ),
+      ];
       final event = SupportEvent(
         id: eventId,
         title: cleanTitle,
         description: description.trim(),
+        guidanceContext: guidanceContext,
         createdAt: DateTime.now().toUtc(),
         completedAt: null,
         actions: actions,
@@ -171,15 +180,23 @@ class AppController extends ChangeNotifier {
     return current.copyWith(activeEventId: id);
   });
 
-  Future<void> updateEvent(String id, String title, String description) {
+  Future<void> updateEvent(
+    String id,
+    String title,
+    String description, {
+    GuidanceContext? guidanceContext,
+  }) {
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) {
       return Future.error(ArgumentError('Give this event a title.'));
     }
     return _editEvent(
       id,
-      (event) =>
-          event.copyWith(title: cleanTitle, description: description.trim()),
+      (event) => event.copyWith(
+        title: cleanTitle,
+        description: description.trim(),
+        guidanceContext: guidanceContext,
+      ),
     );
   }
 
@@ -226,6 +243,36 @@ class AppController extends ChangeNotifier {
         ],
       ),
     );
+  }
+
+  Future<void> addStarterActions(String eventId, List<String> starterStepIds) {
+    final requestedIds = List<String>.of(starterStepIds);
+    return _mutate((current) {
+      final event = _requireEvent(current, eventId);
+      // Resolve every ID against the event at this queued commit before adding
+      // any action, so stale-guide or invalid batches cannot partially save.
+      final steps = resolveStarterSteps(event.guidanceContext, requestedIds);
+      final simpleWords = current.readingStyle == ReadingStyle.simple;
+      final actions = [...event.actions];
+      for (final step in steps) {
+        if (actions.any(step.matchesAction)) continue;
+        actions.add(
+          PlanAction(
+            id: _newId(),
+            stage: step.stage,
+            title: step.text(simpleWords: simpleWords),
+          ),
+        );
+      }
+      return current.copyWith(
+        events: [
+          for (final currentEvent in current.events)
+            currentEvent.id == eventId
+                ? event.copyWith(actions: actions)
+                : currentEvent,
+        ],
+      );
+    });
   }
 
   Future<void> renameAction(String eventId, String actionId, String title) {

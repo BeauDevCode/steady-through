@@ -1,4 +1,7 @@
 import '../learning/learning_data.dart';
+import 'guidance_context.dart';
+
+export 'guidance_context.dart';
 
 /// The versioned, offline data document used by Steady Through.
 ///
@@ -65,6 +68,7 @@ class SupportEvent {
     this.description = '',
     required this.createdAt,
     this.completedAt,
+    this.guidanceContext = GuidanceContext.general,
     List<PlanAction> actions = const [],
   }) : actions = List<PlanAction>.unmodifiable(actions) {
     _requireText(id, 'event.id');
@@ -80,6 +84,7 @@ class SupportEvent {
   final String description;
   final DateTime createdAt;
   final DateTime? completedAt;
+  final GuidanceContext guidanceContext;
   final List<PlanAction> actions;
 
   /// The next unfinished action in path order, retaining order within a stage.
@@ -93,12 +98,19 @@ class SupportEvent {
     return null;
   }
 
-  factory SupportEvent.fromJson(Map<String, dynamic> json) {
+  factory SupportEvent.fromJson(
+    Map<String, dynamic> json, {
+    bool allowGuidance = true,
+  }) {
     _checkKeys(
       json,
       'event',
       {'id', 'title', 'createdAt', 'actions'},
-      optional: {'description', 'completedAt'},
+      optional: {
+        'description',
+        'completedAt',
+        if (allowGuidance) 'guidanceContext',
+      },
     );
     return SupportEvent(
       id: _text(json['id'], 'event.id'),
@@ -108,6 +120,13 @@ class SupportEvent {
           : '',
       createdAt: _date(json['createdAt'], 'event.createdAt'),
       completedAt: _optionalDate(json['completedAt'], 'event.completedAt'),
+      guidanceContext: json.containsKey('guidanceContext')
+          ? _choice(
+              json['guidanceContext'],
+              GuidanceContext.values,
+              'event.guidanceContext',
+            )
+          : GuidanceContext.general,
       actions: _objects(json['actions'], 'event.actions', PlanAction.fromJson),
     );
   }
@@ -118,6 +137,7 @@ class SupportEvent {
     'description': description,
     'createdAt': createdAt.toIso8601String(),
     'completedAt': completedAt?.toIso8601String(),
+    'guidanceContext': guidanceContext.name,
     'actions': actions.map((action) => action.toJson()).toList(),
   };
 
@@ -129,6 +149,7 @@ class SupportEvent {
     DateTime? completedAt,
     bool clearCompletedAt = false,
     List<PlanAction>? actions,
+    GuidanceContext? guidanceContext,
   }) => SupportEvent(
     id: id ?? this.id,
     title: title ?? this.title,
@@ -136,6 +157,7 @@ class SupportEvent {
     createdAt: createdAt ?? this.createdAt,
     completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
     actions: actions ?? this.actions,
+    guidanceContext: guidanceContext ?? this.guidanceContext,
   );
 }
 
@@ -367,7 +389,7 @@ class AppData {
 
   factory AppData.fromJson(Map<String, dynamic> json) {
     final version = json['version'];
-    if (version is! int || (version != 1 && version != 2)) {
+    if (version is! int || (version != 1 && version != 2 && version != 3)) {
       throw const FormatException('Unsupported data version');
     }
     _checkKeys(json, 'appData', {
@@ -379,17 +401,22 @@ class AppData {
       'gameRounds',
       'theme',
       'readingStyle',
-      if (version == 2) 'learning',
+      if (version >= 2) 'learning',
     });
     final learningJson = json['learning'];
-    if (version == 2 && learningJson is! Map<String, dynamic>) {
+    if (version >= 2 && learningJson is! Map<String, dynamic>) {
       throw const FormatException('learning must be an object');
     }
     return AppData(
       learning: version == 1
           ? LearningData()
           : LearningData.fromJson(learningJson as Map<String, dynamic>),
-      events: _objects(json['events'], 'events', SupportEvent.fromJson),
+      events: _objects(json['events'], 'events', (eventJson) {
+        if (version == 3 && !eventJson.containsKey('guidanceContext')) {
+          throw const FormatException('event is missing guidanceContext');
+        }
+        return SupportEvent.fromJson(eventJson, allowGuidance: version == 3);
+      }),
       activeEventId: _optionalString(json['activeEventId'], 'activeEventId'),
       people: _objects(json['people'], 'people', TrustedPerson.fromJson),
       checkIns: _objects(json['checkIns'], 'checkIns', CheckIn.fromJson),
@@ -408,7 +435,7 @@ class AppData {
   }
 
   Map<String, dynamic> toJson() => {
-    'version': 2,
+    'version': 3,
     'learning': learning.toJson(),
     'events': events.map((event) => event.toJson()).toList(),
     'activeEventId': activeEventId,

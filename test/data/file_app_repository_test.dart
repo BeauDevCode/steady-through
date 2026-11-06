@@ -31,6 +31,37 @@ void main() {
     expect(reloaded.theme, ThemeChoice.dark);
   });
 
+  test(
+    'context and exact stored action titles survive repository round-trip',
+    () async {
+      final original = AppData(
+        events: [
+          SupportEvent(
+            id: 'fictional-event',
+            title: 'Fictional caring event',
+            createdAt: DateTime.utc(2026, 11, 6),
+            guidanceContext: GuidanceContext.caregiving,
+            actions: [
+              PlanAction(
+                id: 'fictional-action',
+                stage: JourneyStage.plan,
+                title: 'Fictional personally written action',
+                done: true,
+              ),
+            ],
+          ),
+        ],
+      );
+      await repository.save(original);
+      final reloaded = await FileAppRepository(temp).load();
+      expect(
+        reloaded.events.single.guidanceContext,
+        GuidanceContext.caregiving,
+      );
+      expect(reloaded.toJson(), original.toJson());
+    },
+  );
+
   test('invalid JSON is reported and left untouched', () async {
     final file = File('${temp.path}/steady-through.json');
     await file.writeAsString('{not json');
@@ -46,7 +77,7 @@ void main() {
     final file = File('${temp.path}/steady-through.json');
     final json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
     expect(json['theme'], 'dark');
-    expect(json['version'], 2);
+    expect(json['version'], 3);
     expect(await FileAppRepository(temp).load(), isA<AppData>());
   });
 
