@@ -269,6 +269,7 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
                 child: Center(
                   child: Icon(
                     Icons.lock_outline_rounded,
+                    textDirection: TextDirection.ltr,
                     color: Color(0xFFA6D7C1),
                     size: 48,
                   ),

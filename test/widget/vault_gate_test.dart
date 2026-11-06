@@ -2,10 +2,24 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:steady_through/app/steady_through_app.dart';
 import 'package:steady_through/app/vault_gate.dart';
 import 'package:steady_through/data/vault_store.dart';
 import 'package:steady_through/features/vault/vault_unlock_screen.dart';
+
+class _PreparedSessionStore extends VaultStore {
+  _PreparedSessionStore(super.root, this.session);
+
+  final VaultSession session;
+
+  @override
+  Future<bool> hasVault() async => true;
+
+  @override
+  Future<VaultSession> unlock(String passphrase) async => session;
+}
 
 class _ControlledStore extends VaultStore {
   _ControlledStore() : super(Directory.systemTemp);
@@ -86,6 +100,68 @@ class _InterruptedCreation extends VaultStore {
 }
 
 void main() {
+  testWidgets('inactive unlocked vault displays its privacy cover safely', (
+    tester,
+  ) async {
+    const channel = MethodChannel('steady_through/device_signals');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      switch (call.method) {
+        case 'capabilities':
+          return <String, Object?>{
+            'usageSupported': false,
+            'motionSupported': false,
+            'platformNote': 'Synthetic unavailable sources',
+          };
+        case 'stop':
+          return null;
+        default:
+          throw StateError('Unexpected native request: ${call.method}');
+      }
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    final directory = (await tester.runAsync(
+      () => Directory.systemTemp.createTemp('steady-gate-cover-'),
+    ))!;
+    VaultSession? session;
+    SteadyThroughApp? app;
+    try {
+      session = (await tester.runAsync(
+        () => VaultStore(directory).create('Fictional cover river garden'),
+      ))!;
+      await _mountGate(tester, _PreparedSessionStore(directory, session));
+      final screen = tester.widget<VaultUnlockScreen>(
+        find.byType(VaultUnlockScreen),
+      );
+      await tester.runAsync(
+        () => screen.onSubmit('Fictional cover river garden'),
+      );
+      await tester.pumpAndSettle();
+      app = tester.widget<SteadyThroughApp>(find.byType(SteadyThroughApp));
+      expect(tester.takeException(), isNull);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.byIcon(Icons.lock_outline_rounded), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.lock_outline_rounded), findsNothing);
+      expect(tester.takeException(), isNull);
+    } finally {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.runAsync(() async {
+        await app?.learningSession?.close();
+        await app?.controller.flush();
+        session?.close();
+        await directory.delete(recursive: true);
+      });
+    }
+  });
+
   testWidgets('pending deletion blocks unlock and shows progress', (
     tester,
   ) async {

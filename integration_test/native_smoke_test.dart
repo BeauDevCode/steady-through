@@ -69,6 +69,12 @@ class _ObservedVaultStore extends VaultStore {
 }
 
 Future<void> _lockThroughMore(WidgetTester tester) async {
+  await _until(
+    tester,
+    () => find.text('More').hitTestable().evaluate().isNotEmpty,
+    reason: 'unlocked app becomes interactive',
+    diagnostics: () => 'lifecycle=${WidgetsBinding.instance.lifecycleState}',
+  );
   await tester.tap(find.text('More').first);
   await tester.pumpAndSettle();
   final lock = find.widgetWithText(TextButton, 'Lock vault');
@@ -125,6 +131,7 @@ class _OwnedBackupGateway implements DataPortabilityGateway {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized().defaultTestTimeout =
       const Timeout(Duration(minutes: 5));
+  WidgetController.hitTestWarningShouldBeFatal = true;
 
   testWidgets('native bridge remains paused without source consent', (
     tester,
@@ -209,6 +216,18 @@ void main() {
           () => find.byType(SteadyThroughApp).evaluate().isNotEmpty,
           reason: 'real KDF and encrypted vault creation',
         );
+        await _until(
+          tester,
+          () => find
+              .widgetWithText(FilledButton, 'Create event')
+              .hitTestable()
+              .evaluate()
+              .isNotEmpty,
+          reason:
+              'new app becomes interactive after native lifecycle transitions',
+          diagnostics: () =>
+              'lifecycle=${WidgetsBinding.instance.lifecycleState}',
+        );
         await tester.tap(find.widgetWithText(FilledButton, 'Create event'));
         await tester.pumpAndSettle();
         await tester.enterText(
@@ -261,6 +280,12 @@ void main() {
           reason: 'wrong passphrase stays locked',
         );
         expect(find.byType(SteadyThroughApp), findsNothing);
+        // The integration binding does not register the mock IME. After the
+        // app unfocuses on submit, showKeyboard's cached EditableText can be
+        // unchanged even though the real input connection closed. Refocus by
+        // the same visible interaction a person uses before typing a retry.
+        await tester.ensureVisible(find.byType(TextFormField));
+        await tester.tap(find.byType(TextFormField));
         await tester.enterText(find.byType(TextFormField), _vaultPassphrase);
         await tester.pumpAndSettle();
         final unlockButton = find.widgetWithText(FilledButton, 'Unlock vault');
