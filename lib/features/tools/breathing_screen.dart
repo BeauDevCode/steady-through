@@ -105,6 +105,7 @@ class _BreathingScreenState extends State<BreathingScreen>
               label: const Text('Back to Tools'),
             ),
             HelpNowButton(
+              controller: widget.controller,
               onOpen: _pausePace,
               openHelp: widget.onOpenHelp,
               simpleWords: simple,

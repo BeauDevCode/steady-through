@@ -40,6 +40,52 @@ void main() {
   });
   tearDown(() => controller.dispose());
 
+  testWidgets(
+    'every standalone tool Help fallback receives the current trusted people',
+    (tester) async {
+      await tester.runAsync(
+        () => controller.addPerson('Fictional fallback helper', ''),
+      );
+      final bodies = <Widget>[
+        ToolsScreen(controller: controller),
+        GroundingScreen(controller: controller),
+        BreathingScreen(controller: controller),
+        PathGameScreen(controller: controller),
+      ];
+      for (var index = 0; index < bodies.length; index++) {
+        await tester.pumpWidget(
+          MaterialApp(
+            key: ValueKey(index),
+            home: Scaffold(body: bodies[index]),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (index == 2) {
+          await tester.tap(find.text('Start pace'));
+          await tester.pump();
+        }
+        await tester.tap(find.text('Help now'));
+        await tester.pumpAndSettle();
+        expect(
+          tester.widget<HelpScreen>(find.byType(HelpScreen)).controller,
+          same(controller),
+        );
+        await tester.scrollUntilVisible(
+          find.text('Fictional fallback helper'),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text('Fictional fallback helper'), findsOneWidget);
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Back'));
+        await tester.pumpAndSettle();
+        if (index == 2) expect(find.text('Start pace'), findsOneWidget);
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
   Future<void> openTools(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(

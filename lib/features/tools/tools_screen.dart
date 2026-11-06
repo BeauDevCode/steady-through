@@ -43,7 +43,11 @@ class ToolsScreen extends StatelessWidget {
         if (showHelpNow) ...[
           Align(
             alignment: Alignment.centerLeft,
-            child: HelpNowButton(simpleWords: simple, openHelp: onOpenHelp),
+            child: HelpNowButton(
+              controller: controller,
+              simpleWords: simple,
+              openHelp: onOpenHelp,
+            ),
           ),
           const SizedBox(height: 20),
         ],

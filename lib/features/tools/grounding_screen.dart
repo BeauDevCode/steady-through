@@ -69,7 +69,11 @@ class _GroundingScreenState extends State<GroundingScreen> {
               icon: const Icon(Icons.arrow_back),
               label: Text(widget.backLabel),
             ),
-            HelpNowButton(simpleWords: simple, openHelp: widget.onOpenHelp),
+            HelpNowButton(
+              controller: widget.controller,
+              simpleWords: simple,
+              openHelp: widget.onOpenHelp,
+            ),
           ],
         ),
         const SizedBox(height: 24),

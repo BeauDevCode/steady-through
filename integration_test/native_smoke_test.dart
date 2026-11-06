@@ -380,6 +380,8 @@ void main() {
       final controller = AppController(session.repository, session.initialData);
       late Map<String, dynamic> eventSnapshot;
       late Map<String, dynamic> ratingsSnapshot;
+      late List<Map<String, dynamic>> peopleSnapshot;
+      late String personId;
       late String originalId;
       try {
         await controller.setTheme(ThemeChoice.dark);
@@ -398,7 +400,13 @@ void main() {
           editedActionId,
           'Arrange fictional Tuesday cover',
         );
-        await controller.setActionDone(originalId, editedActionId, true);
+        await controller.setFocusedActionDone(
+          originalId,
+          editedActionId,
+          true,
+          expected: controller.activeEvent!.actions.first,
+          expectedRevision: controller.replacementRevision,
+        );
         await controller.addAction(
           originalId,
           JourneyStage.reflect,
@@ -421,6 +429,21 @@ void main() {
         );
         ratingsSnapshot = controller.data.toolFeedback.toJson();
         expect(controller.data.toolFeedback.ratings, hasLength(6));
+        await controller.addPerson('Fictional support helper', '202-555-0126');
+        await controller.addPerson('Fictional other helper', '202-555-0146');
+        final originalPerson = controller.data.people.first;
+        personId = originalPerson.id;
+        await controller.updatePerson(
+          personId,
+          'Edited fictional helper',
+          '  ',
+          expected: originalPerson,
+          expectedRevision: controller.replacementRevision,
+        );
+        peopleSnapshot = controller.data.people.map((p) => p.toJson()).toList();
+        expect(controller.data.people.first.id, personId);
+        expect(controller.data.people.first.phone, isNull);
+
         expect(controller.data.learning.enabledSources, isEmpty);
         expect(controller.data.learning.deviceOwnerConfirmed, isFalse);
         final file = File('${directory.path}/backup.steady');
@@ -437,6 +460,17 @@ void main() {
           isNot(contains('Fictional backup event')),
         );
         expect(await file.readAsString(), isNot(contains('toolFeedback')));
+        expect(
+          await file.readAsString(),
+          isNot(contains('Edited fictional helper')),
+        );
+        await controller.updatePerson(
+          personId,
+          'Later fictional change',
+          '202-555-0191',
+          expected: controller.data.people.first,
+          expectedRevision: controller.replacementRevision,
+        );
         await controller.clearToolFeedback(
           expectedRevision: controller.replacementRevision,
         );
@@ -462,6 +496,10 @@ void main() {
             requestPassphrase: () async => _exportPassphrase,
             confirm: (replacement) async {
               expect(replacement.events.single.toJson(), eventSnapshot);
+              expect(
+                replacement.people.map((p) => p.toJson()).toList(),
+                peopleSnapshot,
+              );
               expect(replacement.toolFeedback.toJson(), ratingsSnapshot);
               return true;
             },
@@ -472,6 +510,10 @@ void main() {
         expect(controller.data.activeEventId, originalId);
         expect(controller.data.events.single.toJson(), eventSnapshot);
         expect(controller.data.events.single.actions, hasLength(3));
+        expect(
+          controller.data.people.map((p) => p.toJson()).toList(),
+          peopleSnapshot,
+        );
         expect(controller.data.toolFeedback.toJson(), ratingsSnapshot);
         expect(controller.data.theme, ThemeChoice.dark);
         expect(controller.data.readingStyle, ReadingStyle.simple);
@@ -485,6 +527,11 @@ void main() {
       final restored = await store.unlock(_vaultPassphrase);
       try {
         expect(restored.initialData.events.single.toJson(), eventSnapshot);
+        expect(
+          restored.initialData.people.map((p) => p.toJson()).toList(),
+          peopleSnapshot,
+        );
+        expect(restored.initialData.people.first.id, personId);
         expect(restored.initialData.toolFeedback.toJson(), ratingsSnapshot);
         expect(restored.initialData.activeEventId, originalId);
         expect(restored.initialData.theme, ThemeChoice.dark);

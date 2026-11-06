@@ -180,7 +180,11 @@ class _PathGameScreenState extends State<PathGameScreen> {
               icon: const Icon(Icons.arrow_back),
               label: const Text('Back to Tools'),
             ),
-            HelpNowButton(simpleWords: simple, openHelp: widget.onOpenHelp),
+            HelpNowButton(
+              controller: widget.controller,
+              simpleWords: simple,
+              openHelp: widget.onOpenHelp,
+            ),
           ],
         ),
         const SizedBox(height: 24),

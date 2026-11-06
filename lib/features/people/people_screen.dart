@@ -1,33 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
 import 'package:steady_through/ui/steady_ui.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-abstract class PhoneActions {
-  Future<bool> openPhone(String number);
-  Future<bool> openSms(String number);
-}
+import 'person_card.dart';
+import 'person_form_dialog.dart';
+import 'phone_actions.dart';
 
-class UrlLauncherPhoneActions implements PhoneActions {
-  const UrlLauncherPhoneActions();
-
-  Future<bool> _open(String scheme, String number) async {
-    try {
-      final uri = Uri(scheme: scheme, path: number);
-      return await launchUrl(uri);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  @override
-  Future<bool> openPhone(String number) => _open('tel', number);
-
-  @override
-  Future<bool> openSms(String number) => _open('sms', number);
-}
+// Preserve the original public handoff seam for existing clients and tests.
+export 'phone_actions.dart';
 
 class PeopleScreen extends StatelessWidget {
   const PeopleScreen({
@@ -35,7 +16,6 @@ class PeopleScreen extends StatelessWidget {
     required this.controller,
     this.phoneActions = const UrlLauncherPhoneActions(),
   });
-
   final AppController controller;
   final PhoneActions phoneActions;
 
@@ -57,7 +37,8 @@ class PeopleScreen extends StatelessWidget {
                 ? 'Save people you trust. Their numbers stay on this device.'
                 : 'Keep the names and phone numbers of people you trust. Numbers are entered by you and stay on this device.',
             action: FilledButton.icon(
-              onPressed: () => _addPerson(context),
+              onPressed: () => showPersonForm(context, controller),
+              style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
               icon: const Icon(Icons.person_add_outlined),
               label: const Text('Add person'),
             ),
@@ -105,7 +86,12 @@ class PeopleScreen extends StatelessWidget {
                     for (final person in people)
                       SizedBox(
                         width: width,
-                        child: _personCard(context, person),
+                        child: PersonCard(
+                          key: ValueKey(person.id),
+                          controller: controller,
+                          person: person,
+                          phoneActions: phoneActions,
+                        ),
                       ),
                   ],
                 );
@@ -135,201 +121,4 @@ class PeopleScreen extends StatelessWidget {
       );
     },
   );
-
-  Widget _personCard(BuildContext context, TrustedPerson person) {
-    final phone = person.phone?.trim() ?? '';
-    final colors = Theme.of(context).colorScheme;
-    return SurfaceCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const IconBadge(icon: Icons.person_outline, size: 44),
-              const Spacer(),
-              IconButton(
-                tooltip: 'Remove ${person.name}',
-                icon: const Icon(Icons.delete_outline),
-                onPressed: () => _removePerson(context, person),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(person.name, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 6),
-          Text(
-            phone.isEmpty ? 'No phone number saved' : phone,
-            style: Theme.of(context).textTheme.bodyLarge
-                ?.copyWith(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              if (phone.isNotEmpty) ...[
-                Tooltip(
-                  message: 'Call ${person.name}',
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.call_outlined, size: 18),
-                    label: const Text('Call'),
-                    onPressed: () =>
-                        _open(context, phone, phoneActions.openPhone, 'phone'),
-                  ),
-                ),
-                Tooltip(
-                  message: 'Text ${person.name}',
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.sms_outlined, size: 18),
-                    label: const Text('Text'),
-                    onPressed: () =>
-                        _open(context, phone, phoneActions.openSms, 'text'),
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Copy ${person.name}’s number',
-                  icon: const Icon(Icons.copy_outlined),
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: phone));
-                    if (context.mounted) _message(context, 'Number copied.');
-                  },
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _open(
-    BuildContext context,
-    String phone,
-    Future<bool> Function(String) open,
-    String kind,
-  ) async {
-    final opened = await open(phone);
-    if (!context.mounted || opened) return;
-    _message(
-      context,
-      'Could not open a $kind app. You can copy the visible number.',
-    );
-  }
-
-  Future<void> _addPerson(BuildContext context) async {
-    final formKey = GlobalKey<FormState>();
-    var name = '';
-    var phone = '';
-    var saving = false;
-    String? saveError;
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: const Text('Add person'),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Name'),
-                    textCapitalization: TextCapitalization.words,
-                    onChanged: (value) => name = value,
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? 'Enter a name.'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Phone number (optional)',
-                    ),
-                    keyboardType: TextInputType.phone,
-                    onChanged: (value) => phone = value,
-                  ),
-                  if (saveError != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      saveError!,
-                      style: TextStyle(
-                        color: Theme.of(dialogContext).colorScheme.error,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: saving ? null : () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: saving
-                  ? null
-                  : () async {
-                      if (!formKey.currentState!.validate()) return;
-                      setDialogState(() {
-                        saving = true;
-                        saveError = null;
-                      });
-                      try {
-                        await controller.addPerson(name, phone);
-                        if (dialogContext.mounted) Navigator.pop(dialogContext);
-                      } catch (_) {
-                        if (dialogContext.mounted) {
-                          setDialogState(() {
-                            saving = false;
-                            saveError =
-                                'Could not save this person. Please try again.';
-                          });
-                        }
-                      }
-                    },
-              child: const Text('Save person'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _removePerson(BuildContext context, TrustedPerson person) async {
-    final remove = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Remove person?'),
-        content: Text('Remove ${person.name} from your saved people?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Keep person'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Remove person'),
-          ),
-        ],
-      ),
-    );
-    if (remove == true) {
-      try {
-        await controller.deletePerson(person.id);
-      } catch (_) {
-        if (context.mounted) {
-          _message(context, 'Could not remove this person. Please try again.');
-        }
-      }
-    }
-  }
-
-  void _message(BuildContext context, String message) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(SnackBar(content: Text(message)));
-  }
 }

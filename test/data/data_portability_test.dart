@@ -145,7 +145,13 @@ void main() {
       editedActionId,
       'Arrange fictional Tuesday cover',
     );
-    await controller.setActionDone(originalId, editedActionId, true);
+    await controller.setFocusedActionDone(
+      originalId,
+      editedActionId,
+      true,
+      expected: controller.activeEvent!.actions.first,
+      expectedRevision: controller.replacementRevision,
+    );
     await controller.addAction(
       originalId,
       JourneyStage.reflect,
@@ -171,12 +177,28 @@ void main() {
       expectedRevision: 0,
     );
     final feedbackSnapshot = controller.data.toolFeedback.toJson();
+    await controller.addPerson('Fictional support helper', '202-555-0126');
+    await controller.addPerson('Fictional other helper', '202-555-0146');
+    final originalPerson = controller.data.people.first;
+    await controller.updatePerson(
+      originalPerson.id,
+      'Edited fictional helper',
+      '  ',
+      expected: originalPerson,
+      expectedRevision: controller.replacementRevision,
+    );
+    final peopleSnapshot = controller.data.people
+        .map((person) => person.toJson())
+        .toList();
+    expect(controller.data.people.first.id, originalPerson.id);
+    expect(controller.data.people.first.phone, isNull);
 
     await portability.exportData(passphrase: 'a separate export passphrase');
     final exported = await VaultCodec.decryptDocument(
       gateway.savedBytes!,
       'a separate export passphrase',
     );
+    expect(exported.people.map((p) => p.toJson()).toList(), peopleSnapshot);
     expect(exported.toolFeedback.toJson(), feedbackSnapshot);
     expect(exported.events.single.toJson(), eventSnapshot);
     expect(exported.theme, ThemeChoice.dark);
@@ -186,6 +208,13 @@ void main() {
     expect(exported.learning.pausedByUser, isTrue);
 
     await controller.createEvent('Fictional later event', 'Replace on import');
+    await controller.updatePerson(
+      originalPerson.id,
+      'Later fictional change',
+      '202-555-0191',
+      expected: controller.data.people.first,
+      expectedRevision: controller.replacementRevision,
+    );
     gateway.picked = gateway.savedBytes;
     var confirmations = 0;
     expect(
@@ -193,6 +222,10 @@ void main() {
         requestPassphrase: () async => 'a separate export passphrase',
         confirm: (replacement) async {
           confirmations++;
+          expect(
+            replacement.people.map((p) => p.toJson()).toList(),
+            peopleSnapshot,
+          );
           expect(replacement.toolFeedback.toJson(), feedbackSnapshot);
           expect(replacement.events.single.toJson(), eventSnapshot);
           expect(
@@ -207,6 +240,10 @@ void main() {
     );
 
     expect(confirmations, 1);
+    expect(
+      controller.data.people.map((p) => p.toJson()).toList(),
+      peopleSnapshot,
+    );
     expect(controller.data.toolFeedback.toJson(), feedbackSnapshot);
     expect(controller.data.events, hasLength(1));
     expect(controller.data.activeEventId, originalId);
@@ -223,6 +260,10 @@ void main() {
     expect(repository.value.toJson(), controller.data.toJson());
 
     await controller.clearLearning();
+    expect(
+      controller.data.people.map((p) => p.toJson()).toList(),
+      peopleSnapshot,
+    );
     expect(controller.data.toolFeedback.toJson(), feedbackSnapshot);
     expect(controller.activeEvent!.toJson(), eventSnapshot);
     expect(controller.data.activeEventId, originalId);

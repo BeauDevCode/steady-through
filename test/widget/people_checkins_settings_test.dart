@@ -122,7 +122,7 @@ void main() {
       ' Alex ',
     );
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Phone number (optional)'),
+      find.byKey(const ValueKey('person-phone-field')),
       '555-0100',
     );
     await tester.tap(find.text('Save person'));

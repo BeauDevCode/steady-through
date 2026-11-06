@@ -470,25 +470,131 @@ class AppController extends ChangeNotifier {
     throw ArgumentError.value(id, 'eventId', 'Unknown event');
   }
 
-  Future<void> addPerson(String name, String phone) {
-    final cleanName = name.trim();
-    if (cleanName.isEmpty) return Future.error(ArgumentError('Enter a name.'));
-    return _mutate(
-      (current) => current.copyWith(
-        people: [
-          ...current.people,
-          TrustedPerson(id: _newId(), name: cleanName, phone: phone.trim()),
-        ],
-      ),
-    );
+  void _guardOwnership(int? expectedRevision, bool Function()? isActive) {
+    if (_disposed ||
+        (expectedRevision != null &&
+            expectedRevision != _replacementRevision) ||
+        (isActive != null && !isActive())) {
+      throw StateError('This view changed. Open it again before saving.');
+    }
   }
 
-  Future<void> deletePerson(String id) => _mutate((current) {
+  TrustedPerson _expectPerson(
+    AppData current,
+    String id,
+    TrustedPerson expected,
+  ) {
+    for (final person in current.people) {
+      if (person.id == id && identical(person, expected)) return person;
+    }
+    throw StateError('This person changed. Review them before making changes.');
+  }
+
+  Future<void> addPerson(
+    String name,
+    String phone, {
+    int? expectedRevision,
+    bool Function()? isActive,
+  }) {
+    final cleanName = name.trim();
+    if (cleanName.isEmpty) return Future.error(ArgumentError('Enter a name.'));
+    return _mutate((current) {
+      _guardOwnership(expectedRevision, isActive);
+      return current.copyWith(
+        people: [
+          ...current.people,
+          TrustedPerson(
+            id: _newId(),
+            name: cleanName,
+            phone: phone.trim().isEmpty ? null : phone.trim(),
+          ),
+        ],
+      );
+    });
+  }
+
+  Future<void> updatePerson(
+    String id,
+    String name,
+    String phone, {
+    required TrustedPerson expected,
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) {
+    final cleanName = name.trim(), cleanPhone = phone.trim();
+    if (cleanName.isEmpty) return Future.error(ArgumentError('Enter a name.'));
+    return _mutate((current) {
+      _guardOwnership(expectedRevision, isActive);
+      final person = _expectPerson(current, id, expected);
+      return current.copyWith(
+        people: [
+          for (final existing in current.people)
+            existing.id == id
+                ? person.copyWith(
+                    name: cleanName,
+                    phone: cleanPhone,
+                    clearPhone: cleanPhone.isEmpty,
+                  )
+                : existing,
+        ],
+      );
+    }, purgeResidual: true);
+  }
+
+  Future<void> deletePerson(
+    String id, {
+    TrustedPerson? expected,
+    int? expectedRevision,
+    bool Function()? isActive,
+  }) => _mutate((current) {
+    _guardOwnership(expectedRevision, isActive);
+    if (expected != null) _expectPerson(current, id, expected);
     if (!current.people.any((person) => person.id == id)) {
       throw ArgumentError.value(id, 'personId', 'Unknown person');
     }
     return current.copyWith(
       people: current.people.where((person) => person.id != id).toList(),
+    );
+  }, purgeResidual: true);
+
+  Future<void> setFocusedActionDone(
+    String eventId,
+    String actionId,
+    bool done, {
+    required PlanAction expected,
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) => _mutate((current) {
+    _guardOwnership(expectedRevision, isActive);
+    SupportEvent? target;
+    for (final event in current.events) {
+      if (event.id == eventId) target = event;
+    }
+    if (target == null ||
+        current.activeEventId != eventId ||
+        target.completedAt != null ||
+        !target.actions.any(
+          (action) => action.id == actionId && identical(action, expected),
+        )) {
+      throw StateError(
+        'This step changed. Open your current path to continue.',
+      );
+    }
+    final event = target;
+    return current.copyWith(
+      events: [
+        for (final existing in current.events)
+          existing.id == eventId
+              ? event.copyWith(
+                  actions: [
+                    for (final action in event.actions)
+                      action.id == actionId
+                          ? action.copyWith(done: done)
+                          : action,
+                  ],
+                )
+              : existing,
+      ],
     );
   });
 

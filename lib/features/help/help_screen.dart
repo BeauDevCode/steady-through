@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:steady_through/ui/steady_ui.dart';
+import 'package:steady_through/app/app_controller.dart';
+import 'package:steady_through/features/people/phone_actions.dart';
+import 'package:steady_through/features/people/trusted_people_section.dart';
 
 /// A route action that also works when a tool is opened above the app shell.
 class HelpNowButton extends StatelessWidget {
@@ -10,11 +13,13 @@ class HelpNowButton extends StatelessWidget {
     this.onOpen,
     this.openHelp,
     this.simpleWords = false,
+    this.controller,
   });
 
   final VoidCallback? onOpen;
   final VoidCallback? openHelp;
   final bool simpleWords;
+  final AppController? controller;
 
   @override
   Widget build(BuildContext context) => TextButton.icon(
@@ -26,7 +31,9 @@ class HelpNowButton extends StatelessWidget {
       }
       Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => Scaffold(body: HelpScreen(simpleWords: simpleWords)),
+          builder: (_) => Scaffold(
+            body: HelpScreen(simpleWords: simpleWords, controller: controller),
+          ),
         ),
       );
     },
@@ -37,9 +44,16 @@ class HelpNowButton extends StatelessWidget {
 
 /// General help information. The app shell or a tool route supplies a Scaffold.
 class HelpScreen extends StatelessWidget {
-  const HelpScreen({super.key, this.simpleWords = false});
+  const HelpScreen({
+    super.key,
+    this.simpleWords = false,
+    this.controller,
+    this.phoneActions = const UrlLauncherPhoneActions(),
+  });
 
   final bool simpleWords;
+  final AppController? controller;
+  final PhoneActions phoneActions;
 
   Future<void> _openNumber(BuildContext context, String scheme) async {
     final uri = Uri(scheme: scheme, path: '988');
@@ -141,6 +155,11 @@ class HelpScreen extends StatelessWidget {
               : 'Use your local crisis service or local emergency number.',
         ),
       ),
+      if (controller != null)
+        TrustedPeopleSection(
+          controller: controller!,
+          phoneActions: phoneActions,
+        ),
       _helpCard(
         context,
         title: 'More support',

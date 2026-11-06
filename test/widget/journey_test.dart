@@ -34,6 +34,100 @@ void main() {
   });
   tearDown(() => controller.dispose());
 
+  testWidgets(
+    'Home opens only its exact next action and returns with next pending step',
+    (tester) async {
+      await tester.runAsync(() async {
+        await controller.createEvent(
+          'Fictional focused event',
+          '',
+          starterStepIds: [],
+        );
+        await controller.addAction(
+          controller.activeEvent!.id,
+          JourneyStage.plan,
+          'Call fictional helper later',
+        );
+        await controller.addAction(
+          controller.activeEvent!.id,
+          JourneyStage.reflect,
+          'Write one detail',
+        );
+      });
+      await tester.pumpWidget(SteadyThroughApp(controller: controller));
+      await tester.ensureVisible(find.text('Go to this step'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Go to this step'));
+      await tester.pumpAndSettle();
+      expect(find.text('Your next step'), findsOneWidget);
+      expect(find.text('Call fictional helper later'), findsOneWidget);
+      expect(find.text('Write one detail'), findsNothing);
+      expect(controller.activeEvent!.actions.first.done, isFalse);
+      await tester.ensureVisible(find.text('Mark step done'));
+      await tester.tap(find.text('Mark step done'));
+      await _settleWrite(tester);
+      expect(controller.activeEvent!.actions.first.done, isTrue);
+      expect(controller.activeEvent!.actions.last.done, isFalse);
+      await tester.ensureVisible(find.text('Back to Home'));
+      await tester.tap(find.text('Back to Home'));
+      await tester.pumpAndSettle();
+      expect(find.text('Write one detail'), findsOneWidget);
+    },
+  );
+
+  testWidgets('focused full path and Help returns retain the active event', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => controller.createEvent('Fictional navigation', ''),
+    );
+    await tester.pumpWidget(SteadyThroughApp(controller: controller));
+    await tester.ensureVisible(find.text('Go to this step'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Go to this step'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Help now').last);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Your trusted people'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Your trusted people'), findsOneWidget);
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your next step'), findsOneWidget);
+    await tester.ensureVisible(find.text('View full path'));
+    await tester.tap(find.text('View full path'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your next step'), findsNothing);
+    expect(find.text('Get oriented'), findsOneWidget);
+    expect(controller.activeEvent!.title, 'Fictional navigation');
+  });
+
+  testWidgets('Home with no pending action keeps full Path access', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => controller.createEvent(
+        'Fictional empty plan',
+        '',
+        starterStepIds: [],
+      ),
+    );
+    await tester.pumpWidget(SteadyThroughApp(controller: controller));
+    expect(find.text('Go to this step'), findsNothing);
+    expect(find.text('View path'), findsOneWidget);
+    await tester.runAsync(
+      () => controller.completeEvent(controller.activeEvent!.id, true),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Go to this step'), findsNothing);
+    expect(find.text('View path'), findsOneWidget);
+  });
+
   testWidgets('empty Home explains privacy and creates a titled event', (
     tester,
   ) async {

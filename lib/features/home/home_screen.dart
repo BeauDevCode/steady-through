@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/model/app_data.dart';
 import 'package:steady_through/model/event_guidance.dart';
+import 'package:steady_through/model/next_action_target.dart';
 import 'package:steady_through/ui/steady_ui.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -13,6 +14,7 @@ class HomeScreen extends StatelessWidget {
     required this.onOpenGrounding,
     required this.onOpenCheckIns,
     this.onOpenInsights,
+    this.onOpenNextAction,
   });
 
   final AppController controller;
@@ -21,6 +23,7 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onOpenGrounding;
   final VoidCallback onOpenCheckIns;
   final VoidCallback? onOpenInsights;
+  final ValueChanged<NextActionTarget>? onOpenNextAction;
 
   bool get _simpleWords => controller.data.readingStyle == ReadingStyle.simple;
 
@@ -301,10 +304,22 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             );
+            final canFocus =
+                event.completedAt == null &&
+                next != null &&
+                onOpenNextAction != null;
             final button = FilledButton.icon(
-              onPressed: onOpenPath,
+              onPressed: canFocus
+                  ? () => onOpenNextAction!(
+                      NextActionTarget(
+                        eventId: event.id,
+                        actionId: next.id,
+                        replacementRevision: controller.replacementRevision,
+                      ),
+                    )
+                  : onOpenPath,
               icon: const Icon(Icons.arrow_forward_rounded),
-              label: const Text('View path'),
+              label: Text(canFocus ? 'Go to this step' : 'View path'),
             );
             if (constraints.maxWidth < 600 || _largeText(context)) {
               return Column(

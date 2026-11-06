@@ -66,7 +66,7 @@ class _FeedbackDialog extends StatefulWidget {
 
 class _FeedbackDialogState extends State<_FeedbackDialog> {
   final _activity = FeedbackActivity();
-  late final int _revision = widget.controller.replacementRevision;
+  late final int _revision;
   late SupportTool _tool = widget.expected?.tool ?? SupportTool.grounding;
   late ToolRating _rating = widget.expected?.rating ?? ToolRating.helpful;
   bool _busy = false;
@@ -76,6 +76,7 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
   @override
   void initState() {
     super.initState();
+    _revision = widget.controller.replacementRevision;
     _activity.addListener(_paused);
     widget.safetySession?.addListener(_changed);
   }

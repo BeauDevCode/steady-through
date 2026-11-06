@@ -5,10 +5,12 @@ import 'package:steady_through/features/check_ins/check_ins_screen.dart';
 import 'package:steady_through/features/help/help_screen.dart';
 import 'package:steady_through/features/journey/event_form.dart';
 import 'package:steady_through/features/journey/journey_screen.dart';
+import 'package:steady_through/features/journey/focused_action_screen.dart';
 import 'package:steady_through/features/settings/settings_screen.dart';
 import 'package:steady_through/features/tools/grounding_screen.dart';
 import 'package:steady_through/features/tools/tools_screen.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/next_action_target.dart';
 import 'package:steady_through/ui/steady_theme.dart';
 import 'package:steady_through/features/insights/insights_screen.dart';
 import 'package:steady_through/learning/learning_session.dart';
@@ -199,6 +201,7 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
             Scaffold(
               appBar: AppBar(title: const Text('Help now')),
               body: HelpScreen(
+                controller: widget.controller,
                 simpleWords:
                     widget.controller.data.readingStyle == ReadingStyle.simple,
               ),
@@ -222,6 +225,22 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
     );
   }
 
+  void _openNextAction(BuildContext context, NextActionTarget target) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (routeContext) => FocusedActionScreen(
+          controller: widget.controller,
+          target: target,
+          onOpenHelp: () => _openHelp(routeContext),
+          onOpenPath: () {
+            Navigator.of(routeContext).pop();
+            _selectDestination(1);
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _body(BuildContext context) {
     void openHelp() => _openHelp(context);
     void openPathFromGame() {
@@ -235,6 +254,7 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
           controller: widget.controller,
           onCreateEvent: () => _openCreateEvent(context),
           onOpenPath: () => _selectDestination(1),
+          onOpenNextAction: (target) => _openNextAction(context, target),
           onOpenGrounding: () => _openGrounding(context),
           onOpenCheckIns: () => _selectDestination(3),
           onOpenInsights: widget.learningSession == null

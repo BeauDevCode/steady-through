@@ -335,6 +335,46 @@ void main() {
     expect(find.textContaining('Could not save'), findsOneWidget);
   });
   testWidgets(
+    'an Add rating dialog cannot write into a replacement opened before its first save',
+    (t) async {
+      await t.pumpWidget(
+        MaterialApp(home: ToolFeedbackHistory(controller: controller)),
+      );
+      await t.pumpAndSettle();
+      await tap(t, 'Add a rating');
+      await t.runAsync(() => controller.replaceData(AppData.empty()));
+      await t.pumpAndSettle();
+      await tap(t, 'Save rating');
+      expect(controller.data.toolFeedback.ratings, isEmpty);
+      expect(find.byType(AlertDialog), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'a Clear ratings dialog cannot clear a replacement opened before its first confirmation',
+    (t) async {
+      await t.runAsync(
+        () => controller.recordToolFeedback(
+          SupportTool.grounding,
+          ToolRating.helpful,
+          expectedRevision: 0,
+        ),
+      );
+      await t.pumpWidget(
+        MaterialApp(home: ToolFeedbackHistory(controller: controller)),
+      );
+      await t.pumpAndSettle();
+      await tap(t, 'Clear ratings');
+      await t.runAsync(
+        () =>
+            controller.replaceData(AppData.fromJson(controller.data.toJson())),
+      );
+      await t.pumpAndSettle();
+      await tap(t, 'Clear all ratings');
+      expect(controller.data.toolFeedback.ratings, hasLength(1));
+      expect(find.byType(AlertDialog), findsOneWidget);
+    },
+  );
+  testWidgets(
     'backgrounded dialog cannot submit a second copy after an atomic save finishes',
     (t) async {
       await t.pumpWidget(
