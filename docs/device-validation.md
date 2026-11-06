@@ -2,7 +2,7 @@
 
 This is a checklist for a future human walkthrough of Steady Through. **No checks in this guide are claimed as executed or passed.** Record
 results separately for Android, iOS, macOS, Windows, and Linux; a build or automated native smoke test is not a substitute for these
-observations. Use the source commit and build under review, not an older preview.
+observations. Use the source commit and build under review, not an older preview. The current source is **1.2.1+6**; final CI/publication are pending in [quality status](quality-status.md#current-121-preview--pending-evidence). The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
 
 ## Set up a safe test session
 
@@ -58,6 +58,17 @@ observations. Use the source commit and build under review, not an older preview
    cannot be removed; that warning means the active vault changed, not that every local copy was erased. Do not force a storage failure on a
    personal device. Confirm Clear learning keeps the guide and saved actions as well as the other event records. Exported files and OS backups require separate owner action.
 
+## Locked-vault passphrase help and preservation
+
+These are additional unexecuted checks, using only the fictional vault created above. Never reset or uninstall a real vault to demonstrate the help UI. Keep every learning source off and do not approve a permission prompt just to proceed.
+
+- Lock the fictional vault and open **Forgot your passphrase?**. Read **Help with your passphrase**: no account/server recovery; the `.steady` export passphrase is separate and does not unlock this vault; restore through **More → Settings → Import data** only after a vault can be opened; check an existing backup on another installation before discarding the locked vault; no vault passphrase or usable backup means the records cannot be recovered. The help must not discover files, request a permission, decrypt records or change the locked vault.
+- Choose **Back to unlock**; separately reopen and dismiss with Escape/Back or the modal barrier where supported. Confirm each returns to the locked screen without a reset confirmation. Unlock with the known test passphrase and confirm the fictional persistence marker, guide/steps and settings remain. Repeat after a wrong-passphrase error; opening and dismissing help must not make that error destructive or create an empty vault.
+- From help, choose **Start over…** and inspect the existing reset confirmation. Choose **Keep vault**, then unlock and confirm the same records remain. In a separate cancellation trial, enter a value other than `DELETE` and confirm reset remains unavailable; dismiss without deleting. Reset must never begin from opening/dismissing help alone. If testing actual reset, use only a separate disposable fictional vault, verify a usable test backup first, type `DELETE` explicitly and record progress/error behavior separately.
+- At 320 logical pixels/200% text, in light and dark appearance and with a keyboard visible, scroll the locked form to its help link and read the help to its final paragraph. Confirm the safe primary actions **Unlock vault** and **Back to unlock** stay reachable, the help text scrolls without clipped controls, and Start over does not gain default keyboard focus. Check Tab/Shift-Tab, Enter/Space, Escape/Back and native screen-reader reading/focus return separately. Record any overflow, obscured action, focus trap or unexpected reset prompt.
+
+Recovery render references live in `docs/screenshots/recovery-*.png`. Regenerate only synthetic captures with `flutter test --no-pub --concurrency=1 --update-goldens tool/capture_recovery_ui_test.dart`; this does not execute the manual checks above or validate a physical keyboard/VoiceOver.
+
 ## Accessibility and visual review on each platform
 
 10. Review event creation, both guide/starter pickers, Home, Path, Tools, game, Check-ins, People, Settings, vault setup/unlock, and Insights in light and dark themes, with standard and Simple words. On a narrow/mobile
@@ -109,6 +120,7 @@ App build or artifact identifier / source SHA:
 Installed via (local build, CI artifact, test distribution):
 Core flow (steps 1–6): Pass / Fail / Not run / Unavailable — notes:
 Backup and data (steps 7–9): Pass / Fail / Not run / Unavailable — notes:
+Passphrase help / dismissal / reset cancellation / preservation: Pass / Fail / Not run / Unavailable — notes:
 Visual/accessibility (steps 10–12): Pass / Fail / Not run / Unavailable — notes:
 Sources (steps 13–16): Pass / Fail / Not run / Unavailable — notes:
 Consent/grant states tested and actual reading/status:

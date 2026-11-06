@@ -1,12 +1,29 @@
 # Quality status
 
-_Life-event guidance verification: November 6, 2026 (UTC)_
+_Recovery and unsigned iPhone preview preparation: November 6, 2026 (UTC)_
 
-Steady Through **1.2.0+5** is published as **[v1.2.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.0-preview.1)**. Each event has a voluntary General, School & growing up, Adult life changes, Caring for someone, or Later life changes guide, with standard/Simple words prompts and selectable starter steps. Saved steps retain IDs, text, order and completion marks through guide/style changes. Guide choice and event text are not learning inputs; explicitly enabled in-app activity can still count ordinary taps/navigation as aggregates. Support remains free and offline with every learning source off.
+## Current 1.2.1 preview — pending evidence
+
+<!-- BEGIN 1.2.1 PENDING EVIDENCE: replace only with observed final-source/run/package/publication evidence. -->
+**Status: pending final source, seven-job CI, release verification and publication.** The source version is **1.2.1+6** and the intended prerelease is **v1.2.1-preview.1**. No final source SHA, successful new CI run, public tag, release URL or server asset hash is asserted here.
+
+| Area | Current evidence or remaining gate |
+| --- | --- |
+| Behavior and format | Locked-screen **Forgot your passphrase?** shows help only. Opening, returning from or dismissing help does not read/decrypt/replace records, discover backups or reset. Only **Start over…** delegates to the unchanged typed-`DELETE` reset/open serialization. Vault/export encryption and schema 3 are unchanged; validated v1/v2/v3 remain readable. Support remains free/offline with every source off, with no new permission, account, collection or age inference. |
+| Local validation | The controller's pre-documentation checks recorded **264 Flutter tests** and **85 Python CI-helper tests** passing. The final version/documentation source still requires formatter, analyzer, full Flutter/helper verification and final scoped/whole-branch review; the controller will replace this row with observed results. Local counts do not establish the new CI jobs passed. |
+| Recovery captures | Four capture profiles produced **11 fictional PNGs** in `docs/screenshots/recovery-*.png`: 430px light/dark mobile, 320px light at 200% text, and 1440px dark desktop, including scrolled narrow controls/help and keyboard inset. Captures use empty synthetic fields with no disk vault, learning session, grant or reset. Record final visual inspection separately; a render does not establish native accessibility. |
+| Seven-job CI | **Not yet observed for the final 1.2.1 source.** Require shared checks, all five original production builds and all three exact native cases on each original target, Android JUnit's 12 tests with zero failures/errors/skips, and the new **iPhoneOS Release (macOS, unsigned, not installable)** job. Check downloaded source/run provenance, actual reports and logs; a job label or build exit alone is insufficient. |
+| Unsigned iPhone package | Final 1.2.1 directory/archive validation is **pending**. The new job builds production `lib/main.dart`, then validates `Runner.app`, archives it and verifies the exact ZIP against the prior unchanged directory report. Inspect app version/build, platform metadata, every Mach-O slice's **platform 2 / iOS**, resources, native assets, plugin privacy manifests, source/toolchain records and hashes. An arm64 CPU alone does not prove iPhoneOS; preserve the independent Simulator platform/runtime gates. An earlier resource probe at the old version is not final 1.2.1 evidence. |
+| Intended publication | **Pending.** Ten assets are required: six app packages (the five existing naming shapes updated to 1.2.1 plus `steady-through-1.2.1-preview.1-ios-device-release-unsigned.zip`), `BUILD-INFO.txt`, `SHA256SUMS.txt`, `android-motion-unit-results.xml` and `native-runtime-reports.zip` including device evidence. Verify public main/tag, anonymous access and all ten server SHA-256 hashes/sizes against staged files before recording publication. |
+| Physical/signing limits | The device ZIP is **unsigned, not installable and not physically validated**. No Apple Team, signing identity, provisioning profile, account acceptance or store submission is supplied. Future signed archive/IPA and physical-iPhone work remain user-owned steps in the [iOS distribution guide](ios-distribution.md); the [manual walkthrough](device-validation.md) remains unexecuted. |
+
+<!-- END 1.2.1 PENDING EVIDENCE -->
+
+## Published v1.2.0 guidance preview — historical evidence
+
+The previous Steady Through **1.2.0+5** is published as **[v1.2.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.0-preview.1)**. Each event has a voluntary General, School & growing up, Adult life changes, Caring for someone, or Later life changes guide, with standard/Simple words prompts and selectable starter steps. Saved steps retain IDs, text, order and completion marks through guide/style changes. Guide choice and event text are not learning inputs; explicitly enabled in-app activity can still count ordinary taps/navigation as aggregates. Support remains free and offline with every learning source off.
 
 Version 3 is the write format; validated version 1/2/3 documents remain readable. Legacy events receive General without reseeding actions. Invalid v3 context is rejected before replacement confirmation. Older apps cannot read new v3 vaults or exports; there is no silent downgrade or plaintext fallback.
-
-## Current guidance verification
 
 The verified app/test/workflow source is `d74e42ae86a39cbdefea4f9c3a7d3117b77810a8`, under [CI run 42198257234](https://github.com/BeauDevCode/steady-through/actions/runs/42198257234). All six jobs completed successfully on this source in the final run. The release tag resolves to `37f7fa6807794b69f0cf9eb588101922278c7fed`; changes from the tested source to that release commit are documentation only. The release is publicly published as a prerelease, with all nine assets uploaded and every server SHA-256/size matching the staged file. Later documentation-only publication records do not alter the app source.
 
@@ -82,12 +99,12 @@ The prior interface refresh recorded large-text/long-entry layout checks at 320 
 
 Use the [manual device-validation guide](device-validation.md) to record these observations on each platform/build. Its checks are preparation, not executed results.
 
-- Run complete flows on physical iOS and Android devices: vault setup/unlock/lock, wrong passphrase, migration/cleanup warnings, encrypted export/import, file dialogs, phone/SMS handoff, background/resume, interrupted writes, rotation, keyboard and accessibility settings.
+- Run complete flows on physical iOS and Android devices: vault setup/unlock/lock, wrong passphrase, passphrase-help cancellation and backup-before-reset guidance, migration/cleanup warnings, encrypted export/import, file dialogs, phone/SMS handoff, background/resume, interrupted writes, rotation, keyboard and accessibility settings.
 - Validate supported sources using real permission grants, denial/revocation, no-data/unsupported states, session stop and late callbacks. Exercise Android with and without usable Google Play services; verify UsageStats observation-window limits. Validate Core Motion's change-only vehicle state over a sustained session and after suspension, and confirm that unknown movement is not treated as emotional evidence.
 - Walk through macOS activation/session duration and stop-on-lock/background behavior. Perform manual Windows and Linux usability checks in addition to the current automated native vault/backup flows.
 - Review crypto/recovery/deletion boundaries and inference wording again for distribution changes, resolving material findings and rerunning affected checks. Inspect current guidance, vault and Insights screens in light/dark, reduced-motion, narrow and 200% text configurations; source review and automated layouts do not establish native screen-reader usability.
 - Perform VoiceOver, TalkBack and keyboard-only walkthroughs on the native apps, including source controls, owner/OS permission dialogs, unavailable readings, errors and safe vehicle-context behavior.
 - Observe people using the guidance, including caregivers/helpers and older adults, and revise unclear steps. Automated tests do not establish whether the guidance is understandable for every age or that it improves health outcomes.
-- Configure distribution signing, Apple notarization and store records, then test signed packages through their distribution channels. CI artifacts are not store approval, notarized distribution or a signed release guarantee.
+- Use the [iOS distribution handoff](ios-distribution.md) for unsigned archive checks and future user-owned signing/physical prerequisites. Configure distribution signing, Apple notarization and store records, then test signed packages through their distribution channels. CI artifacts are not store approval, notarized distribution or a signed release guarantee.
 
 The [README](../README.md), [privacy details](../PRIVACY.md) and [contribution guidance](../CONTRIBUTING.md) describe the intended behavior and review boundaries. Any discrepancy with current code or observed runtime behavior is a defect to resolve, not a reason to claim broader validation.
