@@ -70,7 +70,7 @@ void main() {
       ]) {
         final decoded = AppData.fromJson(versionThree(context));
         final encoded = decoded.toJson();
-        expect(encoded['version'], 3);
+        expect(encoded['version'], 4);
         expect((encoded['events'] as List).single['guidanceContext'], context);
         expect(AppData.fromJson(encoded).toJson(), encoded);
       }
@@ -82,7 +82,7 @@ void main() {
         if (version == 2) json['learning'] = LearningData().toJson();
         final originalActions = (json['events'] as List).single['actions'];
         final encoded = AppData.fromJson(json).toJson();
-        expect(encoded['version'], 3);
+        expect(encoded['version'], 4);
         expect(
           (encoded['events'] as List).single['guidanceContext'],
           'general',
@@ -295,7 +295,7 @@ void main() {
     final data = AppData.fromJson(validDocument());
     expect(data.learning.enabledSources, isEmpty);
     expect(data.learning.examples, isEmpty);
-    expect(data.toJson()['version'], 3);
+    expect(data.toJson()['version'], 4);
     expect(data.toJson()['learning'], isA<Map<String, dynamic>>());
   });
 
@@ -339,14 +339,14 @@ void main() {
     final encoded = original.toJson();
     final decoded = AppData.fromJson(encoded);
 
-    expect(encoded['version'], 3);
+    expect(encoded['version'], 4);
     expect((encoded['events'] as List).single['title'], 'Starting a new job');
     expect(decoded.gameRounds.single.moves, 8);
     expect(decoded.checkIns.single.eventId, 'event-1');
   });
 
   test('rejects unsupported versions instead of guessing', () {
-    final document = validDocument()..['version'] = 4;
+    final document = AppData.empty().toJson()..['version'] = 5;
     expect(() => AppData.fromJson(document), throwsFormatException);
   });
 

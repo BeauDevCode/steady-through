@@ -79,10 +79,10 @@ class _VaultGateState extends State<VaultGate> with WidgetsBindingObserver {
       controller = AppController(vault.repository, vault.initialData);
       var warning = vault.cleanupWarning;
       try {
-        await controller.pruneLearning();
+        await controller.pruneRetainedData();
       } catch (_) {
         warning =
-            '${warning ?? ''} Expired learning could not be fully removed from local recovery copies. Lock and unlock to try again.';
+            '${warning ?? ''} Expired local history could not be fully removed from local recovery copies. Lock and unlock to try again.';
       }
       learning = LearningSession(controller);
       _pendingLearning = learning;

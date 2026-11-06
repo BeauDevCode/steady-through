@@ -9,6 +9,7 @@ import 'package:steady_through/data/data_portability.dart';
 import 'package:steady_through/data/vault_codec.dart';
 import 'package:steady_through/learning/learning_data.dart';
 import 'package:steady_through/model/app_data.dart';
+import 'package:steady_through/model/tool_feedback.dart';
 
 class _MemoryRepository implements AppRepository {
   AppData value = AppData.empty();
@@ -159,11 +160,24 @@ void main() {
       ),
     );
 
+    for (final tool in SupportTool.values) {
+      for (final rating in ToolRating.values) {
+        await controller.recordToolFeedback(tool, rating, expectedRevision: 0);
+      }
+    }
+    await controller.updateToolFeedbackOptions(
+      showPrompts: false,
+      useSuggestions: false,
+      expectedRevision: 0,
+    );
+    final feedbackSnapshot = controller.data.toolFeedback.toJson();
+
     await portability.exportData(passphrase: 'a separate export passphrase');
     final exported = await VaultCodec.decryptDocument(
       gateway.savedBytes!,
       'a separate export passphrase',
     );
+    expect(exported.toolFeedback.toJson(), feedbackSnapshot);
     expect(exported.events.single.toJson(), eventSnapshot);
     expect(exported.theme, ThemeChoice.dark);
     expect(exported.readingStyle, ReadingStyle.simple);
@@ -179,6 +193,7 @@ void main() {
         requestPassphrase: () async => 'a separate export passphrase',
         confirm: (replacement) async {
           confirmations++;
+          expect(replacement.toolFeedback.toJson(), feedbackSnapshot);
           expect(replacement.events.single.toJson(), eventSnapshot);
           expect(
             replacement.learning.enabledSources,
@@ -192,6 +207,7 @@ void main() {
     );
 
     expect(confirmations, 1);
+    expect(controller.data.toolFeedback.toJson(), feedbackSnapshot);
     expect(controller.data.events, hasLength(1));
     expect(controller.data.activeEventId, originalId);
     expect(controller.activeEvent!.actions, hasLength(3));
@@ -207,6 +223,7 @@ void main() {
     expect(repository.value.toJson(), controller.data.toJson());
 
     await controller.clearLearning();
+    expect(controller.data.toolFeedback.toJson(), feedbackSnapshot);
     expect(controller.activeEvent!.toJson(), eventSnapshot);
     expect(controller.data.activeEventId, originalId);
     expect(controller.data.theme, ThemeChoice.dark);
@@ -216,13 +233,13 @@ void main() {
   });
 
   test(
-    'invalid version three guidance context is rejected before confirmation',
+    'invalid version four guidance context is rejected before confirmation',
     () async {
       await controller.createEvent('Fictional existing event', 'Keep this');
       final visibleBefore = controller.data.toJson();
       final savedBefore = repository.value.toJson();
       final document = controller.data.toJson();
-      expect(document['version'], 3);
+      expect(document['version'], 4);
       (document['events'] as List).first['guidanceContext'] =
           'unsupported-context';
       gateway.picked = _jsonFile(document);

@@ -133,7 +133,7 @@ void main() {
       final repository = _Repository(_data(expired: true));
       final controller = AppController(repository, repository.value);
       addTearDown(controller.dispose);
-      await controller.pruneLearning();
+      await controller.pruneRetainedData();
       expect(repository.value.learning.examples, isEmpty);
       expect(repository.backup, isNull);
       expect(repository.value.events, hasLength(1));

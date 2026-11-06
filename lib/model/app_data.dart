@@ -1,5 +1,6 @@
 import '../learning/learning_data.dart';
 import 'guidance_context.dart';
+import 'tool_feedback.dart';
 
 export 'guidance_context.dart';
 
@@ -354,7 +355,9 @@ class AppData {
     this.theme = ThemeChoice.system,
     this.readingStyle = ReadingStyle.standard,
     LearningData? learning,
+    ToolFeedbackData? toolFeedback,
   }) : learning = learning ?? LearningData(),
+       toolFeedback = toolFeedback ?? ToolFeedbackData(),
        events = List<SupportEvent>.unmodifiable(events),
        people = List<TrustedPerson>.unmodifiable(people),
        checkIns = List<CheckIn>.unmodifiable(checkIns),
@@ -384,12 +387,13 @@ class AppData {
   final ThemeChoice theme;
   final ReadingStyle readingStyle;
   final LearningData learning;
+  final ToolFeedbackData toolFeedback;
 
   factory AppData.empty() => AppData();
 
   factory AppData.fromJson(Map<String, dynamic> json) {
     final version = json['version'];
-    if (version is! int || (version != 1 && version != 2 && version != 3)) {
+    if (version is! int || version < 1 || version > 4) {
       throw const FormatException('Unsupported data version');
     }
     _checkKeys(json, 'appData', {
@@ -402,20 +406,28 @@ class AppData {
       'theme',
       'readingStyle',
       if (version >= 2) 'learning',
+      if (version >= 4) 'toolFeedback',
     });
     final learningJson = json['learning'];
     if (version >= 2 && learningJson is! Map<String, dynamic>) {
       throw const FormatException('learning must be an object');
     }
+    final feedbackJson = json['toolFeedback'];
+    if (version >= 4 && feedbackJson is! Map<String, dynamic>) {
+      throw const FormatException('toolFeedback must be an object');
+    }
     return AppData(
+      toolFeedback: version < 4
+          ? ToolFeedbackData()
+          : ToolFeedbackData.fromJson(feedbackJson as Map<String, dynamic>),
       learning: version == 1
           ? LearningData()
           : LearningData.fromJson(learningJson as Map<String, dynamic>),
       events: _objects(json['events'], 'events', (eventJson) {
-        if (version == 3 && !eventJson.containsKey('guidanceContext')) {
+        if (version >= 3 && !eventJson.containsKey('guidanceContext')) {
           throw const FormatException('event is missing guidanceContext');
         }
-        return SupportEvent.fromJson(eventJson, allowGuidance: version == 3);
+        return SupportEvent.fromJson(eventJson, allowGuidance: version >= 3);
       }),
       activeEventId: _optionalString(json['activeEventId'], 'activeEventId'),
       people: _objects(json['people'], 'people', TrustedPerson.fromJson),
@@ -435,8 +447,9 @@ class AppData {
   }
 
   Map<String, dynamic> toJson() => {
-    'version': 3,
+    'version': 4,
     'learning': learning.toJson(),
+    'toolFeedback': toolFeedback.toJson(),
     'events': events.map((event) => event.toJson()).toList(),
     'activeEventId': activeEventId,
     'people': people.map((person) => person.toJson()).toList(),
@@ -456,8 +469,10 @@ class AppData {
     ThemeChoice? theme,
     ReadingStyle? readingStyle,
     LearningData? learning,
+    ToolFeedbackData? toolFeedback,
   }) => AppData(
     learning: learning ?? this.learning,
+    toolFeedback: toolFeedback ?? this.toolFeedback,
     events: events ?? this.events,
     activeEventId: clearActiveEventId
         ? null

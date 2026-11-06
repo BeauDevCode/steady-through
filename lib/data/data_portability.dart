@@ -119,7 +119,7 @@ class DataPortability {
   }
 
   Future<Uri?> exportData({required String passphrase}) async {
-    await controller.pruneLearning();
+    await controller.pruneRetainedData();
     final bytes = await VaultCodec.encryptDocument(controller.data, passphrase);
     return _gateway.saveJsonFile(
       fileName: 'steady-through-data.steady',

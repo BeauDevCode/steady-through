@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:steady_through/data/app_repository.dart';
 import 'package:steady_through/model/app_data.dart';
 import 'package:steady_through/model/event_guidance.dart';
+import 'package:steady_through/model/tool_feedback.dart';
 import 'package:steady_through/learning/learning_data.dart';
 import 'package:steady_through/learning/pattern_engine.dart';
 
@@ -15,6 +16,7 @@ class AppController extends ChangeNotifier {
   Future<void> _writeQueue = Future<void>.value();
   final Random _random = Random.secure();
   String? _cleanupWarning;
+  bool _disposed = false;
 
   AppData get data => _data;
   String? get cleanupWarning => _cleanupWarning;
@@ -100,9 +102,12 @@ class AppController extends ChangeNotifier {
     }
   }
 
-  Future<void> pruneLearning() {
-    final bounded = _data.learning.bounded(DateTime.now().toUtc());
-    if (bounded.examples.length == _data.learning.examples.length) {
+  Future<void> pruneRetainedData() {
+    final now = DateTime.now().toUtc();
+    final bounded = _data.learning.bounded(now);
+    final feedback = _data.toolFeedback.bounded(now);
+    if (bounded.examples.length == _data.learning.examples.length &&
+        feedback.ratings.length == _data.toolFeedback.ratings.length) {
       return Future.value();
     }
     return _mutate((current) => current);
@@ -123,6 +128,103 @@ class AppController extends ChangeNotifier {
   int _replacementRevision = 0;
   int get replacementRevision => _replacementRevision;
 
+  void _guardFeedback(int expectedRevision, bool Function()? isActive) {
+    if (_disposed ||
+        expectedRevision != _replacementRevision ||
+        (isActive != null && !isActive())) {
+      throw StateError(
+        'This view changed. Open your ratings again to continue.',
+      );
+    }
+  }
+
+  void _expectFeedback(AppData current, String id, ToolFeedback expected) {
+    if (!current.toolFeedback.ratings.any(
+      (record) => record.id == id && identical(record, expected),
+    )) {
+      throw StateError('This rating changed. Review it before changing it.');
+    }
+  }
+
+  Future<ToolFeedback> recordToolFeedback(
+    SupportTool tool,
+    ToolRating rating, {
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) async {
+    late ToolFeedback receipt;
+    await _mutate((current) {
+      _guardFeedback(expectedRevision, isActive);
+      final now = DateTime.now().toUtc();
+      receipt = ToolFeedback(
+        id: _newId(),
+        createdAt: now,
+        tool: tool,
+        rating: rating,
+      );
+      return current.copyWith(
+        toolFeedback: current.toolFeedback.record(receipt, now: now),
+      );
+    });
+    return receipt;
+  }
+
+  Future<void> correctToolFeedback(
+    String id,
+    ToolRating rating, {
+    required ToolFeedback expected,
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) => _mutate((current) {
+    _guardFeedback(expectedRevision, isActive);
+    _expectFeedback(current, id, expected);
+    return current.copyWith(
+      toolFeedback: current.toolFeedback.correct(id, rating),
+    );
+  }, purgeResidual: true);
+
+  Future<void> deleteToolFeedback(
+    String id, {
+    required ToolFeedback expected,
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) => _mutate((current) {
+    _guardFeedback(expectedRevision, isActive);
+    _expectFeedback(current, id, expected);
+    return current.copyWith(toolFeedback: current.toolFeedback.remove(id));
+  });
+
+  Future<void> clearToolFeedback({
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) => _mutate((current) {
+    _guardFeedback(expectedRevision, isActive);
+    return current.copyWith(
+      toolFeedback: current.toolFeedback.copyWith(ratings: []),
+    );
+  }, purgeResidual: true);
+
+  Future<void> updateToolFeedbackOptions({
+    bool? showPrompts,
+    bool? useSuggestions,
+    required int expectedRevision,
+    bool Function()? isActive,
+  }) => _mutate((current) {
+    _guardFeedback(expectedRevision, isActive);
+    return current.copyWith(
+      toolFeedback: current.toolFeedback.copyWith(
+        showPrompts: showPrompts,
+        useSuggestions: useSuggestions,
+      ),
+    );
+  });
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> _mutate(
     AppData Function(AppData) change, {
     bool purgeResidual = false,
@@ -132,6 +234,8 @@ class AppController extends ChangeNotifier {
       final changed = change(_data);
       final now = DateTime.now().toUtc();
       final retained = changed.learning.bounded(now);
+      final feedback = changed.toolFeedback.bounded(now);
+      final feedbackIds = feedback.ratings.map((rating) => rating.id).toSet();
       final retainedIds = retained.examples
           .map((example) => example.id)
           .toSet();
@@ -139,14 +243,18 @@ class AppController extends ChangeNotifier {
           retained.examples.length < changed.learning.examples.length ||
           _data.learning.examples.any(
             (example) => !retainedIds.contains(example.id),
+          ) ||
+          feedback.ratings.length < changed.toolFeedback.ratings.length ||
+          _data.toolFeedback.ratings.any(
+            (rating) => !feedbackIds.contains(rating.id),
           );
-      final next = changed.copyWith(learning: retained);
+      final next = changed.copyWith(learning: retained, toolFeedback: feedback);
       AppData.fromJson(next.toJson());
       await _repository.save(next);
       _data = next;
       if (replacing) _replacementRevision++;
       if (pruned || purgeResidual) await _purgeResidual();
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     });
     // Keep the queue usable after a failed write while still surfacing the
     // failure to the caller of this particular operation.

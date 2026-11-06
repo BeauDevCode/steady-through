@@ -77,7 +77,7 @@ void main() {
     final file = File('${temp.path}/steady-through.json');
     final json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
     expect(json['theme'], 'dark');
-    expect(json['version'], 3);
+    expect(json['version'], 4);
     expect(await FileAppRepository(temp).load(), isA<AppData>());
   });
 
