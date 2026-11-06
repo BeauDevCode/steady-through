@@ -48,11 +48,41 @@ def select_device(inventory):
     return min(candidates, key=lambda item: item[:3])[3]
 
 
+def selected_simulator_app():
+    # xcrun resolves the selected Xcode and honors an inherited DEVELOPER_DIR.
+    # Use its tool path instead of assuming a particular /Applications/Xcode*.
+    result = subprocess.run(["xcrun", "--find", "simctl"], capture_output=True,
+                            text=True, check=True, timeout=30)
+    tool_path = result.stdout.strip()
+    simctl = Path(tool_path)
+    if (not simctl.is_absolute() or "\n" in tool_path or "\r" in tool_path
+            or simctl.parts[-3:] != ("usr", "bin", "simctl")
+            or simctl.parents[2].name != "Developer"):
+        raise ValueError("xcrun returned an invalid selected-Xcode simctl path")
+    developer = simctl.parents[2]
+    # Match Flutter's Xcode.getSimulatorPath, including Xcode 27 DeviceHub.
+    candidates = (
+        developer.parent / "Applications" / "DeviceHub.app",
+        developer / "Applications" / "Simulator.app",
+    )
+    for candidate in candidates:
+        if candidate.is_dir():
+            return candidate
+    raise ValueError("selected Xcode has no Simulator.app or DeviceHub.app")
+
+
 def boot_and_export(device, environment_file):
     udid = validated_udid(device)
+    simulator_app = selected_simulator_app()
     if device.get("state") != "Booted":
         subprocess.run(["xcrun", "simctl", "boot", udid], check=True, timeout=120)
     subprocess.run(["xcrun", "simctl", "bootstatus", udid, "-b"], check=True, timeout=600)
+    # Match Flutter IOSEmulator.launch: -n starts the GUI, then a second open
+    # without -n brings it to the foreground. Keep the selected device explicit.
+    # A headless CoreSimulator boot does not establish foreground UI readiness.
+    for options in (("-n",), ()):
+        subprocess.run(["open", *options, "-a", str(simulator_app), "--args",
+                        "-CurrentDeviceUDID", udid], check=True, timeout=30)
     # Only a regex-validated UUID reaches GITHUB_ENV. No simulator label or JSON
     # string is ever interpolated into a shell command or workflow expression.
     with Path(environment_file).open("a", encoding="utf-8") as destination:
