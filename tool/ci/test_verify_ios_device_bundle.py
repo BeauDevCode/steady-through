@@ -217,6 +217,21 @@ class BundleTests(unittest.TestCase):
                 created.unlink()
                 if created.parent.name in ['Tests.xctest', '_CodeSignature']: created.parent.rmdir()
 
+    def test_empty_prohibited_directories_reject_in_bundle_and_archive(self):
+        baseline = self.check()
+        for name in ['Tests.xctest', 'Symbols.dSYM', 'Project.xcworkspace', '__MACOSX']:
+            directory = self.app / name
+            directory.mkdir()
+            with self.subTest(name=name, gate='directory'):
+                with self.assertRaises(ValueError): self.check()
+            # A previously permissive report must not authorize this ZIP path.
+            reported = copy.deepcopy(baseline)
+            reported['directories'] = sorted(baseline['directories'] + [name])
+            zipped = archive(self.app, self.root / 'prohibited.zip')
+            with self.subTest(name=name, gate='archive'):
+                with self.assertRaises(ValueError): verify_archive(zipped, reported)
+            directory.rmdir()
+
     def test_symlink_inventory_and_escaping_or_unsafe_path_rejection(self):
         link = self.app / 'relative-link'
         link.symlink_to('Assets.car')

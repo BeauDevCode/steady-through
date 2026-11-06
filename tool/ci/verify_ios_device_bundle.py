@@ -43,6 +43,7 @@ def _safe_path(value):
              f'Unsafe path: {value!r}')
     _require(not value.startswith('/') and all(part not in ('', '.', '..') for part in value.split('/')),
              f'Unsafe path: {value!r}')
+    _require(not any(part.endswith(('.xctest', '.xcworkspace', '.dSYM')) or part in ('__MACOSX', '.DS_Store') for part in value.split('/')), 'Test/debug/Mac metadata in bundle')
     try:
         value.encode('utf-8')
     except UnicodeError as error:
@@ -204,7 +205,6 @@ def validate_bundle(app: Path, *, expected_version: str, expected_build: str) ->
     macho = []
     for record in files:
         path = record['path']
-        _require(not any(part.endswith(('.xctest', '.xcworkspace', '.dSYM')) or part in ('__MACOSX', '.DS_Store') for part in path.split('/')), 'Test/debug/Mac metadata in bundle')
         _require(PurePosixPath(path).name not in ('kernel_blob.bin', 'vm_snapshot_data', 'isolate_snapshot_data', 'flutter_tester'), 'Debug snapshot/test binary in bundle')
         data = blobs.get(path, b'')
         _require(not any(marker in data for marker in FIXTURE_MARKERS), 'Native fixture marker in production bundle')
