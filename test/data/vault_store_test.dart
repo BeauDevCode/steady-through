@@ -163,6 +163,12 @@ void main() {
       );
       expect(await vault.readAsBytes(), before);
       expect(await legacy.readAsString(), 'keep until authenticated');
+      final retry = await VaultStore(temp).unlock(_passphrase);
+      try {
+        expect(retry.initialData.events, isEmpty);
+      } finally {
+        retry.close();
+      }
     },
   );
 

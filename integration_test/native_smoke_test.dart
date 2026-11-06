@@ -12,6 +12,7 @@ import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/app/steady_through_app.dart';
 import 'package:steady_through/app/vault_gate.dart';
 import 'package:steady_through/data/data_portability.dart';
+import 'package:steady_through/data/vault_codec.dart';
 import 'package:steady_through/data/vault_store.dart';
 import 'package:steady_through/features/journey/event_form.dart';
 import 'package:steady_through/features/settings/settings_screen.dart';
@@ -24,15 +25,47 @@ Future<void> _until(
   WidgetTester tester,
   bool Function() condition, {
   required String reason,
+  String Function()? diagnostics,
+  Duration timeout = const Duration(seconds: 90),
 }) async {
-  final deadline = DateTime.now().add(const Duration(seconds: 90));
+  final deadline = DateTime.now().add(timeout);
   while (!condition()) {
     if (DateTime.now().isAfter(deadline)) {
-      fail('Native flow timed out: $reason');
+      fail('Native flow timed out: $reason. ${diagnostics?.call() ?? ''}');
     }
     await tester.pump(const Duration(milliseconds: 100));
   }
   await tester.pump();
+}
+
+// Real storage with boundary diagnostics only. No keys, passphrases or record
+// contents are logged, and no storage behavior is replaced.
+class _ObservedVaultStore extends VaultStore {
+  _ObservedVaultStore(super.root);
+  int unlockAttempts = 0;
+  String lastOutcome = 'not attempted';
+
+  @override
+  Future<VaultSession> unlock(String passphrase) async {
+    unlockAttempts++;
+    final watch = Stopwatch()..start();
+    lastOutcome = 'pending';
+    debugPrint(
+      'Native QA unlock attempt $unlockAttempts started; matches fixture: ${passphrase == _vaultPassphrase}',
+    );
+    try {
+      final session = await super.unlock(passphrase);
+      lastOutcome = 'authenticated';
+      return session;
+    } catch (error) {
+      lastOutcome = error.runtimeType.toString();
+      rethrow;
+    } finally {
+      debugPrint(
+        'Native QA unlock attempt $unlockAttempts: $lastOutcome (${watch.elapsedMilliseconds}ms)',
+      );
+    }
+  }
 }
 
 Future<void> _lockThroughMore(WidgetTester tester) async {
@@ -153,9 +186,10 @@ void main() {
       final directory = await Directory.systemTemp.createTemp(
         'steady-native-ui-',
       );
+      final store = _ObservedVaultStore(directory);
       var completed = false;
       try {
-        await tester.pumpWidget(VaultGate(store: VaultStore(directory)));
+        await tester.pumpWidget(VaultGate(store: store));
         await _until(
           tester,
           () => find.text('Create private vault').evaluate().isNotEmpty,
@@ -228,11 +262,33 @@ void main() {
         );
         expect(find.byType(SteadyThroughApp), findsNothing);
         await tester.enterText(find.byType(TextFormField), _vaultPassphrase);
+        await tester.pumpAndSettle();
+        final unlockButton = find.widgetWithText(FilledButton, 'Unlock vault');
+        expect(tester.widget<FilledButton>(unlockButton).onPressed, isNotNull);
+        expect(
+          tester
+                  .widget<TextFormField>(find.byType(TextFormField))
+                  .controller!
+                  .text ==
+              _vaultPassphrase,
+          isTrue,
+          reason: 'The synthetic retry must reach the actual form controller',
+        );
         await tester.tap(find.text('Unlock vault'));
+        await _until(
+          tester,
+          () => store.unlockAttempts == 2,
+          reason: 'correct retry reaches storage',
+          timeout: const Duration(seconds: 10),
+          diagnostics: () =>
+              'attempts=${store.unlockAttempts}, outcome=${store.lastOutcome}',
+        );
         await _until(
           tester,
           () => find.byType(SteadyThroughApp).evaluate().isNotEmpty,
           reason: 'authenticated vault recovery',
+          diagnostics: () =>
+              'attempts=${store.unlockAttempts}, outcome=${store.lastOutcome}, errorVisible=${find.textContaining('Check your passphrase').evaluate().isNotEmpty}',
         );
         final restored = tester.widget<SteadyThroughApp>(
           find.byType(SteadyThroughApp),
@@ -291,7 +347,7 @@ void main() {
             requestPassphrase: () async => _vaultPassphrase,
             confirm: (_) async => true,
           ),
-          throwsFormatException,
+          throwsA(isA<VaultUnlockException>()),
         );
         expect(controller.data.events, hasLength(2));
         expect(
