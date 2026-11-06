@@ -4,6 +4,8 @@ _Native-flow preview verification: November 6, 2026 (UTC)_
 
 Steady Through **1.1.1+4** is a development preview. This patch serializes vault reset/unlock, reports committed changes separately from failed cleanup, recommends actions in stage order, and prevents passive iOS motion-manager operations before opt-in. App source, native tests, helpers and build configuration at `5ff2f8960f518ed3e1e5c893c8fa4cc4eb28bb35` passed **all six jobs** in [CI run 42170799069](https://github.com/BeauDevCode/steady-through/actions/runs/42170799069). Later documentation-only changes do not alter the verified app source.
 
+[Preview v1.1.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.1.1-preview.1) is published at release commit `25012da8642f505a2a6ffd88dddde7dc1536e912`. All **nine assets** were confirmed uploaded, with each server-provided SHA-256 matching the local file. The tag resolves to that intended commit. The five platform packages, build information, [checksums](https://github.com/BeauDevCode/steady-through/releases/download/v1.1.1-preview.1/SHA256SUMS.txt), Android JUnit XML and native report bundle are available on the release page. The older v1.1.0 preview now carries a notice about its unexpected iOS permission prompt and links to this patch.
+
 ## Current verification record
 
 | Area | Evidence for this native-flow revision |

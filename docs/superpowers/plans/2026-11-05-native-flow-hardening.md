@@ -75,4 +75,4 @@
 
 - [x] Run formatting, static analysis, full local suite, targeted task checks and current five-platform CI/native runtime gates; inspect every result.
 - [x] Obtain fresh source review of the whole branch, resolve material findings with regression evidence, and verify app-code equality for any later documentation-only commit.
-- [ ] Update quality evidence and limitations, publish the next patch preview and verify remote source/assets/checksums. User publication authorization persists from the original request.
+- [x] Update quality evidence and limitations, publish the next patch preview and verify remote source/assets/checksums. User publication authorization persists from the original request.
