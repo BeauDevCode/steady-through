@@ -121,6 +121,26 @@ void main() {
     },
   );
 
+  test('vehicle context suppresses saved-history mutations', () async {
+    motionSupported = true;
+    await session.initialize();
+    await session.setSources({
+      SignalSource.checkIns,
+      SignalSource.motion,
+    }, deviceOwnerConfirmed: true);
+    await session.saveFeeling(FeelingLabel.calm);
+    final id = controller.data.learning.examples.single.id;
+    possibleVehicle = true;
+    await session.refresh();
+    await expectLater(
+      session.relabelMoment(id, FeelingLabel.low),
+      throwsStateError,
+    );
+    await expectLater(session.deleteMoment(id), throwsStateError);
+    await expectLater(session.undoSavedFeeling(), throwsStateError);
+    expect(controller.data.learning.examples.single.label, FeelingLabel.calm);
+  });
+
   test('a stop failure preserves pause but explicitly warns collection is unconfirmed', () async {
     await session.setSources({SignalSource.inApp});
     failStop = true;

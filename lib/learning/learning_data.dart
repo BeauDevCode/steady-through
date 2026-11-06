@@ -428,8 +428,54 @@ class LearningData {
     calibration: calibration ?? this.calibration,
   );
 
-  LearningData bounded(DateTime now) =>
-      copyWith(examples: _retained(examples, now));
+  LearningData bounded(DateTime now) {
+    final retained = _retained(examples, now);
+    return copyWith(
+      examples: retained,
+      calibration: retained.length == examples.length
+          ? calibration
+          : _withoutDerivedEvidence(retained),
+    );
+  }
+
+  /// Correct a report, without manufacturing a new observation or timestamp.
+  LearningData relabel(String id, FeelingLabel label) {
+    final index = examples.indexWhere((example) => example.id == id);
+    if (index < 0)
+      throw StateError('This saved moment is no longer available.');
+    final original = examples[index];
+    if (original.label == label) return this;
+    final changed = [...examples];
+    changed[index] = LearningExample(
+      id: original.id,
+      createdAt: original.createdAt,
+      label: label,
+      snapshot: original.snapshot,
+    );
+    return copyWith(
+      examples: changed,
+      calibration: _withoutDerivedEvidence(changed),
+    );
+  }
+
+  LearningData remove(String id) {
+    if (!examples.any((example) => example.id == id)) {
+      throw StateError('This saved moment is no longer available.');
+    }
+    final retained = examples.where((example) => example.id != id).toList();
+    return copyWith(
+      examples: retained,
+      calibration: _withoutDerivedEvidence(retained),
+    );
+  }
+
+  CalibrationState _withoutDerivedEvidence(List<LearningExample> remaining) =>
+      remaining.isEmpty
+      ? CalibrationState()
+      : CalibrationState(
+          startedAt: calibration.startedAt,
+          lastReviewedAt: calibration.lastReviewedAt,
+        );
 
   /// Only an explicit label action calls this. Any enabled source permits that
   /// action; only metrics covered by its own source consent are retained.
@@ -451,11 +497,16 @@ class LearningData {
       label: example.label,
       snapshot: example.snapshot.forSources(enabledSources),
     );
+    final retained = _retained([...examples, safe], at);
+    final evicted = retained.length < examples.length + 1;
+    final currentCalibration = evicted
+        ? _withoutDerivedEvidence(retained)
+        : calibration;
     return copyWith(
-      examples: _retained([...examples, safe], at),
-      calibration: calibration.startedAt == null
-          ? calibration.copyWith(startedAt: at)
-          : calibration,
+      examples: retained,
+      calibration: currentCalibration.startedAt == null
+          ? currentCalibration.copyWith(startedAt: at)
+          : currentCalibration,
     );
   }
 

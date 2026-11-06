@@ -26,21 +26,47 @@ class AppController extends ChangeNotifier {
         current.copyWith(learning: learning.bounded(DateTime.now().toUtc())),
   );
 
-  Future<void> recordLearning(FeelingLabel label, SignalSnapshot snapshot) =>
+  Future<LearningExample> recordLearning(
+    FeelingLabel label,
+    SignalSnapshot snapshot,
+  ) async {
+    late LearningExample saved;
+    await _mutate((current) {
+      final now = DateTime.now().toUtc();
+      saved = LearningExample(
+        id: _newId(),
+        createdAt: now,
+        label: label,
+        snapshot: snapshot.forSources(current.learning.enabledSources),
+      );
+      final next = current.learning.record(saved, now: now);
+      return current.copyWith(
+        learning: PersonalPatternEngine().review(next, now: now).data,
+      );
+    });
+    // Return the actual committed instance, including consent filtering.
+    return _data.learning.examples.firstWhere(
+      (example) => example.id == saved.id,
+    );
+  }
+
+  Future<void> relabelLearningExample(String id, FeelingLabel label) => _mutate(
+    (current) =>
+        current.copyWith(learning: current.learning.relabel(id, label)),
+    purgeResidual: true,
+  );
+
+  Future<void> deleteLearningExample(String id, {LearningExample? expected}) =>
       _mutate((current) {
-        final now = DateTime.now().toUtc();
-        final next = current.learning.record(
-          LearningExample(
-            id: _newId(),
-            createdAt: now,
-            label: label,
-            snapshot: snapshot,
-          ),
-          now: now,
-        );
-        return current.copyWith(
-          learning: PersonalPatternEngine().review(next, now: now).data,
-        );
+        if (expected != null &&
+            !current.learning.examples.any(
+              (example) => identical(example, expected),
+            )) {
+          throw StateError(
+            'This saved moment changed. Review it before deleting.',
+          );
+        }
+        return current.copyWith(learning: current.learning.remove(id));
       });
 
   Future<CalibrationReport> reviewLearning() async {

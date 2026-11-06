@@ -37,6 +37,9 @@ class LearningSession extends ChangeNotifier {
   late int _replacementRevision;
   int _generation = 0;
   int _taps = 0, _navigation = 0, _backtracks = 0, _restarts = 0;
+  LearningExample? _undoableMoment;
+
+  LearningExample? get undoableMoment => _closed ? null : _undoableMoment;
 
   LearningData get data => controller.data.learning;
   bool get paused => data.pausedByUser || !_foreground;
@@ -104,6 +107,10 @@ class LearningSession extends ChangeNotifier {
     if (_closed) return;
     final replaced = _replacementRevision != controller.replacementRevision;
     _replacementRevision = controller.replacementRevision;
+    if (replaced ||
+        !data.examples.any((example) => identical(example, _undoableMoment))) {
+      _undoableMoment = null;
+    }
     if (replaced || _signature != _sourceSignature) {
       _signature = _sourceSignature;
       _resetWindow();
@@ -234,9 +241,41 @@ class LearningSession extends ChangeNotifier {
     if (current.possibleVehicle) {
       throw StateError('Return to reflection when safely stopped.');
     }
-    await controller.recordLearning(label, current);
+    final revision = controller.replacementRevision;
+    final saved = await controller.recordLearning(label, current);
+    if (!_closed &&
+        revision == controller.replacementRevision &&
+        data.examples.any((example) => identical(example, saved))) {
+      _undoableMoment = saved;
+    }
     _resetWindow();
-    notifyListeners();
+    if (!_closed) notifyListeners();
+  }
+
+  void _requireHistoryAccess() {
+    if (_closed || !_foreground) {
+      throw StateError('Unlock and return to the app to manage saved moments.');
+    }
+    if (snapshot.possibleVehicle) {
+      throw StateError('Return to reflection when safely stopped.');
+    }
+  }
+
+  Future<void> relabelMoment(String id, FeelingLabel label) async {
+    _requireHistoryAccess();
+    await controller.relabelLearningExample(id, label);
+  }
+
+  Future<void> deleteMoment(String id) async {
+    _requireHistoryAccess();
+    await controller.deleteLearningExample(id);
+  }
+
+  Future<void> undoSavedFeeling() async {
+    _requireHistoryAccess();
+    final saved = undoableMoment;
+    if (saved == null) throw StateError('There is no saved feeling to undo.');
+    await controller.deleteLearningExample(saved.id, expected: saved);
   }
 
   Future<CalibrationReport> review() => controller.reviewLearning();
@@ -297,6 +336,7 @@ class LearningSession extends ChangeNotifier {
   Future<void> _close() async {
     if (_closed) return;
     _closed = true;
+    _undoableMoment = null;
     controller.removeListener(_onDataChanged);
     await _stopNative();
     dispose();

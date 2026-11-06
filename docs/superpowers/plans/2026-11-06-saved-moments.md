@@ -36,11 +36,11 @@
 
 **Interfaces:** Produces `LearningData.relabel(String id, FeelingLabel label)`, `LearningData.remove(String id)`, `Future<LearningExample> AppController.recordLearning(...)`, `Future<void> AppController.relabelLearningExample(String id, FeelingLabel label)`, `Future<void> AppController.deleteLearningExample(String id, {LearningExample? expected})`; session getter `LearningExample? undoableMoment`, methods `relabelMoment`, `deleteMoment`, `undoSavedFeeling`. Existing `saveFeeling` stays `Future<void>` and records the committed receipt.
 
-- [ ] Write tests first: relabel retains exact ID/times/snapshot/other entries; same-label no-op; missing ID throws StateError; edit/remove/retention clear model/revision/results but preserve anchors and consent/pause; empty removes anchors. Controller tests assert durable state/reload, primary-save failure, residual purge/warning and queued unrelated writes. Session tests assert undo exact target, failed undo retry, stale queued edit protection, invalidation on clear/import/edit/prune/close and management with sources off/paused.
-- [ ] Run targeted files and observe missing APIs or missing behavior (RED). Expected FAIL specifically for the new contract.
-- [ ] Implement pure mutations, fresh calibration reset, save receipt and current-state queued controller actions. Pass purgeResidual for edits. Delete's optional expected receipt uses identity to reject an altered target. Session owns transient receipt, invalidates from controller notifications/replacement revision and rejects closed/background/vehicle management. Do not replace whole saved documents for undo.
-- [ ] Run targeted tests, then `flutter test`. Expected all PASS.
-- [ ] Commit task code/tests and record exact commands/results in the ledger.
+- [x] Write tests first: relabel retains exact ID/times/snapshot/other entries; same-label no-op; missing ID throws StateError; edit/remove/retention clear model/revision/results but preserve anchors and consent/pause; empty removes anchors. Controller tests assert durable state/reload, primary-save failure, residual purge/warning and queued unrelated writes. Session tests assert undo exact target, failed undo retry, stale queued edit protection, invalidation on clear/import/edit/prune/close and management with sources off/paused.
+- [x] Run targeted files and observe missing APIs or missing behavior (RED). Expected FAIL specifically for the new contract.
+- [x] Implement pure mutations, fresh calibration reset, save receipt and current-state queued controller actions. Pass purgeResidual for edits. Delete's optional expected receipt uses identity to reject an altered target. Session owns transient receipt, invalidates from controller notifications/replacement revision and rejects closed/background/vehicle management. Do not replace whole saved documents for undo.
+- [x] Run targeted tests, then `flutter test`. Expected all PASS.
+- [x] Commit task code/tests and record exact commands/results in the ledger.
 
 ### Task 2: Evidence diagnostics and personal seven-day summary
 
