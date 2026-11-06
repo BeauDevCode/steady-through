@@ -118,3 +118,7 @@ Remaining unverified items / follow-up owner:
 
 Report an observed failure or skipped check as such. A passed build, simulator case, or this checklist does not establish physical-device source
 accuracy, accessibility for every person, a validated stress measure, or general store readiness.
+
+## Reduced-motion resize regression walkthrough
+
+This is an additional unexecuted manual check. With reduced motion enabled, create a fictional event, change its guide/steps, save it, edit/save again and leave the form. Resize/rotate with the keyboard open where supported. In Insights with every source off, pause, resize and resume. Toggle reduced motion while a normal transition is in progress. Record any rendering error, stuck control or lost choice; the local regressions do not replace this native walkthrough.

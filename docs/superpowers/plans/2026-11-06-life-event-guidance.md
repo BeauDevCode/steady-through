@@ -73,7 +73,9 @@
 **Interfaces:** Use catalog/context from Task1 and real selectors fromTask2. Preserve native three exact test names, timeouts, real encryption/filesystem and no-grant sources-off behavior. Native backup case creates a non-General guide with edited/done steps, then verifies restored metadata/actions through the independent passphrase and authenticated reopen. Native test OS chooser/scripted-dialog limit remains explicit.
 
 - [x] Add meaningful encrypted round-trip regression for context, selected/edited/done actions and retained manual choices while native consent resets; invalid3 context must not reach import confirmation or change records. Root observes RED where missing behavior remains, then corrects production owner via follow-up rather than weakening tests.
-- [ ] Render synthetic creation/pickers/Path/Home in standard/Simple/light/dark, narrow200% text and large desktop; visually inspect PNGs. No real passphrases or permissions in captures.
-- [ ] Run formatter, analyzer, full Flutter suite, helper tests, scoped source reviews, then one whole-branch review; fix material findings with regression evidence.
-- [ ] Run all five production/native CI targets at intended source; inspect actual3-case JSON per platform and Android JUnit, archive versions/contents/checksums.
+- [x] Render synthetic creation/pickers/Path/Home in standard/Simple/light/dark, narrow200% text and large desktop; visually inspect PNGs. No real passphrases or permissions in captures.
+- [x] Run formatter, analyzer, full Flutter suite, helper tests, scoped source reviews, then one whole-branch review; fix material findings with regression evidence.
+- [x] Run all five production/native CI targets at intended source; inspect actual3-case JSON per platform and Android JUnit, archive versions/contents/checksums.
 - [ ] Update source/compatibility/privacy/quality documentation, publish v1.2.0-preview.1 under existing user authorization, verify publicmain/tag/allasset server hashes, then mark publication complete. Physical collectors, OSdialogs, native screen readers, signing and real health outcomes remain separate.
+
+Native verification found a reduced-motion rendering defect after source review. Four tests reproduced the exact assertion before fixing zero-duration sizing in guide cards and Insights. The focused22/full255/analyzer/capture gates and a scoped source review passed afterward. Final-source native/build and publication gates remain required above.

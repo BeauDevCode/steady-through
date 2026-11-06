@@ -17,6 +17,8 @@ On a host with the Android SDK, also run `./gradlew :app:testReleaseUnitTest` fr
 
 Build on the relevant host with the commands in [README.md](README.md). The GitHub Actions workflow is configured to compile all five platform targets; its artifacts are development outputs, not signed store releases. Check the actual run for the revision being reviewed. Note the exact platform and whether you ran on a device, simulator, or only compiled. Do not mark a native source validated on a device based on a successful build, mocked platform channel or previous release alone. Record current evidence and remaining gaps in [quality status](docs/quality-status.md).
 
+For reduced motion, render static content instead of a zero-duration `AnimatedSize`. Flutter can synchronously notify its size controller during layout when the child changes size. Keep the guide and Insights save/pause/resize/disposal regressions passing; preserve normal transitions when motion is enabled. Mobile native CI uses verbose Flutter launch logging for diagnosis and still requires the same three verified application cases.
+
 ## Native smoke checks
 
 The `integration_test/native_smoke_test.dart` suite is separate from the fast `flutter test` unit/widget suite. Run it on a native target, then check its JSON-lines report. For example, on macOS:
