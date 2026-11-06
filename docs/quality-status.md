@@ -2,7 +2,19 @@
 
 _Recovery and unsigned iPhone preview verification: November 6, 2026 (UTC)_
 
-## Current 1.2.1 preview — verified evidence
+## 1.3.0 saved-moments update — candidate evidence
+
+<!-- BEGIN 1.3.0 VERIFIED EVIDENCE -->
+Steady Through **1.3.0+7** adds reviewable private moments, in-place correction, confirmed individual deletion, exact-record Undo, a seven-day self-report summary and optional evidence details. This section currently records **local candidate evidence only**; fresh CI, platform packages and publication remain pending.
+
+Local full verification: **309 Flutter tests passed**, **88 Python CI-helper tests passed**, analyzer reported **no issues**, and **86 Dart files** passed the format check unchanged. Thirteen synthetic capture cases were generated and visually inspected, including light/dark desktop/mobile, actual detail/edit/delete dialogs and 320px/200% text with reduced motion. Captures use fictional records, no vault/passphrase and no OS grants. Focused regressions reproduced and fixed details-state loss during scrolling, snapshot/assessment clock ordering, busy-history disappearance and mismatched conditional-Undo targets. A fresh whole-branch source review completed. Its retention/display finding and two exact-detail findings were reproduced first and fixed with three regressions; the final full suite passes. Physical/manual checks remain separate.
+
+Schema3 and the encryption envelope remain unchanged. All validated v1/v2/v3 documents remain readable. Corrections preserve observation identity/times/metrics and invalidate derived model artifacts; old review anchors persist while history remains. Sources and model thresholds are unchanged. These are product/data-quality improvements informed by the linked research, not evidence of health benefit, emotion-detection accuracy, all-age comprehension or native accessibility certification.
+<!-- END 1.3.0 VERIFIED EVIDENCE -->
+
+<a id="current-121-preview--verified-evidence"></a>
+
+## Published 1.2.1 preview — historical verified evidence
 
 <!-- BEGIN 1.2.1 VERIFIED EVIDENCE -->
 Steady Through **1.2.1+6** is published as **[v1.2.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.1-preview.1)**. Its tag and all six app packages use exact tested source `0f62db5ee2ba0e0769273de5872b1214ea6bafc5`, under [CI run 42270965635](https://github.com/BeauDevCode/steady-through/actions/runs/42270965635). All seven jobs passed in this run without a job retry. The public tag, ten assets and anonymous downloads were verified. Public main at `bf3fbe795df8b2eb1321c5faf6b74264e254f2e7` was also checked; its delta from tested source affects documentation only. Further publication records keep the software/test/workflow source unchanged.

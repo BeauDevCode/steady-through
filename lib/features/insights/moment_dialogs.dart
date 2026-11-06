@@ -153,57 +153,56 @@ class _MomentChangeDialogState extends State<_MomentChangeDialog> {
   );
 }
 
-Future<void> viewSavedMoment(
-  BuildContext context,
-  LearningExample moment,
-) => showDialog<void>(
-  context: context,
-  builder: (context) => AlertDialog(
-    scrollable: true,
-    title: const Text('Saved moment'),
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          feelingName(moment.label),
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 8),
-        Text('Saved ${momentTime(context, moment.createdAt)}'),
-        const SizedBox(height: 20),
-        Text(
-          momentContext(moment.snapshot),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        if (moment.snapshot.features.isNotEmpty) ...[
-          Text('Observed ${momentTime(context, moment.snapshot.observedAt)}'),
-          const SizedBox(height: 12),
-          for (final metric in signalMetrics.keys)
-            if (moment.snapshot.features.containsKey(metric))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  metricDescription(metric, moment.snapshot.features[metric]!),
+Future<void> viewSavedMoment(BuildContext context, LearningExample moment) =>
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        title: const Text('Saved moment'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              feelingName(moment.label),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text('Saved ${momentTime(context, moment.createdAt)}'),
+            const SizedBox(height: 20),
+            Text(
+              momentContext(moment.snapshot),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text('Observed ${momentTime(context, moment.snapshot.observedAt)}'),
+            const SizedBox(height: 12),
+            for (final metric in signalMetrics.keys)
+              if (moment.snapshot.features.containsKey(metric))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    metricDescription(
+                      metric,
+                      moment.snapshot.features[metric]!,
+                    ),
+                  ),
                 ),
+            if (moment.snapshot.possibleVehicle)
+              const Text(
+                'Possible vehicle movement was recorded. This does not identify who was driving.',
               ),
-        ],
-        if (moment.snapshot.possibleVehicle)
-          const Text(
-            'Possible vehicle movement was recorded. This does not identify who was driving.',
-          ),
-        const SizedBox(height: 12),
-        const Text(
-          'These are the readings saved with your chosen feeling. They do not establish how you felt. No app names, typed content or routes are included.',
+            const SizedBox(height: 12),
+            const Text(
+              'These are the readings saved with your chosen feeling. They do not establish how you felt. No app names, typed content or routes are included.',
+            ),
+          ],
         ),
-      ],
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Close'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
-    ],
-  ),
-);
+    );

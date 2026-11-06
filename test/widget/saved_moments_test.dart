@@ -380,4 +380,56 @@ void main() {
       await tester.pump();
     },
   );
+  testWidgets(
+    'saved detail preserves fractional minutes including a nonzero small reading',
+    (tester) async {
+      await tester.runAsync(
+        () => controller.updateLearning(
+          LearningData(
+            examples: [
+              LearningExample(
+                id: 'fractional',
+                createdAt: at,
+                label: FeelingLabel.calm,
+                snapshot: SignalSnapshot(
+                  observedAt: at,
+                  features: const {
+                    'activeMinutes': 0.04,
+                    'walkingMinutes': 0.75,
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      await show(tester);
+      await tester.tap(find.text('View moment'));
+      await tester.pumpAndSettle();
+      expect(find.text('0.04 active minutes'), findsOneWidget);
+      expect(find.text('0.75 walking minutes'), findsOneWidget);
+      expect(find.text('0.0 active minutes'), findsNothing);
+    },
+  );
+
+  testWidgets('feeling-only detail includes its original observation time', (
+    tester,
+  ) async {
+    final moment = session.data.examples.firstWhere((e) => e.id == 'moment-1');
+    await show(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const ValueKey('moment-moment-1')),
+        matching: find.text('View moment'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final locale = MaterialLocalizations.of(
+      tester.element(find.byType(AlertDialog)),
+    );
+    final observed = locale.formatTimeOfDay(
+      TimeOfDay.fromDateTime(moment.snapshot.observedAt.toLocal()),
+    );
+    expect(find.textContaining(observed), findsOneWidget);
+  });
 }

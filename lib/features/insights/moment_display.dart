@@ -41,7 +41,7 @@ String momentContext(SignalSnapshot snapshot) {
 String metricDescription(String metric, double value) {
   final number = value == value.roundToDouble()
       ? value.toInt().toString()
-      : value.toStringAsFixed(1);
+      : value.toString();
   final unit = switch (metric) {
     'tapCount' => 'taps',
     'navigationChanges' => 'navigation changes',

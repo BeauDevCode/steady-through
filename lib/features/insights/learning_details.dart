@@ -26,10 +26,10 @@ class _LearningDetailsState extends State<LearningDetails>
   Widget build(BuildContext context) {
     super.build(context);
     final session = widget.session;
-    final data = session.data;
     // Capture the observation before its assessment clock, as assess does.
     final snapshot = session.snapshot;
     final now = DateTime.now().toUtc();
+    final data = session.data.bounded(now);
     final evidence = _expanded
         ? PersonalPatternEngine().evidence(data, snapshot, now: now)
         : null;

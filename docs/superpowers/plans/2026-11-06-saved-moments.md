@@ -73,8 +73,8 @@
 
 **Interfaces:** Consumes completed app. Current existing CI and release staging/verification helpers remain authoritative; no new native adapter behavior.
 
-- [ ] Run format check, analyzer, full Flutter tests, existing Python CI-helper suite. Expected all PASS. Record actual counts, not inherited counts.
-- [ ] Request a fresh whole-branch code review with spec, plan, ledger and exact diff; resolve material findings with failing regression then full green suite.
-- [ ] Update version to `1.3.0+7` and docs to describe research-informed changes, schema compatibility and remaining physical/signing limits. Commit exact source.
+- [x] Run format check, analyzer, full Flutter tests, existing Python CI-helper suite. Expected all PASS. Record actual counts, not inherited counts.
+- [x] Request a fresh whole-branch code review with spec, plan, ledger and exact diff; resolve material findings with failing regression then full green suite.
+- [x] Update version to `1.3.0+7` and docs to describe research-informed changes, schema compatibility and remaining physical/signing limits. Commit exact source.
 - [ ] Push authorized public feature branch, run existing seven-job CI for exact source; inspect job conclusions and native case reports. Package/publish `v1.3.0-preview.1` only after artifact/source/package checks pass. Verify public assets and checksums. If an external prerequisite blocks publishing, retain source and concrete evidence without claiming release completion.
 - [ ] Fast-forward public main only after verification/review; update documentation-only publication evidence with source equivalence checked. Preserve exact tested-source/tag/main distinction. Finish with user-visible changes, primary research links, verified tests/builds and concrete outstanding distribution limits.

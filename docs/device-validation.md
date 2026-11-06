@@ -42,6 +42,16 @@ observations. Use the source commit and build under review, not an older preview
    it without calling or sending. On a live device whose handler may dial immediately, skip Call and record it as **Not run**; do not assume the
    app supplies its own preview. If no handler exists, check the copy-number fallback and visible error.
 
+## Saved moments and clearer Insights (1.3)
+
+These checks remain **Not run** until performed and recorded on the specific native build.
+
+- Save several fictional feelings with optional sources off except Feeling check-ins; inspect the latest three and **View all**. Display time must be local, ordering newest first, and **View moment** must identify only saved readings. Turning every source off or pausing learning must preserve history access.
+- Use **Edit feeling**, cancel once, then save another choice. Confirm the same timestamp/readings remain, the chosen label changes and model/review results clear. Lock/unlock and inspect the durable correction. Cancel a one-moment deletion, then confirm it and verify unrelated events/moments remain. Never induce storage failures on a personal vault.
+- After saving, use persistent **Undo saved feeling** and check that only that save disappears. A later save replaces the undo target. Clear/import/lock must not leave a stale Undo capable of restoring or deleting unrelated history. Corrections/deletion cannot remove copies already exported elsewhere.
+- Inspect the seven-day summary with every source off. It must describe chosen feelings without claiming current mood or improvement. Open **How learning works**, scroll away/back and confirm it stays open. Distinguish coverage safeguards, current missing/uncertain readings and the separate 60-day review; do not change feeling answers merely to satisfy counts.
+- Check keyboard and VoiceOver/TalkBack navigation through preview/full history, details, choice chips, confirmation, cancellation and success/error announcements. Repeat at 200% text with reduced motion and both appearances. Confirm help stays reachable and history mutation controls disappear/disable when optional current motion indicates possible vehicle movement, including an already-open history route/dialog. Do this with controlled fixtures or while safely stopped, never by operating the app while driving.
+
 ## Backup and data ownership on each platform
 
 7. Open **More → Settings → Export data**. In **Protect your backup**, enter a test-only export passphrase different from the vault passphrase.
