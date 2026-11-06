@@ -136,11 +136,24 @@ jobs:
         timeout-minutes: 15
         run: |
           mkdir -p build
+          xcodebuild -version | tee build/native-ios-xcode.log
+          xcrun --sdk iphonesimulator --show-sdk-version | tee build/native-ios-sdk.log
+          xcrun simctl list runtimes --json > build/native-ios-runtimes.json
           python tool/ci/prepare_ios_simulator.py 2>&1 | tee build/native-ios-simulator.log
       - name: Run native iOS smoke tests
         shell: bash
         timeout-minutes: 20
         run: flutter test integration_test/native_smoke_test.dart -d "$STEADY_IOS_SIMULATOR_ID" --reporter expanded --file-reporter json:build/native-ios-results.json --timeout 5m 2>&1 | tee build/native-ios.log
+      - name: Capture iOS Simulator diagnostics
+        if: always()
+        shell: bash
+        timeout-minutes: 3
+        run: |
+          mkdir -p build
+          if [[ -n "${STEADY_IOS_SIMULATOR_ID:-}" ]]; then
+            xcrun simctl io "$STEADY_IOS_SIMULATOR_ID" screenshot build/native-ios-screen.png
+            xcrun simctl spawn "$STEADY_IOS_SIMULATOR_ID" log show --style compact --last 10m --predicate 'process == "Runner" OR process == "SpringBoard"' > build/native-ios-system.log
+          fi
       - name: Verify actual iOS native test execution
         if: always()
         shell: bash

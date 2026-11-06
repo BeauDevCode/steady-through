@@ -2,6 +2,7 @@
 // Run on a native target; the normal widget suite does not execute this file.
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,28 @@ import 'package:steady_through/learning/device_signals.dart';
 
 const _vaultPassphrase = 'Fictional native test river garden';
 const _exportPassphrase = 'Separate fictional backup meadow';
+
+// Observe actual framework notifications without manufacturing an active
+// lifecycle. The engine's initial value is a startup snapshot, not current UI
+// readiness; keeping it separate helps diagnose native alert/scene failures.
+class _NativeLifecycleTrace with WidgetsBindingObserver {
+  final List<String> _events = [];
+
+  String get summary =>
+      'binding=${WidgetsBinding.instance.lifecycleState}; '
+      'engineInitial=${ui.PlatformDispatcher.instance.initialLifecycleState}; '
+      'transitions=${_events.join(', ')}';
+
+  void mark(String checkpoint) =>
+      debugPrint('Native QA lifecycle [$checkpoint]: $summary');
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _events.add('${DateTime.now().toUtc().toIso8601String()}:$state');
+    if (_events.length > 32) _events.removeAt(0);
+    mark('notification');
+  }
+}
 
 Future<void> _until(
   WidgetTester tester,
@@ -108,8 +131,9 @@ Future<void> _unmount(WidgetTester tester) async {
   await tester.pump();
 }
 
-/// Replaces only the unautomatable OS file chooser. Encryption, parsing,
-/// confirmation, native file I/O and the encrypted repository are all real.
+/// Owns file I/O for DataPortability; the case separately supplies scripted
+/// passphrase/confirmation callbacks. Encryption, parsing and persistence are
+/// real, while the OS chooser and Settings backup dialogs are outside the case.
 class _OwnedBackupGateway implements DataPortabilityGateway {
   _OwnedBackupGateway(this.file);
   final File file;
@@ -132,10 +156,15 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized().defaultTestTimeout =
       const Timeout(Duration(minutes: 5));
   WidgetController.hitTestWarningShouldBeFatal = true;
+  final lifecycle = _NativeLifecycleTrace();
+  WidgetsBinding.instance.addObserver(lifecycle);
+  lifecycle.mark('test entry');
+  tearDownAll(() => WidgetsBinding.instance.removeObserver(lifecycle));
 
   testWidgets('native bridge remains paused without source consent', (
     tester,
   ) async {
+    lifecycle.mark('bridge start');
     // Querying path_provider establishes native plugin registration without
     // reading or writing the app's normal support directory.
     expect((await getTemporaryDirectory()).isAbsolute, isTrue);
@@ -185,11 +214,13 @@ void main() {
       expect(capabilities.usageSupported, isFalse);
       expect(capabilities.motionSupported, isFalse);
     }
+    lifecycle.mark('bridge end');
   });
 
   testWidgets(
     'native vault keeps an event through lock and authenticated unlock',
     (tester) async {
+      lifecycle.mark('UI case start');
       final directory = await Directory.systemTemp.createTemp(
         'steady-native-ui-',
       );
@@ -197,6 +228,7 @@ void main() {
       var completed = false;
       try {
         await tester.pumpWidget(VaultGate(store: store));
+        lifecycle.mark('gate mounted');
         await _until(
           tester,
           () => find.text('Create private vault').evaluate().isNotEmpty,
@@ -216,6 +248,7 @@ void main() {
           () => find.byType(SteadyThroughApp).evaluate().isNotEmpty,
           reason: 'real KDF and encrypted vault creation',
         );
+        lifecycle.mark('vault created');
         await _until(
           tester,
           () => find
@@ -225,8 +258,7 @@ void main() {
               .isNotEmpty,
           reason:
               'new app becomes interactive after native lifecycle transitions',
-          diagnostics: () =>
-              'lifecycle=${WidgetsBinding.instance.lifecycleState}',
+          diagnostics: () => lifecycle.summary,
         );
         await tester.tap(find.widgetWithText(FilledButton, 'Create event'));
         await tester.pumpAndSettle();
