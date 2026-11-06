@@ -6,7 +6,7 @@ Steady Through is a free, offline-first Flutter app for getting through a diffic
 
 [Download the life-event guidance preview](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.0-preview.1) · [Life-event guidance validation and remaining limits](docs/quality-status.md)
 
-Version **1.2.0+5** passed all six jobs in [final CI run 42198257234](https://github.com/BeauDevCode/steady-through/actions/runs/42198257234): 255 Flutter tests, 62 CI-helper tests, 12 Android native unit tests, and all three application cases on each of five platforms. The v1.2.0-preview.1 publication check is the remaining release gate at this commit.
+Version **1.2.0+5** passed all six jobs in [final CI run 42198257234](https://github.com/BeauDevCode/steady-through/actions/runs/42198257234): 255 Flutter tests, 62 CI-helper tests, 12 Android native unit tests, and all three application cases on each of five platforms. **[v1.2.0-preview.1 is published](https://github.com/BeauDevCode/steady-through/releases/tag/v1.2.0-preview.1)** with five platform packages and four verification files. All nine uploaded assets were checked against their server SHA-256 hashes.
 
 The app is for personal organization and general self-help. It does not diagnose, measure stress, provide treatment, or replace emergency or professional support. In immediate physical danger, contact local emergency services. In the United States, call or text **988** for crisis support; elsewhere, use your local crisis service. See [Help from NIMH](https://www.nimh.nih.gov/health/publications/my-mental-health-do-i-need-help) and the [988 Lifeline](https://988lifeline.org/get-help/).
 
