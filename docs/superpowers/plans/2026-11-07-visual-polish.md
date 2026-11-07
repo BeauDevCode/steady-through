@@ -50,6 +50,6 @@
 **Files:** README.md, PRIVACY.md, docs/quality-status.md, docs/device-validation.md, docs/ios-distribution.md, docs/releases/1.6.0-decisions.md and publication snapshot. Operational helpers outside repo.
 **Interfaces:** Adapt prior1.5.1 release helpers to1.6.0+11, keep four-case verifier/fixture markers/evidence allowlists and all gates. Export helperbytes from exact source.
 
-- [ ] Push source, require7latestjobsSUCCESS and actual CI suite/helper/JUnit counts; four named native cases×5. Download13 artifactZIPs via connector; full hashes/payload/metadata/unsigned-device/sourcehelper staging of10assets. Independent actual byte audit before publication.
+- [x] Push source, require7latestjobsSUCCESS and actual CI suite/helper/JUnit counts; four named native cases×5. Download13 artifactZIPs via connector; full hashes/payload/metadata/unsigned-device/sourcehelper staging of10assets. Independent actual byte audit before publication.
 - [ ] Verify draft then public exact release body/tag/source/10serverhashes/sizes; publishauthorizedpublicpreview, anonymously verifyrepo/release/downloads. Merge testedsource with documentation-only successors to main; verify ancestry/pathallowlist and cleanremote/localHEAD.
 - [ ] Save durable publication snapshot, complete plan, archive/hash-check/remove only own scratch, delete fully merged local featurebranch, final public proof. Report visual changes, actual checks, complete rulings and limits. Do not stop at review or offer another approval menu.

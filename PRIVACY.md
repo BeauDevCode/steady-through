@@ -4,9 +4,13 @@ _Last updated: November 7, 2026_
 
 <a id="current-160-work-in-progress--verification-and-publication-pending"></a>
 
-## Current 1.6.0 work in progress — verification and publication pending
+<a id="current-160-preview--published-and-verified"></a>
 
-Working target **1.6.0+11 /v1.6.0-preview.1** changes colors, layout, static artwork and finite interaction/entrance feedback. It adds no records, collection, learning inputs or permission. Focus/hover changes only visual feedback; existing activation callbacks, ownership guards and explicit contact/clipboard actions remain. No personal vault, real contact, clipboard, chooser or grant is used in the synthetic captures.
+## Current 1.6.0 preview — published and verified
+
+**[v1.6.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.6.0-preview.1) /1.6.0+11** is published from exact tagged source `be08bda9d106d81acec0208065ee341e90938749`. [CI run 42387530825](https://github.com/BeauDevCode/steady-through/actions/runs/42387530825), attempt 1, passed all seven jobs: **476 Flutter tests, 94 Python helpers, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All thirteen outer ZIP/source/run/job bindings, six complete production packages and ten public assets passed the independent byte audit (`PASS_WITH_LIMITS`, no findings/advisories). The exact published body/tag and all server hashes/sizes/upload states matched; repository, release and all ten downloads passed anonymous access checks.
+
+Published **1.6.0+11 /v1.6.0-preview.1** changes colors, layout, static artwork and finite interaction/entrance feedback. It adds no records, collection, learning inputs or permission. Focus/hover changes only visual feedback; existing activation callbacks, ownership guards and explicit contact/clipboard actions remain. No personal vault, real contact, clipboard, chooser or grant is used in the synthetic captures.
 
 A finite incoming-only reveal uses 240ms ease-out and at most 8px travel. Reduced motion completes the entrance immediately while preserving child state; a destination switch disposes outgoing content on its first frame. Help stays outside body motion. Shared cards keep one Material action: hover/focus stays passive and activation invokes the existing callback once.
 
@@ -16,7 +20,13 @@ Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permission
 
 All **42 final fictional actual-widget PNGs** were generated and inspected: 32 screen references across four passing profile tests and ten component-feedback/entry frames across two passing tests. Root also checked the final narrow eight scenes, full-size Home/Tools and dark-focus/light-settled frames after capture-only debug-banner removal. These captures do not establish pixel comparison, native assistive technology or FPS/performance validation.
 
-Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Exact-source seven-job CI with four native cases on each of five runtimes, thirteen artifact ZIP bindings, six complete packages, ten assets, independent byte audit and tag/body/hash/main/anonymous publication verification remain pending. No 1.6 release, CI source SHA or run is claimed; published 1.5.1 results below remain historical. See [quality status](docs/quality-status.md#current-160-work-in-progress--verification-and-publication-pending) and [decisions](docs/releases/1.6.0-decisions.md).
+Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Final-source CI, native execution, package audit and public-release verification are complete; published 1.5.1 results below remain historical. See [quality status](docs/quality-status.md#current-160-preview--verified-evidence) and [decisions](docs/releases/1.6.0-decisions.md).
+
+
+
+<!-- visual-polish-main-observation:start -->
+Public-main ancestry and documentation-only equivalence remain pending the first post-publication documentation commit/proof. The release/source, CI, native cases, packages, body/assets and anonymous access are verified; no completed main-equivalence result is claimed yet.
+<!-- visual-polish-main-observation:end -->
 
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 

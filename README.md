@@ -6,9 +6,13 @@ Steady Through is a free, offline-first Flutter app for getting through a diffic
 
 <a id="current-160-work-in-progress--verification-and-publication-pending"></a>
 
-## Current 1.6.0 work in progress — verification and publication pending
+<a id="current-160-preview--published-and-verified"></a>
 
-Working target **1.6.0+11 /v1.6.0-preview.1** refines the existing interface with warm ivory, deep teal, apricot and restrained lavender, paired light/dark foregrounds, a framed desktop rail and a clearer Home next step. Static original tool artwork, natural-height cards with aligned actions, text-aware People columns, visible hover/focus/press feedback and stacked headings at large text improve hierarchy without adding a feature family.
+## Current 1.6.0 preview — published and verified
+
+**[v1.6.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.6.0-preview.1) /1.6.0+11** is published from exact tagged source `be08bda9d106d81acec0208065ee341e90938749`. [CI run 42387530825](https://github.com/BeauDevCode/steady-through/actions/runs/42387530825), attempt 1, passed all seven jobs: **476 Flutter tests, 94 Python helpers, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All thirteen outer ZIP/source/run/job bindings, six complete production packages and ten public assets passed the independent byte audit (`PASS_WITH_LIMITS`, no findings/advisories). The exact published body/tag and all server hashes/sizes/upload states matched; repository, release and all ten downloads passed anonymous access checks.
+
+Published **1.6.0+11 /v1.6.0-preview.1** refines the existing interface with warm ivory, deep teal, apricot and restrained lavender, paired light/dark foregrounds, a framed desktop rail and a clearer Home next step. Static original tool artwork, natural-height cards with aligned actions, text-aware People columns, visible hover/focus/press feedback and stacked headings at large text improve hierarchy without adding a feature family.
 
 A finite incoming-only reveal uses 240ms ease-out and at most 8px travel. Reduced motion completes the entrance immediately while preserving child state; a destination switch disposes outgoing content on its first frame. Help stays outside body motion. Shared cards keep one Material action: hover/focus stays passive and activation invokes the existing callback once.
 
@@ -22,7 +26,13 @@ All **42 final fictional actual-widget PNGs** were generated and inspected: 32 s
 
 Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permissions, learning thresholds and native adapters remain unchanged. Support stays free/offline with every source off. The owner retains **Source and Simulator for now** for iPhone; owner signing and physical installation are outside this completion target. Unsigned device output is package evidence, not installation. No pixel-comparison, native assistive-technology or FPS/performance validation is claimed.
 
-Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Exact-source seven-job CI with four native cases on each of five runtimes, thirteen artifact ZIP bindings, six complete packages, ten assets, independent byte audit and tag/body/hash/main/anonymous publication verification remain pending. No 1.6 release, CI source SHA or run is claimed; published 1.5.1 results below remain historical. See [current quality status](docs/quality-status.md#current-160-work-in-progress--verification-and-publication-pending) and [1.6 decisions](docs/releases/1.6.0-decisions.md).
+Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Final-source CI, native execution, package audit and public-release verification are complete; published 1.5.1 results below remain historical. See [current quality status](docs/quality-status.md#current-160-preview--verified-evidence) and [1.6 decisions](docs/releases/1.6.0-decisions.md).
+
+
+
+<!-- visual-polish-main-observation:start -->
+Public-main ancestry and documentation-only equivalence remain pending the first post-publication documentation commit/proof. The release/source, CI, native cases, packages, body/assets and anonymous access are verified; no completed main-equivalence result is claimed yet.
+<!-- visual-polish-main-observation:end -->
 
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 

@@ -2,9 +2,13 @@
 
 <a id="current-160-work-in-progress--verification-and-publication-pending"></a>
 
-## Current 1.6.0 work in progress — verification and publication pending
+<a id="current-160-preview--published-and-verified"></a>
 
-Working target **1.6.0+11 /v1.6.0-preview.1** has no verified 1.6 CI, Simulator/device package, binary metadata or public download yet. The UI refinements preserve ordinary routes, early Help, ownership/lifecycle guards and the four-case native contract. Final-source CI must pass all four cases on all five runtimes; earlier 1.5.1 execution is historical.
+## Current 1.6.0 preview — published and verified
+
+**[v1.6.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.6.0-preview.1) /1.6.0+11** is published from exact tagged source `be08bda9d106d81acec0208065ee341e90938749`. [CI run 42387530825](https://github.com/BeauDevCode/steady-through/actions/runs/42387530825), attempt 1, passed all seven jobs: **476 Flutter tests, 94 Python helpers, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All thirteen outer ZIP/source/run/job bindings, six complete production packages and ten public assets passed the independent byte audit (`PASS_WITH_LIMITS`, no findings/advisories). The exact published body/tag and all server hashes/sizes/upload states matched; repository, release and all ten downloads passed anonymous access checks.
+
+Published **1.6.0+11 /v1.6.0-preview.1** has verified exact-source CI, Simulator/device packages, binary metadata and public downloads. The UI refinements preserve ordinary routes, early Help, ownership/lifecycle guards and the four-case native contract. Final-source CI passed all four cases on all five runtimes; earlier 1.5.1 execution remains historical.
 
 **Final local verification passed:** 476 Flutter tests, 94 Python CI-helper tests, no analyzer issues and 124 Dart files format-checked with no changes. The final interaction/tools scoped run passed 26 tests, including midflight motion-preference changes with focused text state, actual old-tab disposal and immediate Help. The three valid behavioral RED cases remain the two shared state/columns failures and one incoming-motion failure; no additional RED proof is claimed.
 
@@ -12,7 +16,15 @@ All **42 final fictional actual-widget PNGs** were generated and inspected: 32 s
 
 Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permissions, learning thresholds and native adapters remain unchanged. Support stays free/offline with every source off. The owner retains **Source and Simulator for now** for iPhone; owner signing and physical installation are outside this completion target. Unsigned device output is package evidence, not installation. No pixel-comparison, native assistive-technology or FPS/performance validation is claimed.
 
-Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Exact-source seven-job CI with four native cases on each of five runtimes, thirteen artifact ZIP bindings, six complete packages, ten assets, independent byte audit and tag/body/hash/main/anonymous publication verification remain pending. No 1.6 release, CI source SHA or run is claimed; published 1.5.1 results below remain historical. See [quality status](quality-status.md#current-160-work-in-progress--verification-and-publication-pending) and [decisions](releases/1.6.0-decisions.md). Verified 1.5.1 filenames/metadata below are the last published output, not 1.6 evidence.
+Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Final-source CI, native execution, package audit and public-release verification are complete; published 1.5.1 results below remain historical. See [quality status](quality-status.md#current-160-preview--verified-evidence) and [decisions](releases/1.6.0-decisions.md). Current 1.6 filenames/metadata below are verified; earlier version records remain historical.
+
+
+
+Verified Apple metadata is 1.6.0/build 11. The unsigned iPhoneOS archive contains 82 members and 4 actual arm64/platform 2 images, minimum iOS 15.0. Exact-source helper/archive/resource checks passed; it remains unsigned, not installable and physically untested.
+
+<!-- visual-polish-main-observation:start -->
+Public-main ancestry and documentation-only equivalence remain pending the first post-publication documentation commit/proof. The release/source, CI, native cases, packages, body/assets and anonymous access are verified; no completed main-equivalence result is claimed yet.
+<!-- visual-polish-main-observation:end -->
 
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 
@@ -64,12 +76,12 @@ The earlier **1.3.0+7 / [v1.3.0-preview.1](https://github.com/BeauDevCode/steady
 
 ## Choose the right output
 
-Public filenames in this table refer to the last published, now historical 1.5.1 release. Intended 1.6.0/build 11 packages/metadata remain unverified; no 1.6 filename is a verified download yet. The historical 1.4 evidence above remains tied to its own source.
+Public filenames in this table refer to verified current 1.6.0/build 11 output; earlier release evidence above remains historical. The historical 1.4 evidence above remains tied to its own source.
 
 | Output | Build and package | What it establishes |
 | --- | --- | --- |
-| iOS Simulator | `flutter build ios --simulator --debug`; `build/ios/iphonesimulator/Runner.app`; public `steady-through-1.5.1-preview.1-ios-simulator.zip` | Debug app for a compatible Simulator. The existing Simulator job separately checks its selected available runtime, boot readiness and three actual native cases. It is not an iPhone package. |
-| Unsigned iPhoneOS Release | `flutter build ios --release --no-codesign --target lib/main.dart`; `build/ios/iphoneos/Runner.app`; public `steady-through-1.5.1-preview.1-ios-device-release-unsigned.zip` | Device-targeted production compilation and validated package contents only. **Unsigned, not installable, not physically validated.** It is an app ZIP, not a signed Xcode archive or IPA. |
+| iOS Simulator | `flutter build ios --simulator --debug`; `build/ios/iphonesimulator/Runner.app`; public `steady-through-1.6.0-preview.1-ios-simulator.zip` | Debug app for a compatible Simulator. The existing Simulator job separately checks its selected available runtime, boot readiness and three actual native cases. It is not an iPhone package. |
+| Unsigned iPhoneOS Release | `flutter build ios --release --no-codesign --target lib/main.dart`; `build/ios/iphoneos/Runner.app`; public `steady-through-1.6.0-preview.1-ios-device-release-unsigned.zip` | Device-targeted production compilation and validated package contents only. **Unsigned, not installable, not physically validated.** It is an app ZIP, not a signed Xcode archive or IPA. |
 | Future signed archive/IPA | A separately generated `.xcarchive` and `.ipa`, after the owner supplies an Apple Team, valid signing identity and provisioning for the chosen distribution method | A separate signing/distribution result that must be validated and tested on a physical iPhone. Neither preview ZIP supplies it. |
 
 The new device job does not replace Simulator execution. An arm64 slice can belong to a Simulator: the device validator requires **every Mach-O slice to declare platform 2 / iOS**, alongside arm64, appropriate executable types and deployment metadata. Its current app minimum is iOS 15.0. These are package checks; they do not prove behavior on all supported hardware or OS versions.
@@ -105,7 +117,7 @@ shasum -a 256 steady-through-ios-device-release-unsigned-ci.zip
 
 The first verifier creates the report and refuses to overwrite an existing report. Keep that baseline unchanged and do not rebuild or modify `Runner.app` between validation and archive verification. The second verifier requires the prior report, revalidates the directory against it and checks exact ZIP membership, types, modes, lengths and file hashes. On success it adds the archive's name, size, SHA-256 and member count to the report. If a check fails, preserve the failed report/log/archive for diagnosis; do not delete or rewrite the baseline to make a changed bundle appear to match. A new build needs a separately preserved build/evidence session.
 
-The verified published 1.5.1 binary metadata includes `com.beaudevcode.steadyThrough`, display/name `Steady Through`, executable `Runner`, **1.5.1/build 10**, iPhoneOS/`iphoneos`, and minimum iOS 15.0. The binary identity and complete package were independently reinspected. The verifier also checks embedded frameworks and Mach-O slices, bundled icons/storyboards/fonts/assets, active `objective_c` native-asset mapping, pinned plugin privacy resources, absence of root signing/provisioning artifacts and absence of known test/debug fixture content. Read the actual JSON and build log; a ZIP existing on disk is insufficient.
+The verified published 1.6.0 binary metadata includes `com.beaudevcode.steadyThrough`, display/name `Steady Through`, executable `Runner`, **1.6.0/build 11**, iPhoneOS/`iphoneos`, and minimum iOS 15.0. The binary identity and complete package were independently reinspected. The verifier also checks embedded frameworks and Mach-O slices, bundled icons/storyboards/fonts/assets, active `objective_c` native-asset mapping, pinned plugin privacy resources, absence of root signing/provisioning artifacts and absence of known test/debug fixture content. Read the actual JSON and build log; a ZIP existing on disk is insufficient.
 
 The `iPhoneOS Release (macOS, unsigned, not installable)` job preserves two CI artifacts:
 
@@ -114,7 +126,7 @@ The `iPhoneOS Release (macOS, unsigned, not installable)` job preserves two CI a
 
 A failed job may upload partial evidence; artifact presence does not establish success. The provenance records the source, repository, run/attempt, production command, disabled code signing and toolchain. Local commands above do not fabricate a GitHub source/run identity. Retain local source/toolchain observations separately, and use the actual CI provenance for a release.
 
-The current public device filename is **`steady-through-1.5.1-preview.1-ios-device-release-unsigned.zip`**. Staging preserved the validated CI ZIP bytes and mapped its original filename in build information. The release has six app packages plus BUILD-INFO, checksums, Android JUnit and native-runtime-reports.zip (ten assets). The report ZIP includes the four device evidence files and source verifiers. The exact tag/source, anonymous downloads and all server hashes/sizes are verified separately from package/native execution. Public-main ancestry and documentation-only equivalence were verified at the observation recorded in the [publication snapshot](releases/1.5.0-publication.json); later documentation-only records preserve the tested application source.
+The current public device filename is **`steady-through-1.6.0-preview.1-ios-device-release-unsigned.zip`**. Staging preserved the validated CI ZIP bytes. The ten verified assets include six packages, BUILD-INFO, checksums, Android JUnit and native-runtime-reports.zip. Tag/source, public body/assets and anonymous access were checked separately from runtime execution; see [current quality status](quality-status.md#current-160-preview--verified-evidence) for the recorded main observation.
 
 ## Future owner-controlled signing and physical iPhone work
 
