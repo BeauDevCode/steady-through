@@ -20,7 +20,7 @@ The fourth native case uses default visible screens and real owned encrypted sto
 
 The owner selected **Source and Simulator for now** for iPhone. Owner signing/provisioning and physical installation are outside this completion target. The device archive remains **unsigned, not installable and physically untested**. Real contact/clipboard/file handlers, OS dialogs/grants, physical sensing, native assistive technology and efficacy remain unexecuted.
 
-Public-main ancestry/documentation equivalence remains pending its first post-publication proof; no completed result or snapshot is claimed yet. See [quality status](docs/quality-status.md#current-151-preview--verified-evidence) and [1.5.1 decisions](docs/releases/1.5.1-decisions.md). Published 1.5 records below remain historical.
+Public main `000f7f6bdde8a35e2cabce190a1fdaf43b0ff7cd` was verified as a documentation-only descendant of the exact tagged source at the [publication snapshot](docs/releases/1.5.1-publication.json) observation. The snapshot records that state before its own commit; any later documentation-only successor requires independent ancestry/equivalence verification. See [quality status](docs/quality-status.md#current-151-preview--verified-evidence) and [1.5.1 decisions](docs/releases/1.5.1-decisions.md). Published 1.5 records below remain historical.
 
 <a id="current-150-work-in-progress--ci-and-publication-pending"></a>
 

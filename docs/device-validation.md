@@ -18,7 +18,7 @@ The owner selected **Source and Simulator for now** for iPhone. Owner signing/pr
 
 This human checklist remains **unexecuted**. Use disposable fictional records for separately authorized manual observations; do not grant permissions or use personal data merely to satisfy automated scope. Schema **4/read 1/2/3/4**, encryption/KDF, adapters and permissions remain unchanged.
 
-Public-main ancestry/documentation equivalence remains pending its first post-publication proof; no completed result or snapshot is claimed yet. [Quality status](quality-status.md#current-151-preview--verified-evidence) separates automated evidence from this unexecuted human checklist. Current published preview is 1.5.1+10; the 1.5 record below remains historical.
+Public main `000f7f6bdde8a35e2cabce190a1fdaf43b0ff7cd` was verified as a documentation-only descendant of the exact tagged source at the [publication snapshot](releases/1.5.1-publication.json) observation. The snapshot records that state before its own commit; any later documentation-only successor requires independent ancestry/equivalence verification. [Quality status](quality-status.md#current-151-preview--verified-evidence) separates automated evidence from this unexecuted human checklist. Current published preview is 1.5.1+10; the 1.5 record below remains historical.
 
 <a id="current-150-work-in-progress--ci-and-publication-pending"></a>
 

@@ -29,7 +29,7 @@ Published **1.5.1+10 /v1.5.1-preview.1** is a finite reliability completion pass
 
 Initial logs live in `.superpowers/sdd/2026-11-06-reliable-journeys/`: `learning-red.log`, `cleanup-red.log`, `submitted-forms-red.log`, `help-clipboard-red.log`, corrected scoped runs, `full-green-initial.log`, `native-helper-green.log`, `analyze-initial.log` and `native-local-macos.log`. The interrupted native attempt must not be replaced by an assumed success. Final post-review logs `review-fix-suite.log` (468), `review-fix-analyze.log` (no issues), `review-fix-format.log` (116 files/no changes) and `consent-order-green-final.log` (three passing cases) cover the material fix. Unchanged Python helper code retains its 94-test pass in `helpers-final.log`. The 21 inspected captures in `captures-final.log` and targeted backup-helper pass remain separately observed UI evidence.
 
-Public-main ancestry and documentation-only equivalence remain pending the first post-publication documentation commit/proof. The release tag/source, CI, packages, public body/assets and anonymous access are already verified; no completed main-equivalence result is claimed here.
+Public main `000f7f6bdde8a35e2cabce190a1fdaf43b0ff7cd` was verified as a documentation-only descendant of the exact tagged source at the [publication snapshot](releases/1.5.1-publication.json) observation. The snapshot records that state before its own commit; any later documentation-only successor requires independent ancestry/equivalence verification.
 
 Publishing the exact-source tag triggered redundant run 42330961157 on the same source; it was canceled because original run 42329671305 already passed. The successful original run remains the release evidence.
 

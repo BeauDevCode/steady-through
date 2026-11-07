@@ -20,7 +20,7 @@ The owner selected **Source and Simulator for now** for iPhone. Owner signing/pr
 
 Schema **4/read 1/2/3/4**, encryption/KDF, dependencies, adapters, permissions and learning thresholds remain unchanged. Support remains free/offline with all sources off.
 
-Public-main ancestry/documentation equivalence remains pending its first post-publication proof; no completed result or snapshot is claimed yet. See [quality status](quality-status.md#current-151-preview--verified-evidence) and [decisions](releases/1.5.1-decisions.md). The 1.5 packages below remain historical.
+Public main `000f7f6bdde8a35e2cabce190a1fdaf43b0ff7cd` was verified as a documentation-only descendant of the exact tagged source at the [publication snapshot](releases/1.5.1-publication.json) observation. The snapshot records that state before its own commit; any later documentation-only successor requires independent ancestry/equivalence verification. See [quality status](quality-status.md#current-151-preview--verified-evidence) and [decisions](releases/1.5.1-decisions.md). The 1.5 packages below remain historical.
 
 <a id="current-150-work-in-progress--ci-and-publication-pending"></a>
 
