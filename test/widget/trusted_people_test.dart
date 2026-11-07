@@ -367,6 +367,70 @@ void main() {
     expect(find.text('Save person'), findsNothing);
   });
 
+  for (final adding in [false, true]) {
+    testWidgets(
+      '${adding ? 'Add' : 'Edit'} fields stop accepting corrections during a pending save',
+      (tester) async {
+        await people(tester);
+        if (adding) {
+          await tester.tap(find.text('Add person'));
+          await tester.pumpAndSettle();
+        } else {
+          await edit(tester);
+        }
+        final name = find.widgetWithText(TextFormField, 'Name');
+        final number = find.byKey(const ValueKey('person-phone-field'));
+        await tester.enterText(name, 'Submitted helper');
+        await tester.enterText(number, '555-0133');
+        final gate = Completer<void>();
+        repository.hold = gate;
+        // Edit covers retry after failure; Add covers successful dismissal.
+        repository.failNext = !adding;
+        await tester.tap(find.text('Save person'));
+        await tester.pump();
+        await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+        try {
+          for (final field in [name, number]) {
+            await tester.tap(field);
+            await tester.pump();
+            expect(
+              tester.testTextInput.hasAnyClients,
+              isFalse,
+              reason: 'Pending submitted fields must not accept new typing.',
+            );
+          }
+          expect(
+            tester
+                .widget<TextButton>(find.widgetWithText(TextButton, 'Cancel'))
+                .onPressed,
+            isNotNull,
+          );
+        } finally {
+          gate.complete();
+          await _settle(tester);
+        }
+        if (adding) {
+          expect(find.text('Save person'), findsNothing);
+          expect(controller.data.people.last.name, 'Submitted helper');
+          expect(controller.data.people.last.phone, '555-0133');
+        } else {
+          expect(
+            find.textContaining('Could not save this person'),
+            findsOneWidget,
+          );
+          expect(controller.data.people.first.name, 'Alex');
+          await tester.enterText(name, 'Retry correction');
+          await tester.enterText(number, '555-0144');
+          await tester.tap(find.text('Save person'));
+          await _settle(tester);
+          expect(controller.data.people.first.name, 'Retry correction');
+          expect(controller.data.people.first.phone, '555-0144');
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets(
     'pending edit disables duplicate save but Cancel stays available',
     (tester) async {

@@ -123,6 +123,7 @@ class _PersonFormDialogState extends State<PersonFormDialog> {
             children: [
               TextFormField(
                 controller: _name,
+                readOnly: _saving,
                 decoration: const InputDecoration(labelText: 'Name'),
                 textCapitalization: TextCapitalization.words,
                 textInputAction: TextInputAction.next,
@@ -141,6 +142,7 @@ class _PersonFormDialogState extends State<PersonFormDialog> {
                 child: TextFormField(
                   key: const ValueKey('person-phone-field'),
                   controller: _phone,
+                  readOnly: _saving,
                   decoration: const InputDecoration(),
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.done,
