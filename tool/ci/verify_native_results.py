@@ -15,6 +15,7 @@ REQUIRED_TESTS = frozenset({
     "native bridge remains paused without source consent",
     "native vault keeps an event through lock and authenticated unlock",
     "native encrypted backup restores only after its own passphrase",
+    "native support flow preserves focused step and people after reopening",
 })
 
 
@@ -85,7 +86,7 @@ def main():
     except (OSError, ValueError) as error:
         print(f"Native report rejected: {error}", file=sys.stderr)
         return 1
-    print("3 required native tests passed; run completed successfully without failures or skips.")
+    print(f"{len(REQUIRED_TESTS)} required native tests passed; run completed successfully without failures or skips.")
     return 0
 
 

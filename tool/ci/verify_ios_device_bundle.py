@@ -27,6 +27,8 @@ FIXTURE_MARKERS = tuple(s.encode() for s in (
     'native bridge remains paused without source consent',
     'native vault keeps an event through lock and authenticated unlock',
     'native encrypted backup restores only after its own passphrase',
+    'native support flow preserves focused step and people after reopening',
+    'Fictional native support journey',
 ))
 MAX_FILE_SIZE = 512 * 1024 * 1024
 MAX_ENTRIES = 100000

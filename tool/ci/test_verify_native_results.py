@@ -13,16 +13,18 @@ NAMES = (
     "native bridge remains paused without source consent",
     "native vault keeps an event through lock and authenticated unlock",
     "native encrypted backup restores only after its own passphrase",
+    "native support flow preserves focused step and people after reopening",
 )
 
 
 def passing_events():
     events = [{"type": "start", "protocolVersion": "0.1.0"}]
     # Loading and tearDownAll are real reporter events, but do not count as
-    # evidence that the three required tests executed.
-    for test_id, name in enumerate(("loading integration_test/native_smoke_test.dart", *NAMES, "(tearDownAll)")):
+    # evidence that the required application tests executed.
+    names = ("loading integration_test/native_smoke_test.dart", *NAMES, "(tearDownAll)")
+    for test_id, name in enumerate(names):
         events.append({"type": "testStart", "test": {"id": test_id, "name": name}})
-        events.append({"type": "testDone", "testID": test_id, "result": "success", "skipped": False, "hidden": test_id in (0, 4)})
+        events.append({"type": "testDone", "testID": test_id, "result": "success", "skipped": False, "hidden": test_id in (0, len(names) - 1)})
     events.append({"type": "done", "success": True})
     return events
 
@@ -40,10 +42,38 @@ class NativeResultsCliTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
         self.assertIn("Native report rejected:", result.stderr)
 
-    def test_accepts_all_three_named_successes_and_final_success(self):
+    def test_accepts_all_four_named_successes_and_final_success(self):
         result = self.run_report(passing_events())
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("3 required native tests passed", result.stdout)
+        self.assertIn("4 required native tests passed", result.stdout)
+
+    def test_rejects_missing_rendered_support_flow_even_if_original_three_pass(self):
+        events = passing_events()
+        support_id = next(event["test"]["id"] for event in events
+                          if event.get("test", {}).get("name") == NAMES[3])
+        self.assert_rejected([event for event in events
+                              if event.get("test", {}).get("id", event.get("testID")) != support_id])
+
+    def test_rejects_hidden_rendered_support_flow(self):
+        events = passing_events()
+        support_id = next(event["test"]["id"] for event in events
+                          if event.get("test", {}).get("name") == NAMES[3])
+        next(event for event in events if event.get("testID") == support_id)["hidden"] = True
+        self.assert_rejected(events)
+
+    def test_rejects_skipped_rendered_support_flow(self):
+        events = passing_events()
+        support_id = next(event["test"]["id"] for event in events
+                          if event.get("test", {}).get("name") == NAMES[3])
+        next(event for event in events if event.get("testID") == support_id)["skipped"] = True
+        self.assert_rejected(events)
+
+    def test_rejects_failed_rendered_support_flow(self):
+        events = passing_events()
+        support_id = next(event["test"]["id"] for event in events
+                          if event.get("test", {}).get("name") == NAMES[3])
+        next(event for event in events if event.get("testID") == support_id)["result"] = "failure"
+        self.assert_rejected(events)
 
     def test_accepts_interleaved_test_completion(self):
         events = passing_events()
@@ -60,7 +90,8 @@ class NativeResultsCliTest(unittest.TestCase):
         self.assert_rejected([{"type": "done", "success": True}])
 
     def test_rejects_only_loading_and_teardown(self):
-        self.assert_rejected([event for event in passing_events() if event.get("test", {}).get("id", event.get("testID")) not in (1, 2, 3)])
+        required_ids = range(1, len(NAMES) + 1)
+        self.assert_rejected([event for event in passing_events() if event.get("test", {}).get("id", event.get("testID")) not in required_ids])
 
     def test_rejects_missing_or_renamed_required_test(self):
         for name in NAMES:

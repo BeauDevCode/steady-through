@@ -232,6 +232,17 @@ class BundleTests(unittest.TestCase):
                 with self.assertRaises(ValueError): verify_archive(zipped, reported)
             directory.rmdir()
 
+    def test_rendered_support_case_name_rejected_in_production_image(self):
+        write(self.app, 'Frameworks/App.framework/App', thin(filetype=6) +
+              b'native support flow preserves focused step and people after reopening')
+        with self.assertRaisesRegex(ValueError, 'Native fixture marker'):
+            self.check()
+
+    def test_rendered_support_event_rejected_in_production_resource(self):
+        write(self.app, ASSETS + 'extra', b'Fictional native support journey')
+        with self.assertRaisesRegex(ValueError, 'Native fixture marker'):
+            self.check()
+
     def test_symlink_inventory_and_escaping_or_unsafe_path_rejection(self):
         link = self.app / 'relative-link'
         link.symlink_to('Assets.car')
