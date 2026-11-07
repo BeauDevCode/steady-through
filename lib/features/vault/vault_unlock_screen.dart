@@ -205,6 +205,7 @@ class _VaultUnlockScreenState extends State<VaultUnlockScreen> {
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: _passphrase,
+                    readOnly: _busy,
                     obscureText: !_visible,
                     autocorrect: false,
                     enableSuggestions: false,
@@ -239,19 +240,24 @@ class _VaultUnlockScreenState extends State<VaultUnlockScreen> {
                   ),
                   if (widget.creating) ...[
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _confirmation,
-                      obscureText: !_visible,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      enableIMEPersonalizedLearning: false,
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm passphrase',
+                    const ExcludeSemantics(child: Text('Confirm passphrase')),
+                    const SizedBox(height: 8),
+                    Semantics(
+                      label: 'Confirm passphrase',
+                      child: TextFormField(
+                        key: const ValueKey('vault-confirmation-field'),
+                        controller: _confirmation,
+                        readOnly: _busy,
+                        obscureText: !_visible,
+                        autocorrect: false,
+                        enableSuggestions: false,
+                        enableIMEPersonalizedLearning: false,
+                        decoration: const InputDecoration(),
+                        validator: (value) => value != _passphrase.text
+                            ? 'The passphrases do not match.'
+                            : null,
+                        onFieldSubmitted: (_) => _submit(),
                       ),
-                      validator: (value) => value != _passphrase.text
-                          ? 'The passphrases do not match.'
-                          : null,
-                      onFieldSubmitted: (_) => _submit(),
                     ),
                   ],
                   if (_error != null) ...[

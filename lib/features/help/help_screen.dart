@@ -5,6 +5,7 @@ import 'package:steady_through/ui/steady_ui.dart';
 import 'package:steady_through/app/app_controller.dart';
 import 'package:steady_through/features/people/phone_actions.dart';
 import 'package:steady_through/features/people/trusted_people_section.dart';
+import 'package:steady_through/ui/view_activity.dart';
 
 /// A route action that also works when a tool is opened above the app shell.
 class HelpNowButton extends StatelessWidget {
@@ -73,14 +74,6 @@ class HelpScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _copyNumber(BuildContext context) async {
-    await Clipboard.setData(const ClipboardData(text: '988'));
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('988 copied.')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) => SteadyPage(
     maxWidth: 900,
@@ -135,11 +128,7 @@ class HelpScreen extends StatelessWidget {
                   icon: const Icon(Icons.sms_outlined),
                   label: const Text('Text 988'),
                 ),
-                TextButton.icon(
-                  onPressed: () => _copyNumber(context),
-                  icon: const Icon(Icons.copy_outlined),
-                  label: const Text('Copy 988'),
-                ),
+                const _HelpCopyButton(),
               ],
             ),
           ],
@@ -216,5 +205,55 @@ class HelpScreen extends StatelessWidget {
         ),
       ),
     ),
+  );
+}
+
+class _HelpCopyButton extends StatefulWidget {
+  const _HelpCopyButton();
+
+  @override
+  State<_HelpCopyButton> createState() => _HelpCopyButtonState();
+}
+
+class _HelpCopyButtonState extends State<_HelpCopyButton> {
+  final _activity = ViewActivity();
+  bool _copying = false;
+
+  Future<void> _copy() async {
+    if (_copying || !_activity.active) return;
+    final epoch = _activity.epoch;
+    setState(() => _copying = true);
+    try {
+      String message;
+      try {
+        await Clipboard.setData(const ClipboardData(text: '988'));
+        message = '988 copied.';
+      } catch (_) {
+        message = 'Could not copy 988. The number is still shown here; you can enter it manually.';
+      }
+      if (mounted &&
+          _activity.accepts(epoch) &&
+          (ModalRoute.of(context)?.isCurrent ?? true)) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+      }
+    } finally {
+      if (mounted) setState(() => _copying = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _activity.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => TextButton.icon(
+    onPressed: _copying ? null : _copy,
+    style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+    icon: const Icon(Icons.copy_outlined),
+    label: const Text('Copy 988'),
   );
 }

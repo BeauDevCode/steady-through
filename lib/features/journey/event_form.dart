@@ -171,6 +171,7 @@ class _EventFormState extends State<EventForm> {
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _titleController,
+                    readOnly: _saving,
                     autofocus: true,
                     textCapitalization: TextCapitalization.sentences,
                     textInputAction: TextInputAction.next,
@@ -183,13 +184,18 @@ class _EventFormState extends State<EventForm> {
                         : null,
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _descriptionController,
-                    textCapitalization: TextCapitalization.sentences,
-                    minLines: 2,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'Optional description',
+                  const ExcludeSemantics(child: Text('Optional description')),
+                  const SizedBox(height: 8),
+                  Semantics(
+                    label: 'Optional description',
+                    child: TextFormField(
+                      key: const ValueKey('event-description-field'),
+                      controller: _descriptionController,
+                      readOnly: _saving,
+                      textCapitalization: TextCapitalization.sentences,
+                      minLines: 2,
+                      maxLines: 5,
+                      decoration: const InputDecoration(),
                     ),
                   ),
                   if (_saveError != null) ...[

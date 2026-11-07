@@ -102,6 +102,7 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
                 decoration: InputDecoration(
                   labelText: 'Passphrase',
                   helperText: widget.creating ? '12 characters or more.' : null,
+                  helperMaxLines: 3,
                   errorMaxLines: 3,
                 ),
                 validator: (value) {
@@ -117,25 +118,27 @@ class _PassphraseDialogState extends State<_PassphraseDialog> {
               ),
               if (widget.creating) ...[
                 const SizedBox(height: 16),
-                TextFormField(
-                  key: const Key('vault-confirm-passphrase'),
-                  controller: _confirmation,
-                  obscureText: true,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  enableIMEPersonalizedLearning: false,
-                  smartDashesType: SmartDashesType.disabled,
-                  smartQuotesType: SmartQuotesType.disabled,
-                  keyboardType: TextInputType.visiblePassword,
-                  textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm passphrase',
-                    errorMaxLines: 3,
+                const ExcludeSemantics(child: Text('Confirm passphrase')),
+                const SizedBox(height: 8),
+                Semantics(
+                  label: 'Confirm passphrase',
+                  child: TextFormField(
+                    key: const Key('vault-confirm-passphrase'),
+                    controller: _confirmation,
+                    obscureText: true,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    enableIMEPersonalizedLearning: false,
+                    smartDashesType: SmartDashesType.disabled,
+                    smartQuotesType: SmartQuotesType.disabled,
+                    keyboardType: TextInputType.visiblePassword,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(errorMaxLines: 3),
+                    validator: (value) => value == _passphrase.text
+                        ? null
+                        : 'The passphrases do not match.',
+                    onFieldSubmitted: (_) => _continue(),
                   ),
-                  validator: (value) => value == _passphrase.text
-                      ? null
-                      : 'The passphrases do not match.',
-                  onFieldSubmitted: (_) => _continue(),
                 ),
                 const SizedBox(height: 20),
                 DecoratedBox(

@@ -250,6 +250,7 @@ class CheckInsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextFormField(
+                    readOnly: saving,
                     decoration: const InputDecoration(
                       labelText: 'How do you feel?',
                     ),
@@ -269,20 +270,23 @@ class CheckInsScreen extends StatelessWidget {
                       ChoiceChip(
                         label: const Text('No number'),
                         selected: intensity == null,
-                        onSelected: (_) =>
-                            setDialogState(() => intensity = null),
+                        onSelected: saving
+                            ? null
+                            : (_) => setDialogState(() => intensity = null),
                       ),
                       for (var value = 1; value <= 5; value++)
                         ChoiceChip(
                           label: Text('$value'),
                           selected: intensity == value,
-                          onSelected: (_) =>
-                              setDialogState(() => intensity = value),
+                          onSelected: saving
+                              ? null
+                              : (_) => setDialogState(() => intensity = value),
                         ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    readOnly: saving,
                     decoration: const InputDecoration(
                       labelText: 'Note (optional)',
                     ),

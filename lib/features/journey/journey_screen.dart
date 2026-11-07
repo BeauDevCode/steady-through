@@ -564,6 +564,7 @@ class _ActionFormDialogState extends State<_ActionFormDialog> {
         children: [
           TextFormField(
             controller: _title,
+            readOnly: _saving,
             autofocus: true,
             textCapitalization: TextCapitalization.sentences,
             decoration: const InputDecoration(labelText: 'Your action'),

@@ -452,7 +452,7 @@ void main() {
         tester
             .widget<TextField>(
               find.descendant(
-                of: find.widgetWithText(TextFormField, 'Confirm passphrase'),
+                of: find.byKey(const Key('vault-confirm-passphrase')),
                 matching: find.byType(TextField),
               ),
             )
@@ -464,7 +464,7 @@ void main() {
         'short',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        find.byKey(const Key('vault-confirm-passphrase')),
         'short',
       );
       await tester.tap(find.text('Create encrypted backup'));
@@ -477,7 +477,7 @@ void main() {
         'a much longer passphrase',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        find.byKey(const Key('vault-confirm-passphrase')),
         'does not match',
       );
       await tester.tap(find.text('Create encrypted backup'));
@@ -495,7 +495,7 @@ void main() {
         'a much longer passphrase',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        find.byKey(const Key('vault-confirm-passphrase')),
         'a much longer passphrase',
       );
       await tester.tap(find.text('Create encrypted backup'));
@@ -601,7 +601,7 @@ void main() {
         'my backup passphrase',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Confirm passphrase'),
+        find.byKey(const Key('vault-confirm-passphrase')),
         'my backup passphrase',
       );
       await tester.tap(find.text('Create encrypted backup'));
