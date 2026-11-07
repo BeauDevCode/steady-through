@@ -23,7 +23,7 @@ Whole-branch source review completed with zero material findings; no fix pass wa
 Verified Apple metadata is 1.6.0/build 11. The unsigned iPhoneOS archive contains 82 members and 4 actual arm64/platform 2 images, minimum iOS 15.0. Exact-source helper/archive/resource checks passed; it remains unsigned, not installable and physically untested.
 
 <!-- visual-polish-main-observation:start -->
-Public-main ancestry and documentation-only equivalence remain pending the first post-publication documentation commit/proof. The release/source, CI, native cases, packages, body/assets and anonymous access are verified; no completed main-equivalence result is claimed yet.
+Public main `fc6c0aef6a04ecb60a14ed68ef0806cf846c6c8a` was verified as a documentation-only descendant of the exact tagged source at the [publication snapshot](releases/1.6.0-publication.json) observation. The snapshot records that state before its own commit; any later documentation-only successor requires independent ancestry/equivalence verification. No future successor commit is claimed verified here.
 <!-- visual-polish-main-observation:end -->
 
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
