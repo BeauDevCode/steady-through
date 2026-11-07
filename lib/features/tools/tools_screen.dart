@@ -60,9 +60,11 @@ class ToolsScreen extends StatelessWidget {
         const SizedBox(height: 28),
         ResponsiveColumns(
           minWidth: 280,
+          alignHeights: true,
           children: [
             _toolCard(
               context,
+              tool: SupportTool.grounding,
               icon: Icons.visibility_outlined,
               color: colors.secondaryContainer,
               title: 'Notice this moment',
@@ -81,6 +83,7 @@ class ToolsScreen extends StatelessWidget {
             ),
             _toolCard(
               context,
+              tool: SupportTool.breathing,
               icon: Icons.air,
               color: colors.primaryContainer,
               title: 'Follow a gentle rhythm',
@@ -99,8 +102,9 @@ class ToolsScreen extends StatelessWidget {
             ),
             _toolCard(
               context,
+              tool: SupportTool.pathGame,
               icon: Icons.route_outlined,
-              color: colors.surface,
+              color: colors.tertiaryContainer,
               title: 'Find a route',
               description: simple
                   ? 'Find a path. Take as long as you like.'
@@ -162,6 +166,7 @@ class ToolsScreen extends StatelessWidget {
 
   Widget _toolCard(
     BuildContext context, {
+    required SupportTool tool,
     required IconData icon,
     required Color color,
     required String title,
@@ -173,29 +178,38 @@ class ToolsScreen extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            IconBadge(
-              icon: icon,
-              color: Theme.of(context).colorScheme.surface,
-              size: 44,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(title, style: Theme.of(context).textTheme.titleLarge),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 72),
-          child: Text(
-            description,
-            style: Theme.of(context).textTheme.bodyLarge,
+        if (MediaQuery.textScalerOf(context).scale(14) > 20) ...[
+          IconBadge(
+            icon: icon,
+            color: Theme.of(context).colorScheme.surface,
+            size: 44,
           ),
-        ),
+          const SizedBox(height: 14),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
+        ] else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconBadge(
+                icon: icon,
+                color: Theme.of(context).colorScheme.surface,
+                size: 44,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+            ],
+          ),
+        const SizedBox(height: 12),
+        ToolArtwork(tool: tool),
+        const SizedBox(height: 14),
+        Text(description, style: Theme.of(context).textTheme.bodyLarge),
         const SizedBox(height: 24),
+        const Spacer(),
         FilledButton.icon(
           onPressed: onPressed,
           icon: const Icon(Icons.arrow_forward, size: 18),

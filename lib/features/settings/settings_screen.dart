@@ -153,44 +153,37 @@ class _MoreCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Card(
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => InteractiveCard(
+    onTap: onTap,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        IconBadge(icon: icon, color: color, size: 56),
+        const SizedBox(height: 20),
+        Row(
           children: [
-            IconBadge(icon: icon, color: color, size: 56),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.arrow_forward,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(subtitle, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.arrow_forward,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(subtitle, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 12),
+        Text(
+          description,
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+      ],
     ),
   );
 }

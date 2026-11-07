@@ -77,7 +77,8 @@ class CheckInsScreen extends StatelessWidget {
                     icon: const Icon(Icons.add),
                     label: const Text('Add check-in'),
                   );
-                  if (constraints.maxWidth < 560) {
+                  if (constraints.maxWidth < 560 ||
+                      MediaQuery.textScalerOf(context).scale(14) > 20) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [heading, const SizedBox(height: 16), button],

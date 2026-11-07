@@ -70,32 +70,17 @@ class PeopleScreen extends StatelessWidget {
           else ...[
             Text('Saved people', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 14),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.maxWidth >= 820
-                    ? 3
-                    : constraints.maxWidth >= 560
-                    ? 2
-                    : 1;
-                final width =
-                    (constraints.maxWidth - 20 * (columns - 1)) / columns;
-                return Wrap(
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: [
-                    for (final person in people)
-                      SizedBox(
-                        width: width,
-                        child: PersonCard(
-                          key: ValueKey(person.id),
-                          controller: controller,
-                          person: person,
-                          phoneActions: phoneActions,
-                        ),
-                      ),
-                  ],
-                );
-              },
+            ResponsiveColumns(
+              minWidth: 280,
+              children: [
+                for (final person in people)
+                  PersonCard(
+                    key: ValueKey(person.id),
+                    controller: controller,
+                    person: person,
+                    phoneActions: phoneActions,
+                  ),
+              ],
             ),
           ],
           const SizedBox(height: 24),

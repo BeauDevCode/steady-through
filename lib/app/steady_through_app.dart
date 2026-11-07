@@ -12,6 +12,7 @@ import 'package:steady_through/features/tools/tools_screen.dart';
 import 'package:steady_through/model/app_data.dart';
 import 'package:steady_through/model/next_action_target.dart';
 import 'package:steady_through/ui/steady_theme.dart';
+import 'package:steady_through/ui/steady_ui.dart';
 import 'package:steady_through/features/insights/insights_screen.dart';
 import 'package:steady_through/learning/learning_session.dart';
 
@@ -305,7 +306,10 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
     final wide = width >= 800;
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 20;
     final expanded = width >= 1180 && !largeText;
-    final body = _body(context);
+    final body = GentleReveal(
+      key: ValueKey(_destination),
+      child: _body(context),
+    );
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: wide
@@ -356,74 +360,107 @@ class _SteadyThroughAppState extends State<SteadyThroughApp> {
             child: wide
                 ? Row(
                     children: [
-                      NavigationRail(
-                        selectedIndex: _destination,
-                        extended: expanded,
-                        labelType: expanded
-                            ? NavigationRailLabelType.none
-                            : NavigationRailLabelType.all,
-                        minWidth: 88,
-                        minExtendedWidth: 220,
-                        groupAlignment: -1,
-                        leading: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            expanded ? 20 : 8,
-                            24,
-                            expanded ? 20 : 8,
-                            30,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 14, 0, 14),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: colors.surface,
+                            borderRadius: BorderRadius.circular(26),
+                            border: Border.all(
+                              color: colors.outlineVariant.withValues(
+                                alpha: .7,
+                              ),
+                            ),
                           ),
-                          child: expanded
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: colors.primaryContainer,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Icon(
-                                        Icons.route_rounded,
-                                        color: colors.primary,
-                                      ),
+                          child: NavigationRail(
+                            selectedIndex: _destination,
+                            extended: expanded,
+                            labelType: expanded
+                                ? NavigationRailLabelType.none
+                                : NavigationRailLabelType.all,
+                            minWidth: 88,
+                            minExtendedWidth: 220,
+                            groupAlignment: -1,
+                            leading: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                expanded ? 20 : 8,
+                                24,
+                                expanded ? 20 : 8,
+                                30,
+                              ),
+                              child: expanded
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 40,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                            color: colors.primaryContainer,
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.route_rounded,
+                                            color: colors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'Steady\nThrough',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(height: 1.2),
+                                        ),
+                                      ],
+                                    )
+                                  : Icon(
+                                      Icons.route_rounded,
+                                      color: colors.primary,
+                                      size: 30,
                                     ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      'Steady\nThrough',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(height: 1.2),
-                                    ),
-                                  ],
-                                )
-                              : Icon(
-                                  Icons.route_rounded,
-                                  color: colors.primary,
-                                  size: 30,
-                                ),
+                            ),
+                            destinations: _railDestinations,
+                            onDestinationSelected: _selectDestination,
+                          ),
                         ),
-                        destinations: _railDestinations,
-                        onDestinationSelected: _selectDestination,
                       ),
-                      VerticalDivider(width: 1, color: colors.outlineVariant),
                       Expanded(
                         child: Column(
                           children: [
                             SizedBox(
-                              height: 76,
+                              height: largeText ? 88 : 72,
                               child: Align(
                                 alignment: Alignment.centerRight,
                                 child: Padding(
-                                  padding: const EdgeInsets.only(right: 24),
-                                  child: TextButton.icon(
-                                    onPressed: () => _openHelp(context),
-                                    icon: const Icon(
-                                      Icons.support_agent_rounded,
-                                      size: 20,
-                                    ),
-                                    label: const Text('Help now'),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'A little space for you',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: colors.onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      TextButton.icon(
+                                        onPressed: () => _openHelp(context),
+                                        icon: const Icon(
+                                          Icons.support_agent_rounded,
+                                          size: 20,
+                                        ),
+                                        label: const Text('Help now'),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

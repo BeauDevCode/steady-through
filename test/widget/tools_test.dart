@@ -130,7 +130,7 @@ void main() {
     tester,
   ) async {
     await openTools(tester);
-    await tester.tap(find.text('Grounding'));
+    await tapText(tester, 'Grounding');
     await tester.pumpAndSettle();
 
     expect(find.textContaining('look around'), findsOneWidget);
@@ -147,7 +147,7 @@ void main() {
 
   testWidgets('breathing pace can be started and stopped', (tester) async {
     await openTools(tester);
-    await tester.tap(find.text('Breathing pace'));
+    await tapText(tester, 'Breathing pace');
     await tester.pumpAndSettle();
 
     expect(find.text('Stop'), findsOneWidget);
@@ -315,7 +315,7 @@ void main() {
     'skipping grounding to its ending offers a collapsed optional rating',
     (tester) async {
       await openTools(tester);
-      await tester.tap(find.text('Grounding'));
+      await tapText(tester, 'Grounding');
       await tester.pumpAndSettle();
       expect(find.text('Rate this tool (optional)'), findsNothing);
       for (var step = 0; step < 4; step++) {
@@ -331,7 +331,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Done'));
       await tester.pumpAndSettle();
-      expect(find.text('Tools'), findsOneWidget);
+      expect(find.byType(ToolsScreen), findsOneWidget);
+      expect(find.byType(GroundingScreen), findsNothing);
     },
   );
 
@@ -339,7 +340,7 @@ void main() {
     'breathing requires Start then explicit Done and starts a fresh attempt',
     (tester) async {
       await openTools(tester);
-      await tester.tap(find.text('Breathing pace'));
+      await tapText(tester, 'Breathing pace');
       await tester.pumpAndSettle();
       expect(find.text('Done for now'), findsNothing);
       await tester.tap(find.text('Start pace'));
@@ -361,7 +362,7 @@ void main() {
     'backgrounding and Help pause breathing without finishing or resuming',
     (tester) async {
       await openTools(tester);
-      await tester.tap(find.text('Breathing pace'));
+      await tapText(tester, 'Breathing pace');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Start pace'));
       await tester.pump();

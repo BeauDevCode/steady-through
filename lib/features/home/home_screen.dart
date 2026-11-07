@@ -112,6 +112,11 @@ class HomeScreen extends StatelessWidget {
     return [
       SurfaceCard(
         color: colors.primaryContainer,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [colors.primaryContainer, colors.surfaceContainerLow],
+        ),
         child: _heroLayout(
           context,
           Column(
@@ -119,7 +124,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               const Eyebrow('A place to begin'),
               const SizedBox(height: 10),
-              Text('Start an event', style: text.headlineLarge),
+              Text('Start an event', style: _heroHeadline(context)),
               const SizedBox(height: 12),
               Text(
                 _simpleWords
@@ -208,6 +213,11 @@ class HomeScreen extends StatelessWidget {
     return [
       SurfaceCard(
         color: colors.primaryContainer,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [colors.primaryContainer, colors.surfaceContainerLow],
+        ),
         child: _heroLayout(
           context,
           Column(
@@ -215,7 +225,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               const Eyebrow('Your current event'),
               const SizedBox(height: 10),
-              Text(event.title, style: text.headlineLarge),
+              Text(event.title, style: _heroHeadline(context)),
               const SizedBox(height: 8),
               Text(
                 _simpleWords
@@ -282,9 +292,24 @@ class HomeScreen extends StatelessWidget {
             final contents = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _simpleWords ? 'One small step' : 'One next step',
-                  style: text.titleLarge,
+                Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: colors.primary,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _simpleWords ? 'One small step' : 'One next step',
+                        style: text.titleLarge,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -350,6 +375,13 @@ class HomeScreen extends StatelessWidget {
     ];
   }
 
+  TextStyle? _heroHeadline(BuildContext context) {
+    final style = Theme.of(context).textTheme.headlineLarge;
+    return MediaQuery.sizeOf(context).width < 360
+        ? style?.copyWith(fontSize: 28)
+        : style;
+  }
+
   bool _largeText(BuildContext context) =>
       MediaQuery.textScalerOf(context).scale(14) > 20;
 
@@ -413,37 +445,44 @@ class HomeScreen extends StatelessWidget {
   }) {
     final text = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
-    return Card(
+    return InteractiveCard(
       color: color,
-      clipBehavior: Clip.antiAlias,
-      child: Semantics(
-        button: true,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: onTap,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_largeText(context)) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    IconBadge(icon: icon, color: badgeColor, size: 40),
-                    const SizedBox(width: 12),
-                    Expanded(child: Text(title, style: text.titleMedium)),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 20,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ],
+                IconBadge(icon: icon, color: badgeColor, size: 40),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 20,
+                  color: colors.onSurfaceVariant,
                 ),
-                const SizedBox(height: 12),
-                Text(description, style: text.bodyMedium),
               ],
             ),
-          ),
-        ),
+            const SizedBox(height: 12),
+            Text(title, style: text.titleMedium),
+          ] else
+            Row(
+              children: [
+                IconBadge(icon: icon, color: badgeColor, size: 40),
+                const SizedBox(width: 12),
+                Expanded(child: Text(title, style: text.titleMedium)),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 20,
+                  color: colors.onSurfaceVariant,
+                ),
+              ],
+            ),
+          const SizedBox(height: 12),
+          Text(description, style: text.bodyMedium),
+        ],
       ),
     );
   }
