@@ -1,8 +1,24 @@
 # Manual device validation guide
 
+<a id="current-151-work-in-progress--verification-and-publication-pending"></a>
+
+## Current 1.5.1 work in progress — verification and publication pending
+
+The working source targets **1.5.1+10 /v1.5.1-preview.1**. **Final local verification passed:** 465 Flutter tests, 94 Python CI-helper tests, no analyzer issues, and 115 Dart files format-checked with no changes. All 21 regenerated fictional actual-widget captures passed and were inspected across seven scenes/three profiles, including a full-size narrow backup view. Three layout regressions cover setup and backup Confirm passphrase plus Optional description at 320px/200% text. The full 12-character backup helper was separately observed RED within the same backup test, then passed after allowing three helper lines; this adds no fourth layout test. The final labels/helper wrap in full. These captures do not validate native assistive technology or establish a pixel-comparison run.
+
+The first macOS attempt passed three cases and failed the legacy lock/unlock case after a real resumed-to-inactive transition; the new fourth rendered journey passed in 32.8s and backup passed. An unattended rerun also received real inactive/hidden transitions without computer use and stalled on the second case. Root stopped its own run; its zero exit and incomplete case report are not a pass. No source defect was demonstrated and no full four-case macOS pass is claimed. All four cases on all five runtimes remain an exact-source CI gate, with lifecycle and fatal hit-test checks intact. Fresh whole-branch review, full native verification, CI/packages and publication remain pending. [Current quality status](quality-status.md#current-151-work-in-progress--verification-and-publication-pending) preserves the failed/incomplete attempts and remaining gates.
+
+The fourth required case uses default visible screens and owned real encrypted disk storage to create a guide/two steps, Mark/Undo/Mark one exact action, Add/Edit/clear a person's optional phone, use Help/View all, and authenticate a fresh Gate/Store after lock/unmount. It does not run production main(), use a personal support path, install a release, restart the process, or validate real handlers, OS dialogs, sensors/grants or native assistive technology. Schema **4/read 1/2/3/4**, the encryption envelope/KDF, dependencies, native adapters, source permissions and learning thresholds remain unchanged. The app stays free/offline with every source off.
+
+For iPhone, the owner explicitly selected **Source and Simulator for now**. Owner signing/provisioning and physical installation are outside this software-completion target. Any unsigned iPhoneOS archive is package evidence only: **unsigned, not installable and physically untested**. This human walkthrough remains **unexecuted**. With a disposable fictional vault, check stable submitted vault/event/action/check-in input and choices, failure/retry, explicit deletion/import cleanup warnings and Help Copy error/late-feedback behavior only through controlled authorized handlers. Never use real contacts, a personal vault or an actual clipboard/file/permission action merely to satisfy the automated scope. Physical/manual observations remain separate from the software-completion target.
+
+The current working source is 1.5.1; the last published preview is historical **1.5.0+9 /v1.5.0-preview.1**. Prior release checks below do not validate this working revision.
+
 <a id="current-150-work-in-progress--ci-and-publication-pending"></a>
 
-## Current 1.5.0 preview — published and verified
+<a id="current-150-preview--published-and-verified"></a>
+
+## Published 1.5.0 preview — historical verified evidence
 
 Published **[v1.5.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.5.0-preview.1) /1.5.0+9** uses exact tagged source `5b9b661ce8e16dada74079f8e5b1bb675325dfde`. [CI run 42315634394](https://github.com/BeauDevCode/steady-through/actions/runs/42315634394), attempt 1, passed all seven jobs: 415 Flutter tests, 88 Python CI-helper tests, 12 Android JUnit tests and all three original native cases on each of five runtimes. All 13 artifact ZIPs, six package payloads/metadata and ten public assets passed source/hash/size checks; exact body and anonymous access were verified. Local analyzer reported no issues and 109 Dart files needed no formatting changes. Whole-branch review and one regression-verified fix pass completed for the P2 pending-input loss; Add/Edit fields are read-only while saving, Cancel remains available and failure restores editing/corrected retry.
 
@@ -20,7 +36,7 @@ Schema 4 reads validated 1/2/3/4. Keep a usable earlier backup if returning to a
 
 This is a checklist for a future human walkthrough of Steady Through. **No checks in this guide are claimed as executed or passed.** Record
 results separately for Android, iOS, macOS, Windows, and Linux; a build or automated native smoke test is not a substitute for these
-observations. Use the source commit and build under review, not an older preview. The published preview is **1.4.0+8**; its automated CI/package/publication evidence is in [quality status](quality-status.md#current-140-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
+observations. Use the source commit and build under review, not an older preview. The current working revision is **1.5.1+10**, with verification/publication pending; the last published preview is historical **1.5.0+9**, whose automated evidence is in [quality status](quality-status.md#current-150-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
 
 ## Set up a safe test session
 

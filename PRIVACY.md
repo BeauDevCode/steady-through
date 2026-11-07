@@ -2,9 +2,25 @@
 
 _Last updated: November 6, 2026_
 
+<a id="current-151-work-in-progress--verification-and-publication-pending"></a>
+
+## Current 1.5.1 work in progress — verification and publication pending
+
+Working **1.5.1+10**, intended preview **v1.5.1-preview.1**, keeps queued learning controls attached to current evidence and rejects stale document/session observations. The canonical committed feeling receipt is retained for exact-instance Undo. Submitted vault/event/action/check-in fields and applicable choices stop accepting later corrections during save; failure restores editing/retry. Help Copy handles controlled clipboard exceptions, duplicate pending attempts and late callbacks without false success; no real clipboard or contact action is used in those regressions.
+
+Deletion of an event and its check-ins, one check-in, game-history clearing and confirmed document replacement explicitly request cleanup of known residual copies. Primary save failure preserves active state; cleanup failure after commit retains the existing warning. Separately exported files/OS backups remain outside that cleanup, with no forensic-erasure claim. Schema **4/read 1/2/3/4**, the encryption envelope/KDF, dependencies, native adapters, source permissions and learning thresholds remain unchanged. The app stays free/offline with every source off.
+
+**Final local verification passed:** 465 Flutter tests, 94 Python CI-helper tests, no analyzer issues, and 115 Dart files format-checked with no changes. All 21 regenerated fictional actual-widget captures passed and were inspected across seven scenes/three profiles, including a full-size narrow backup view. Three layout regressions cover setup and backup Confirm passphrase plus Optional description at 320px/200% text. The full 12-character backup helper was separately observed RED within the same backup test, then passed after allowing three helper lines; this adds no fourth layout test. The final labels/helper wrap in full. These captures do not validate native assistive technology or establish a pixel-comparison run.
+
+The first macOS attempt passed three cases and failed the legacy lock/unlock case after a real resumed-to-inactive transition; the new fourth rendered journey passed in 32.8s and backup passed. An unattended rerun also received real inactive/hidden transitions without computer use and stalled on the second case. Root stopped its own run; its zero exit and incomplete case report are not a pass. No source defect was demonstrated and no full four-case macOS pass is claimed. All four cases on all five runtimes remain an exact-source CI gate, with lifecycle and fatal hit-test checks intact. Fresh whole-branch review, full native verification, CI, package checks and publication remain pending. See [current quality status](docs/quality-status.md#current-151-work-in-progress--verification-and-publication-pending) and [1.5.1 decisions](docs/releases/1.5.1-decisions.md).
+
+For iPhone, the owner explicitly selected **Source and Simulator for now**. Owner signing/provisioning and physical installation are outside this software-completion target. Any unsigned iPhoneOS archive is package evidence only: **unsigned, not installable and physically untested**. The rendered case uses default screens/owned temporary real encrypted storage and fresh Gate/Store reopen, without production main(), a personal support path, release installation or process restart. Real handlers, OS dialogs/grants, native assistive technology and human/clinical efficacy remain unexecuted. Published 1.5 records below apply only to their historical source.
+
 <a id="current-150-work-in-progress--ci-and-publication-pending"></a>
 
-## Current 1.5.0 preview — published and verified
+<a id="current-150-preview--published-and-verified"></a>
+
+## Published 1.5.0 preview — historical verified evidence
 
 Published **[v1.5.0-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.5.0-preview.1) /1.5.0+9** adds trusted people inside Help, editing saved people and an exact next-action route using existing encrypted records. It still writes **schema 4** and reads strictly validated **1/2/3/4**. Encryption/export passphrases/KDF, permissions, native adapters and learning rules are unchanged; no account, new collection or source consent is required.
 
