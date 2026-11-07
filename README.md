@@ -4,11 +4,31 @@
 
 Steady Through is a free, offline-first Flutter app for getting through a difficult life event one manageable action at a time. One codebase targets Android, iOS, macOS, Windows, and Linux. There is no account, subscription, app-operated server, or cloud emotion service.
 
+<a id="current-160-work-in-progress--verification-and-publication-pending"></a>
+
+## Current 1.6.0 work in progress — verification and publication pending
+
+Working target **1.6.0+11 /v1.6.0-preview.1** refines the existing interface with warm ivory, deep teal, apricot and restrained lavender, paired light/dark foregrounds, a framed desktop rail and a clearer Home next step. Static original tool artwork, natural-height cards with aligned actions, text-aware People columns, visible hover/focus/press feedback and stacked headings at large text improve hierarchy without adding a feature family.
+
+A finite incoming-only reveal uses 240ms ease-out and at most 8px travel. Reduced motion completes the entrance immediately while preserving child state; a destination switch disposes outgoing content on its first frame. Help stays outside body motion. Shared cards keep one Material action: hover/focus stays passive and activation invokes the existing callback once.
+
+**Final local verification passed:** 476 Flutter tests, 94 Python CI-helper tests, no analyzer issues and 124 Dart files format-checked with no changes. The final interaction/tools scoped run passed 26 tests, including midflight motion-preference changes with focused text state, actual old-tab disposal and immediate Help. The three valid behavioral RED cases remain the two shared state/columns failures and one incoming-motion failure; no additional RED proof is claimed.
+
+All **42 final fictional actual-widget PNGs** were generated and inspected: 32 screen references across four passing profile tests and ten component-feedback/entry frames across two passing tests. Root also checked the final narrow eight scenes, full-size Home/Tools and dark-focus/light-settled frames after capture-only debug-banner removal. These captures do not establish pixel comparison, native assistive technology or FPS/performance validation.
+
+![Tools in light desktop appearance with original grounding, breathing and route artwork](docs/screenshots/visual-polish/tools-light-desktop.png)
+
+[Home, mobile light](docs/screenshots/visual-polish/home-light-mobile.png) · [Home, desktop dark](docs/screenshots/visual-polish/home-dark-desktop.png)
+
+Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permissions, learning thresholds and native adapters remain unchanged. Support stays free/offline with every source off. The owner retains **Source and Simulator for now** for iPhone; owner signing and physical installation are outside this completion target. Unsigned device output is package evidence, not installation. No pixel-comparison, native assistive-technology or FPS/performance validation is claimed.
+
+Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Exact-source seven-job CI with four native cases on each of five runtimes, thirteen artifact ZIP bindings, six complete packages, ten assets, independent byte audit and tag/body/hash/main/anonymous publication verification remain pending. No 1.6 release, CI source SHA or run is claimed; published 1.5.1 results below remain historical. See [current quality status](docs/quality-status.md#current-160-work-in-progress--verification-and-publication-pending) and [1.6 decisions](docs/releases/1.6.0-decisions.md).
+
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 
 <a id="current-151-preview--published-and-verified"></a>
 
-## Current 1.5.1 preview — published and verified
+## Published 1.5.1 preview — historical verified evidence
 
 **[v1.5.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.5.1-preview.1) /1.5.1+10** is published from exact tagged source `4c8206812a2a23ab238c2e523a2d7ab04d30a654`. [CI run 42329671305](https://github.com/BeauDevCode/steady-through/actions/runs/42329671305), attempt 1, passed all seven jobs: **468 Flutter tests, 94 Python helpers, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All 13 artifact ZIPs, six complete packages and ten public assets passed source/hash/size checks. The independent audit returned `PASS_WITH_LIMITS`, no findings/advisories. Exact draft/public body and server hashes/sizes/states matched; repository, release and all ten downloads returned anonymous HTTP200.
 

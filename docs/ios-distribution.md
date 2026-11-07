@@ -1,10 +1,24 @@
 # iOS packages and distribution handoff
 
+<a id="current-160-work-in-progress--verification-and-publication-pending"></a>
+
+## Current 1.6.0 work in progress — verification and publication pending
+
+Working target **1.6.0+11 /v1.6.0-preview.1** has no verified 1.6 CI, Simulator/device package, binary metadata or public download yet. The UI refinements preserve ordinary routes, early Help, ownership/lifecycle guards and the four-case native contract. Final-source CI must pass all four cases on all five runtimes; earlier 1.5.1 execution is historical.
+
+**Final local verification passed:** 476 Flutter tests, 94 Python CI-helper tests, no analyzer issues and 124 Dart files format-checked with no changes. The final interaction/tools scoped run passed 26 tests, including midflight motion-preference changes with focused text state, actual old-tab disposal and immediate Help. The three valid behavioral RED cases remain the two shared state/columns failures and one incoming-motion failure; no additional RED proof is claimed.
+
+All **42 final fictional actual-widget PNGs** were generated and inspected: 32 screen references across four passing profile tests and ten component-feedback/entry frames across two passing tests. Root also checked the final narrow eight scenes, full-size Home/Tools and dark-focus/light-settled frames after capture-only debug-banner removal. These captures do not establish pixel comparison, native assistive technology or FPS/performance validation.
+
+Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permissions, learning thresholds and native adapters remain unchanged. Support stays free/offline with every source off. The owner retains **Source and Simulator for now** for iPhone; owner signing and physical installation are outside this completion target. Unsigned device output is package evidence, not installation. No pixel-comparison, native assistive-technology or FPS/performance validation is claimed.
+
+Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Exact-source seven-job CI with four native cases on each of five runtimes, thirteen artifact ZIP bindings, six complete packages, ten assets, independent byte audit and tag/body/hash/main/anonymous publication verification remain pending. No 1.6 release, CI source SHA or run is claimed; published 1.5.1 results below remain historical. See [quality status](quality-status.md#current-160-work-in-progress--verification-and-publication-pending) and [decisions](releases/1.6.0-decisions.md). Verified 1.5.1 filenames/metadata below are the last published output, not 1.6 evidence.
+
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 
 <a id="current-151-preview--published-and-verified"></a>
 
-## Current 1.5.1 preview — published and verified
+## Published 1.5.1 preview — historical verified evidence
 
 **[v1.5.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.5.1-preview.1) /1.5.1+10** is published from exact tagged source `4c8206812a2a23ab238c2e523a2d7ab04d30a654`. [CI run 42329671305](https://github.com/BeauDevCode/steady-through/actions/runs/42329671305), attempt 1, passed all seven jobs: **468 Flutter tests, 94 Python helpers, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All 13 artifact ZIPs, six complete packages and ten public assets passed source/hash/size checks. The independent audit returned `PASS_WITH_LIMITS`, no findings/advisories. Exact draft/public body and server hashes/sizes/states matched; repository, release and all ten downloads returned anonymous HTTP200.
 
@@ -50,7 +64,7 @@ The earlier **1.3.0+7 / [v1.3.0-preview.1](https://github.com/BeauDevCode/steady
 
 ## Choose the right output
 
-Public filenames in this table refer to the verified current 1.5.1 release; the 1.5 evidence above remains historical. The historical 1.4 evidence above remains tied to its own source.
+Public filenames in this table refer to the last published, now historical 1.5.1 release. Intended 1.6.0/build 11 packages/metadata remain unverified; no 1.6 filename is a verified download yet. The historical 1.4 evidence above remains tied to its own source.
 
 | Output | Build and package | What it establishes |
 | --- | --- | --- |

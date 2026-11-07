@@ -1,12 +1,31 @@
 # Quality status
 
+<a id="current-160-work-in-progress--verification-and-publication-pending"></a>
+
+## Current 1.6.0 work in progress — verification and publication pending
+
+Working target **1.6.0+11 /v1.6.0-preview.1** refines the existing interface with warm ivory, deep teal, apricot and restrained lavender, paired light/dark foregrounds, a framed desktop rail and a clearer Home next step. Static original tool artwork, natural-height cards with aligned actions, text-aware People columns, visible hover/focus/press feedback and stacked headings at large text improve hierarchy without adding a feature family.
+
+A finite incoming-only reveal uses 240ms ease-out and at most 8px travel. Reduced motion completes the entrance immediately while preserving child state; a destination switch disposes outgoing content on its first frame. Help stays outside body motion. Shared cards keep one Material action: hover/focus stays passive and activation invokes the existing callback once.
+
+| Area | Current observed evidence and remaining gate |
+| --- | --- |
+| Shared behavioral RED/GREEN | Two valid shared regressions failed: changing reduced-motion preference reset the active child, and columns did not stack at text scale 2. A valid navigation regression failed for missing incoming movement; the immediate-Help baseline passed. Root then used a stable reveal tree and a keyed incoming destination with immediate outgoing disposal. |
+| Scoped checks | Initial eight motion/navigation/integration/layout checks and three contrast/interaction checks passed. Final `interaction-tools-final.log` passed 26 tests, including focused editable state through a midflight motion-preference change, actual outgoing disposal, immediate Help and existing tool ownership/feedback assertions. Only the three previously observed valid behavioral RED cases are claimed; scoped totals are not summed into a new suite count or universal accessibility certification. |
+| Final visual evidence | All 42 fictional PNGs were generated and inspected: 32 screen references/four passing profile tests in `captures-final.log`, plus ten component-feedback/entry frames/two passing tests in `feedback-captures-final.log`. Root inspected all content and the fresh narrow eight/full-size Home/Tools/dark-focus/light-settled frames after capture-only debug-banner removal. This is actual-widget visual evidence, not pixel comparison, native assistive technology or FPS validation. |
+| Visual verification method | Reversible palette, spacing and static original artwork are inspected through actual rendered captures rather than tests mirroring theme constants. Meaningful selected foreground/background pairs are checked separately. No pixel-comparison, native assistive-technology or FPS/performance result is claimed. |
+| Final local checks/review | `full-green.log`: 476 Flutter tests passed; `helpers-final.log`: 94 passed; `analyze-final.log`: no issues after removing three redundant imports; `format-final.log`: 124 files/no changes. Review covered `4c9dc219c246f658d88405fbe1d840bcaa2b80a8..d74c5f1f6a64ffbed7bc33c54e9ba0c268115977`: zero Critical/Important findings, no material fix pass needed, and one deferred nonblocking minor for direct semantic-tap regression coverage. Pointer/Enter activation and passive hover/focus are tested; source delegates one semantic action to InkWell, with no duplicate-handler defect found. No extra test or fix was added for this coverage opportunity. This source review does not certify native assistive technology, FPS, real handoffs or clinical outcomes. |
+| Runtime/packages/publication | New-source seven-job CI with all four native cases on each of five runtimes, thirteen outer ZIP/source/run/job bindings, six complete payloads/metadata, ten assets, independent byte audit and exact public body/tag/main/hash/anonymous verification remain pending. No 1.6 source/run/release is claimed. |
+
+Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permissions, learning thresholds and native adapters remain unchanged. Support stays free/offline with every source off. The owner retains **Source and Simulator for now** for iPhone; owner signing and physical installation are outside this completion target. Unsigned device output is package evidence, not installation. No pixel-comparison, native assistive-technology or FPS/performance validation is claimed. The verified 1.5.1 application/release record and final main baseline `4c9dc21` remain historical; they do not verify this new UI source. [Design](superpowers/specs/2026-11-07-visual-polish-design.md), [decisions](releases/1.6.0-decisions.md), [manual guide](device-validation.md) and [iOS handoff](ios-distribution.md) define the current boundaries.
+
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 
 <a id="current-151-preview--published-and-verified"></a>
 
 <a id="current-151-preview--verified-evidence"></a>
 
-## Current 1.5.1 preview — verified evidence
+## Published 1.5.1 preview — historical verified evidence
 
 **Published release evidence:** [v1.5.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.5.1-preview.1) / **1.5.1+10** is published from exact tagged source `4c8206812a2a23ab238c2e523a2d7ab04d30a654`. [CI run 42329671305](https://github.com/BeauDevCode/steady-through/actions/runs/42329671305), attempt 1, passed all seven jobs: **468 Flutter tests, 94 Python CI-helper tests, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All 13 outer artifact ZIPs/six complete packages and ten public assets passed source/hash/size checks. The independent audit returned `PASS_WITH_LIMITS` with no findings or advisories. Exact draft/public release body and all server digests/sizes/upload states matched; repository, release and all ten downloads returned anonymous HTTP200.
 

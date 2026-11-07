@@ -1,10 +1,26 @@
 # Manual device validation guide
 
+<a id="current-160-work-in-progress--verification-and-publication-pending"></a>
+
+## Current 1.6.0 work in progress — verification and publication pending
+
+Working target **1.6.0+11 /v1.6.0-preview.1** refines the existing interface with warm ivory, deep teal, apricot and restrained lavender, paired light/dark foregrounds, a framed desktop rail and a clearer Home next step. Static original tool artwork, natural-height cards with aligned actions, text-aware People columns, visible hover/focus/press feedback and stacked headings at large text improve hierarchy without adding a feature family.
+
+**Final local verification passed:** 476 Flutter tests, 94 Python CI-helper tests, no analyzer issues and 124 Dart files format-checked with no changes. The final interaction/tools scoped run passed 26 tests, including midflight motion-preference changes with focused text state, actual old-tab disposal and immediate Help. The three valid behavioral RED cases remain the two shared state/columns failures and one incoming-motion failure; no additional RED proof is claimed.
+
+All **42 final fictional actual-widget PNGs** were generated and inspected: 32 screen references across four passing profile tests and ten component-feedback/entry frames across two passing tests. Root also checked the final narrow eight scenes, full-size Home/Tools and dark-focus/light-settled frames after capture-only debug-banner removal. These captures do not establish pixel comparison, native assistive technology or FPS/performance validation.
+
+The general guide now targets intended **1.6.0+11**, with runtime/publication pending and source review complete; the last verified published preview is historical 1.5.1+10. This human checklist remains **unexecuted** for 1.6. Inspect reduced-motion changes without losing form state, first-frame Help, immediate old-tab disposal, single pointer/keyboard activation, visible focus, narrow/200% wrapping and natural-height actions on separately authorized test installations. Static captures do not replace those observations.
+
+Schema **4/read 1/2/3/4**, stored data, encryption/KDF, dependencies, permissions, learning thresholds and native adapters remain unchanged. Support stays free/offline with every source off. The owner retains **Source and Simulator for now** for iPhone; owner signing and physical installation are outside this completion target. Unsigned device output is package evidence, not installation. No pixel-comparison, native assistive-technology or FPS/performance validation is claimed.
+
+Whole-branch source review completed with zero material findings; no fix pass was needed. One nonblocking minor is deferred: direct semantic-tap regression coverage. Existing pointer/Enter and passive hover/focus checks remain; no duplicate-handler defect was found. This is source review, not physical assistive-technology, FPS, handoff or clinical certification. Exact-source seven-job CI with four native cases on each of five runtimes, thirteen artifact ZIP bindings, six complete packages, ten assets, independent byte audit and tag/body/hash/main/anonymous publication verification remain pending. No 1.6 release, CI source SHA or run is claimed; published 1.5.1 results below remain historical. [Current quality status](quality-status.md#current-160-work-in-progress--verification-and-publication-pending) separates the scoped evidence from pending runtime/distribution gates.
+
 <a id="current-151-work-in-progress--verification-and-publication-pending"></a>
 
 <a id="current-151-preview--published-and-verified"></a>
 
-## Current 1.5.1 preview — published and verified
+## Published 1.5.1 preview — historical verified evidence
 
 **[v1.5.1-preview.1](https://github.com/BeauDevCode/steady-through/releases/tag/v1.5.1-preview.1) /1.5.1+10** is published from exact tagged source `4c8206812a2a23ab238c2e523a2d7ab04d30a654`. [CI run 42329671305](https://github.com/BeauDevCode/steady-through/actions/runs/42329671305), attempt 1, passed all seven jobs: **468 Flutter tests, 94 Python helpers, 12 Android JUnit tests and all four required native cases on each of five runtimes**. All 13 artifact ZIPs, six complete packages and ten public assets passed source/hash/size checks. The independent audit returned `PASS_WITH_LIMITS`, no findings/advisories. Exact draft/public body and server hashes/sizes/states matched; repository, release and all ten downloads returned anonymous HTTP200.
 
@@ -42,7 +58,7 @@ Schema 4 reads validated 1/2/3/4. Keep a usable earlier backup if returning to a
 
 This is a checklist for a future human walkthrough of Steady Through. **No checks in this guide are claimed as executed or passed.** Record
 results separately for Android, iOS, macOS, Windows, and Linux; a build or automated native smoke test is not a substitute for these
-observations. Use the source commit and build under review, not an older preview. The current published preview is **1.5.1+10 /v1.5.1-preview.1**; its verified automated evidence is in [quality status](quality-status.md#current-151-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
+observations. Use the source commit and build under review, not an older preview. This guide targets intended **1.6.0+11 /v1.6.0-preview.1**, whose verification/publication remain pending; the last published preview is historical **1.5.1+10**, with its evidence in [quality status](quality-status.md#current-151-preview--verified-evidence). This manual checklist remains unexecuted. The unsigned iPhoneOS ZIP cannot be installed; physical iPhone testing first requires the separate owner-signed build described in the [iOS distribution handoff](ios-distribution.md).
 
 ## Set up a safe test session
 
