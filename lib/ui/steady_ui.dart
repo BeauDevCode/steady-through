@@ -2,27 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-class GentleReveal extends StatelessWidget {
-  const GentleReveal({super.key, required this.child});
-  final Widget child;
-  @override
-  Widget build(BuildContext context) {
-    if (MediaQuery.disableAnimationsOf(context)) return child;
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 360),
-      curve: Curves.easeOutCubic,
-      child: child,
-      builder: (_, value, child) => Opacity(
-        opacity: value,
-        child: Transform.translate(
-          offset: Offset(0, 12 * (1 - value)),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
+export 'steady_motion.dart';
+export 'interactive_card.dart';
+export 'tool_artwork.dart';
 
 class SteadyPage extends StatelessWidget {
   const SteadyPage({super.key, required this.children, this.maxWidth = 1120});
@@ -38,9 +20,17 @@ class SteadyPage extends StatelessWidget {
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: ListView(
             padding: EdgeInsets.fromLTRB(
-              constraints.maxWidth < 600 ? 20 : 36,
+              constraints.maxWidth < 360
+                  ? 16
+                  : constraints.maxWidth < 600
+                  ? 20
+                  : 32,
               24,
-              constraints.maxWidth < 600 ? 20 : 36,
+              constraints.maxWidth < 360
+                  ? 16
+                  : constraints.maxWidth < 600
+                  ? 20
+                  : 32,
               36,
             ),
             children: children,
@@ -55,16 +45,33 @@ class SurfaceCard extends StatelessWidget {
   const SurfaceCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(24),
+    this.padding,
+    this.gradient,
     this.color,
   });
   final Widget child;
-  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? padding;
+  final Gradient? gradient;
   final Color? color;
   @override
   Widget build(BuildContext context) => Card(
     color: color,
-    child: Padding(padding: padding, child: child),
+    clipBehavior: Clip.antiAlias,
+    child: DecoratedBox(
+      decoration: BoxDecoration(gradient: gradient),
+      child: Padding(
+        padding:
+            padding ??
+            EdgeInsets.all(
+              MediaQuery.sizeOf(context).width < 360
+                  ? 18
+                  : MediaQuery.sizeOf(context).width < 600
+                  ? 22
+                  : 24,
+            ),
+        child: child,
+      ),
+    ),
   );
 }
 
@@ -97,7 +104,8 @@ class SectionHeading extends StatelessWidget {
         ],
       );
       if (action == null) return heading;
-      if (constraints.maxWidth < 520) {
+      if (constraints.maxWidth < 520 ||
+          MediaQuery.textScalerOf(context).scale(14) > 20) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [heading, const SizedBox(height: 12), action!],
@@ -116,9 +124,16 @@ class SectionHeading extends StatelessWidget {
 }
 
 class IconBadge extends StatelessWidget {
-  const IconBadge({super.key, required this.icon, this.color, this.size = 48});
+  const IconBadge({
+    super.key,
+    required this.icon,
+    this.color,
+    this.foreground,
+    this.size = 48,
+  });
   final IconData icon;
   final Color? color;
+  final Color? foreground;
   final double size;
   @override
   Widget build(BuildContext context) => Container(
@@ -131,7 +146,7 @@ class IconBadge extends StatelessWidget {
     child: Icon(
       icon,
       size: size * .48,
-      color: Theme.of(context).colorScheme.onPrimaryContainer,
+      color: foreground ?? Theme.of(context).colorScheme.onPrimaryContainer,
     ),
   );
 }
@@ -155,20 +170,52 @@ class ResponsiveColumns extends StatelessWidget {
     super.key,
     required this.children,
     this.minWidth = 280,
+    this.alignHeights = false,
   });
   final List<Widget> children;
   final double minWidth;
+  final bool alignHeights;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
+      if (children.isEmpty) return const SizedBox.shrink();
+      final scale = math.max(
+        1.0,
+        MediaQuery.textScalerOf(context).scale(14) / 14,
+      );
+      final readingWidth = minWidth * scale;
       final count = math.max(
         1,
         math.min(
           children.length,
-          ((constraints.maxWidth + 20) / (minWidth + 20)).floor(),
+          ((constraints.maxWidth + 20) / (readingWidth + 20)).floor(),
         ),
       );
       final width = (constraints.maxWidth - 20 * (count - 1)) / count;
+      if (alignHeights) {
+        return Column(
+          children: [
+            for (var start = 0; start < children.length; start += count) ...[
+              if (start > 0) const SizedBox(height: 20),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (
+                      var index = start;
+                      index < math.min(start + count, children.length);
+                      index++
+                    ) ...[
+                      if (index > start) const SizedBox(width: 20),
+                      SizedBox(width: width, child: children[index]),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      }
       return Wrap(
         spacing: 20,
         runSpacing: 20,
