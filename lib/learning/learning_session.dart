@@ -135,18 +135,20 @@ class LearningSession extends ChangeNotifier {
     Set<SignalSource> sources, {
     bool deviceOwnerConfirmed = false,
   }) async {
-    if ((sources.contains(SignalSource.deviceUsage) ||
-            sources.contains(SignalSource.motion)) &&
+    final selectedSources = Set<SignalSource>.of(sources);
+    if ((selectedSources.contains(SignalSource.deviceUsage) ||
+            selectedSources.contains(SignalSource.motion)) &&
         !deviceOwnerConfirmed) {
       throw ArgumentError(
         'Confirm that this is your device before enabling a system source.',
       );
     }
     await controller.updateLearning(
-      data.copyWith(
-        enabledSources: sources,
+      (current) => current.copyWith(
+        enabledSources: selectedSources,
         deviceOwnerConfirmed: deviceOwnerConfirmed,
       ),
+      isActive: () => !_closed,
     );
     await _sync;
   }
@@ -225,6 +227,15 @@ class LearningSession extends ChangeNotifier {
   }
 
   Future<void> saveFeeling(FeelingLabel label) async {
+    final revision = controller.replacementRevision;
+    final generation = _generation;
+    bool ownsObservation() =>
+        !_closed &&
+        !paused &&
+        generation == _generation &&
+        revision == controller.replacementRevision &&
+        data.enabledSources.isNotEmpty &&
+        !snapshot.possibleVehicle;
     if (_closed || paused || data.enabledSources.isEmpty) {
       throw StateError('Choose a source before saving a personal example.');
     }
@@ -233,7 +244,7 @@ class LearningSession extends ChangeNotifier {
       // then request a fresh native classification before accepting a label.
       await _refreshing;
       await refresh();
-      if (_closed || paused || data.enabledSources.isEmpty) {
+      if (!ownsObservation()) {
         throw StateError('Learning is not active.');
       }
     }
@@ -241,15 +252,21 @@ class LearningSession extends ChangeNotifier {
     if (current.possibleVehicle) {
       throw StateError('Return to reflection when safely stopped.');
     }
-    final revision = controller.replacementRevision;
-    final saved = await controller.recordLearning(label, current);
+    final saved = await controller.recordLearning(
+      label,
+      current,
+      expectedRevision: revision,
+      isActive: ownsObservation,
+    );
     if (!_closed &&
-        revision == controller.replacementRevision &&
-        data.examples.any((example) => identical(example, saved))) {
-      _undoableMoment = saved;
+        generation == _generation &&
+        revision == controller.replacementRevision) {
+      if (data.examples.any((example) => identical(example, saved))) {
+        _undoableMoment = saved;
+      }
+      _resetWindow();
+      notifyListeners();
     }
-    _resetWindow();
-    if (!_closed) notifyListeners();
   }
 
   void _requireHistoryAccess() {
@@ -311,13 +328,18 @@ class LearningSession extends ChangeNotifier {
   }
 
   Future<void> pause() async {
-    await controller.updateLearning(data.copyWith(pausedByUser: true));
+    await controller.updateLearning(
+      (current) => current.copyWith(pausedByUser: true),
+      isActive: () => !_closed,
+    );
     await _sync;
   }
 
   Future<void> resume() async {
-    if (_closed) return;
-    await controller.updateLearning(data.copyWith(pausedByUser: false));
+    await controller.updateLearning(
+      (current) => current.copyWith(pausedByUser: false),
+      isActive: () => !_closed,
+    );
     await _sync;
   }
 

@@ -159,7 +159,7 @@ void main() {
     );
     final eventSnapshot = controller.activeEvent!.toJson();
     await controller.updateLearning(
-      LearningData(
+      (_) => LearningData(
         enabledSources: SignalSource.values.toSet(),
         deviceOwnerConfirmed: true,
         pausedByUser: true,

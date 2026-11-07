@@ -385,7 +385,7 @@ void main() {
     (tester) async {
       await tester.runAsync(
         () => controller.updateLearning(
-          LearningData(
+          (_) => LearningData(
             examples: [
               LearningExample(
                 id: 'fractional',

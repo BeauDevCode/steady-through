@@ -23,33 +23,43 @@ class AppController extends ChangeNotifier {
 
   Future<void> flush() => _writeQueue;
 
-  Future<void> updateLearning(LearningData learning) => _mutate(
-    (current) =>
-        current.copyWith(learning: learning.bounded(DateTime.now().toUtc())),
-  );
+  Future<void> updateLearning(
+    LearningData Function(LearningData current) change, {
+    int? expectedRevision,
+    bool Function()? isActive,
+  }) {
+    final revision = expectedRevision ?? _replacementRevision;
+    return _mutate((current) {
+      _guardOwnership(revision, isActive);
+      return current.copyWith(learning: change(current.learning));
+    });
+  }
 
   Future<LearningExample> recordLearning(
     FeelingLabel label,
-    SignalSnapshot snapshot,
-  ) async {
+    SignalSnapshot snapshot, {
+    int? expectedRevision,
+    bool Function()? isActive,
+  }) async {
+    final revision = expectedRevision ?? _replacementRevision;
     late LearningExample saved;
     await _mutate((current) {
+      _guardOwnership(revision, isActive);
       final now = DateTime.now().toUtc();
-      saved = LearningExample(
+      final example = LearningExample(
         id: _newId(),
         createdAt: now,
         label: label,
         snapshot: snapshot.forSources(current.learning.enabledSources),
       );
-      final next = current.learning.record(saved, now: now);
-      return current.copyWith(
-        learning: PersonalPatternEngine().review(next, now: now).data,
-      );
+      final next = current.learning.record(example, now: now);
+      final reviewed = PersonalPatternEngine().review(next, now: now).data;
+      saved = reviewed.examples.firstWhere((value) => value.id == example.id);
+      return current.copyWith(learning: reviewed);
     });
-    // Return the actual committed instance, including consent filtering.
-    return _data.learning.examples.firstWhere(
-      (example) => example.id == saved.id,
-    );
+    // Return the canonical committed instance even if a later queued operation
+    // has already cleared or replaced the live document.
+    return saved;
   }
 
   Future<void> relabelLearningExample(String id, FeelingLabel label) => _mutate(
@@ -356,7 +366,7 @@ class AppController extends ChangeNotifier {
           .where((checkIn) => checkIn.eventId != id)
           .toList(),
     );
-  });
+  }, purgeResidual: true);
 
   Future<void> addAction(String eventId, JourneyStage stage, String title) {
     final cleanTitle = title.trim();
@@ -638,14 +648,16 @@ class AppController extends ChangeNotifier {
     return current.copyWith(
       checkIns: current.checkIns.where((checkIn) => checkIn.id != id).toList(),
     );
-  });
+  }, purgeResidual: true);
 
   Future<void> recordRound(GameRound round) => _mutate(
     (current) => current.copyWith(gameRounds: [...current.gameRounds, round]),
   );
 
-  Future<void> clearGameRounds() =>
-      _mutate((current) => current.copyWith(gameRounds: []));
+  Future<void> clearGameRounds() => _mutate(
+    (current) => current.copyWith(gameRounds: []),
+    purgeResidual: true,
+  );
 
   Future<void> setTheme(ThemeChoice choice) =>
       _mutate((current) => current.copyWith(theme: choice));
@@ -666,7 +678,7 @@ class AppController extends ChangeNotifier {
         deviceOwnerConfirmed: false,
       ),
     );
-    return _mutate((_) => imported, replacing: true);
+    return _mutate((_) => imported, replacing: true, purgeResidual: true);
   }
 
   Future<void> clearAll() =>

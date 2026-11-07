@@ -524,7 +524,7 @@ void main() {
       final now = DateTime.now().toUtc();
       await tester.runAsync(
         () => controller.updateLearning(
-          LearningData(
+          (_) => LearningData(
             enabledSources: {SignalSource.inApp},
             examples: [
               for (var day = 1; day <= 10; day++) ...[

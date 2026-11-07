@@ -208,9 +208,7 @@ void main() {
     expect(session.undoableMoment, isNull);
     await session.saveFeeling(FeelingLabel.low);
     await controller.updateLearning(
-      controller.data.learning.copyWith(
-        examples: [controller.data.learning.examples.first],
-      ),
+      (current) => current.copyWith(examples: [current.examples.first]),
     );
     expect(session.undoableMoment, isNull);
   });
