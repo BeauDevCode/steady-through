@@ -263,8 +263,16 @@ class AppController extends ChangeNotifier {
       await _repository.save(next);
       _data = next;
       if (replacing) _replacementRevision++;
-      if (pruned || purgeResidual) await _purgeResidual();
+      // A committed consent change must reach the learning session before
+      // secondary filesystem cleanup can delay stopping its native sources.
       if (!_disposed) notifyListeners();
+      if (pruned || purgeResidual) {
+        final previousWarning = _cleanupWarning;
+        await _purgeResidual();
+        if (!_disposed && previousWarning != _cleanupWarning) {
+          notifyListeners();
+        }
+      }
     });
     // Keep the queue usable after a failed write while still surfacing the
     // failure to the caller of this particular operation.
